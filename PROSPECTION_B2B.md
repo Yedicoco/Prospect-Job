@@ -1,18 +1,18 @@
-# Prospection B2B — phase 1
-### Yallah Services · Casablanca · Rabat · Marrakech · Bouskoura
-**Date de collecte : 21 octobre 2026** · 26 établissements identifiés · 20 en zone phase 1
+# Prospection B2B — phases 1 et 2
+### Yallah Services · Casablanca · Rabat · Marrakech · Bouskoura · Tanger · Agadir · Mohammedia · Kénitra
+**Date de collecte : 21 octobre 2026** · 37 établissements identifiés · 20 en zone phase 1 · 11 en phase 2
 
 ---
 
 ## 1. Objet
 
-Ce document recense des **entreprises clientes potentielles** (hôtels, riads et maisons d'hôtes, restaurants, chantiers, sociétés de nettoyage, commerces, organisateurs d'événements) implantées dans les zones de la phase 1, avec **uniquement des coordonnées professionnelles publiquement affichées** par ces établissements.
+Ce document recense des **entreprises clientes potentielles** (hôtels, riads et maisons d'hôtes, restaurants, chantiers, sociétés de nettoyage, commerces, organisateurs d'événements) implantées dans les zones de la **phase 1** (Casablanca, Bouskoura, Rabat, Marrakech) et dans les **villes de la phase 2** (Tanger, Agadir, Mohammedia, Kénitra), avec **uniquement des coordonnées professionnelles publiquement affichées** par ces établissements.
 
 Ce n'est **pas** une liste d'offres d'emploi. Les messages proposés en section 8 sont des **offres commerciales** destinées à un client (l'établissement). Aucun de ces contacts ne doit recevoir une annonce de recrutement : voir section 10.
 
 **Trois principes tenus tout au long du document :**
 
-1. **Aucune donnée inventée.** Chaque fiche porte une URL source et une date de consultation (§ 12). Quand une information n'existe pas publiquement, la mention est « non trouvé » (§ 6).
+1. **Aucune donnée inventée.** Chaque fiche porte une URL source et une date de consultation (§ 12). Quand une information n'existe pas publiquement, la mention est « non trouvé » (§ 7).
 2. **Aucune donnée privée, aucun contournement.** Seuls les numéros et adresses que les établissements publient eux-mêmes sur leur site ou leur page officielle sont repris. Pas d'annuaire acheté, pas d'extraction de données personnelles, pas de scraping.
 3. **La vérification est datée et graduée.** Une coordonnée peut changer ou être erronée sur le site lui-même : le niveau A / B / C (§ 2) dit ce qui a été réellement contrôlé.
 
@@ -26,24 +26,30 @@ Ce n'est **pas** une liste d'offres d'emploi. Les messages proposés en section 
 | **B** | Coordonnée vue dans un extrait de moteur de recherche ou sur une page sociale présentée comme officielle, non reconfirmée sur la page consultée | Reconfirmer avant un envoi engageant |
 | **C** | Aucun contact direct publié (formulaire uniquement) | Passage obligé par le formulaire du site |
 
-Répartition : **12 fiches A · 13 fiches B · 1 fiche C**.
+Répartition globale : **16 fiches A · 20 fiches B · 1 fiche C** (phase 1 : 12 A / 13 B / 1 C — phase 2 : 4 A / 7 B).
 
-La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonnancement**, pas une prévision : segment (hôtel, riad, événementiel = 3 ; restaurant, chantier, nettoyage, commerce = 2 ; porteur de projet = 1) + 3 si la zone est en phase 1 + 2 si niveau A, 1 si B − 1 en cas d'anomalie de données.
+**Phase 1 et phase 2 ne se valent pas commercialement.** En phase 2, la fiche ne précise pas de quartiers : la zone est donc « ville entière », et le score de priorité n'accorde pas le bonus de zone phase 1. Les 11 fiches de phase 2 sont conçues comme un **démarrage progressif**, pas comme un second front à ouvrir en même temps que la phase 1.
+
+La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonnancement**, pas une prévision : segment (hôtel, riad, événementiel = 3 ; restaurant, chantier, nettoyage, commerce = 2 ; porteur de projet = 1) + 3 si la zone est en phase 1, + 1 si la fiche est en phase 1 sans être dans un quartier listé, + 2 si niveau A, 1 si B, − 1 en cas d'anomalie de données.
 
 ---
 
 ## 3. Synthèse
 
-| Ville | Fiches | En zone phase 1 |
-|---|---|---|
-| Casablanca | 10 | 5 (Anfa, Gauthier) |
-| Rabat | 7 | 7 (Hay Riad, Agdal, Souissi) |
-| Marrakech | 6 | 5 (Palmeraie, Hivernage) |
-| Bouskoura | 3 | 3 (Ville Verte) |
+| Ville | Phase | Fiches | En zone nommée de la fiche |
+|---|---|---|---|
+| Casablanca | 1 | 10 | 5 (Anfa, Gauthier) |
+| Rabat | 1 | 7 | 7 (Hay Riad, Agdal, Souissi) |
+| Marrakech | 1 | 6 | 5 (Palmeraie, Hivernage) |
+| Bouskoura | 1 | 3 | 3 (Ville Verte) |
+| Tanger | 2 | 3 | ville entière |
+| Mohammedia | 2 | 3 | ville entière |
+| Kénitra | 2 | 3 | ville entière |
+| Agadir | 2 | 2 | ville entière |
 
 | Segment | Fiches |
 |---|---|
-| Hôtels | 11 |
+| Hôtels | 22 |
 | Événementiel / traiteur | 4 |
 | Riads et maisons d'hôtes | 3 |
 | Restaurants | 2 |
@@ -51,6 +57,8 @@ La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonn
 | Commerces et centres commerciaux | 2 |
 | Sociétés de nettoyage | 1 |
 | Porteurs de projets | 1 (par analogie, voir § 6) |
+
+**Déséquilibre assumé :** les 11 fiches de phase 2 sont **toutes des hôtels**. C'est le résultat direct de la méthode : en phase 2, seuls les hôtels publient un site avec un contact vérifiable. Aucun restaurant, riad ou traiteur de Tanger, Agadir, Mohammedia ou Kénitra n'a pu être retenu faute de coordonnée officielle vérifiable — ce n'est pas une absence sur le terrain, c'est une absence de source.
 
 **Lecture honnête de ces chiffres :** la densité vient des hôtels parce que ce sont les établissements qui publient le plus systématiquement un site avec contact. Les segments « commerces indépendants » et « porteurs de projets » sont structurellement sous-représentés, non parce qu'ils manquent, mais parce qu'ils n'ont pas d'adresse publique trouvable. Il ne faut pas lire ce tableau comme une mesure du marché.
 
@@ -109,7 +117,7 @@ La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonn
 
 ---
 
-## 6. Marrakech et Bouskoura
+## 6. Marrakech, Bouskoura et phase 2
 
 ### Marrakech
 
@@ -140,6 +148,41 @@ La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonn
 - **B2 Triangle Vert** — 8 500 m² de commerces, cafés, restaurants et coworking : entretien des parties communes et gardiennage. Coordonnées de niveau B.
 - **B3 Beverly Ville Verte** — programme de villas en livraison : nettoyage de fin de chantier et gardiennage. ⚠️ Classé « porteur de projet » **par analogie**, pas sur la base d'une source qui le déclarerait tel quel.
 
+### Phase 2 — Tanger, Agadir, Mohammedia, Kénitra
+
+| # | Établissement | Segment | Ville | Contact public | Vérif. | Source |
+|---|---|---|---|---|---|---|
+| T1 | **Mövenpick Hotel & Casino Malabata** | Hôtel 5★ | Tanger | +212 539 32 93 00 · hotel.tangier.casino@movenpick.com | B | [site officiel](https://movenpick.accor.com/fr/africa/morocco/tangier/hotel-malabata-tanger.html) |
+| T2 | **Idou Malabata Beach & Spa** | Hôtel | Tanger | +212 539 30 90 55 · info@idoumalabata.com | A | [page contact](https://idoumalabata.com/en/contact/) |
+| T3 | **Hilton Tanger City Center** | Hôtel | Tanger | +212 539 30 97 00 · tngcc_hotel@hilton.com | B | [site officiel](https://www.hilton.com/fr/hotels/tngcchi-hilton-tangier-city-center/) |
+| A1 | **Intouriste Hotel & Suites** | Hôtel | Agadir | +212 528 23 75 15 · reservation@intouriste.com | A | [page contact](https://intouriste.com/contact/) |
+| A2 | **Iberostar Waves Founty Beach** | Hôtel 4★ | Agadir | +212 528 84 44 44 · founty.beach@iberostar.com | B | [site officiel](https://www.iberostar.com/fr/hotels/agadir/iberostar-waves-founty-beach/) |
+| M1 | **Avanti Mohammedia Hotel** | Hôtel | Mohammedia | +212 521 49 21 21 · reservations@avantimohammedia.com | B | [fiche](https://www.petitfute.com/v46127-mohammedia/c1166-hebergement/c158-hotel/463898-avanti-mohammedia-hotel.html) |
+| M2 | **Novotel Mohammedia** | Hôtel | Mohammedia | +212 523 30 96 00 · H9746@accor.com | B | [fiche officielle](https://all.accor.com/hotel/9746/index.en.shtml) |
+| M3 | **ibis Mohammedia** | Hôtel | Mohammedia | +212 523 30 90 00 · H9747@accor.com | B | [fiche officielle](https://all.accor.com/hotel/9747/index.en.shtml) |
+| K1 | **Hotel Mamora Kénitra** | Hôtel | Kénitra | +212 537 37 13 10 · info@mamorakenitra.com | A | [site officiel](https://mamorakenitra.com/) |
+| K2 | **Relax Hôtel Kénitra** | Hôtel 3★ | Kénitra | +212 529 08 01 32 · reservation@hotelsatlas.com | A | [site officiel](https://myrelaxhotels.com/our-hotels/kenitra/relax-kenitra) |
+| K3 | **Urban Hôtel & Spa** | Hôtel 4★ | Kénitra | +212 537 30 75 40 | B | [site officiel](https://urbanhotel.ma/) |
+
+**⚠️ Les préfixes T / A / M / K ci-dessus ne servent qu'à cette section** : les références qui font foi sont celles du CSV (`B2B-001` à `B2B-037`).
+
+#### Détail et angle d'approche
+
+- **T1 Mövenpick** — 5 étoiles sur la baie, casino, plusieurs restaurants et bars, salles de réunion. Le casino et les salles de réunion créent une activité en continu, y compris en soirée : c'est l'argument à mettre en avant. Téléphone et email de niveau B.
+- **T2 Idou Malabata** — hôtel en bord de mer à Ghandouri, 7 minutes de la gare. ⚠️ **Le site se contredit** : le numéro affiché (+212 539 309 055) diffère du lien d'appel (+212 539 304 019). Composer le premier, et si l'appel échoue, essayer le second.
+- **T3 Hilton Tanger** — hôtel urbain de groupe international. Entrée par l'exploitation, jamais par la réservation. Circuit achat probable : à traiter en second rideau.
+- **A1 Intouriste (Agadir)** — plusieurs points de restauration (KLAY, Kong Food), spa, et une **rubrique « événements / groupes »** sur sa page de contact : c'est la porte d'entrée la plus claire du lot pour un renfort événementiel.
+- **A2 Iberostar Founty Beach** — resort de plage, volume d'entretien et de restauration élevé, forte saisonnalité.
+- **M1 Avanti** — 156 chambres et suites, salles de séminaire, restaurant, bar de plage : le plus gros volume de Mohammedia. ⚠️ **Son site officiel (myguests) était inaccessible** au moment de la collecte (erreur serveur) : les coordonnées proviennent d'une fiche tierce et n'ont pas pu être reconfirmées sur le site de l'établissement.
+- **M2 / M3 Novotel et ibis Mohammedia** — deux hôtels Accor dans la même ville, à traiter **ensemble** plutôt que séparément (même circuit d'achat).
+- **K1 Mamora** — 69 chambres, restaurant, bar, salles de réunion et night club. ⚠️ **Le site affiche ses tarifs de chambre** (990 à 1 500 MAD la nuit) : ces montants ne doivent jamais être repris dans un message Yallah — ils n'ont rien à voir avec nos prestations et leur reprise donnerait un cadre tarifaire faux.
+- **K2 Relax Kénitra** — hôtel du groupe Atlas Hospitality, présent aussi à Casablanca, Marrakech et Oujda : **l'approche groupe peut couvrir plusieurs villes d'un coup**.
+- **K3 Urban Hôtel** — 4 étoiles de 58 chambres, restaurant intérieur et extérieur, proche gare. Aucun email publié : appel uniquement.
+
+#### Ce qui manque en phase 2, et pourquoi
+
+Aucun restaurant, riad, traiteur, chantier ou commerce de Tanger, Agadir, Mohammedia ou Kénitra n'a été retenu. La raison est constante : leurs coordonnées ne sont publiées que sur des annuaires ou des pages non officielles, ce qui interdirait de les qualifier de coordonnées « publiquement affichées par l'établissement ». **Pour ouvrir ces segments, il faut une collecte terrain**, pas une recherche en ligne.
+
 ---
 
 ## 7. Non trouvé — et pourquoi
@@ -154,6 +197,8 @@ Conformément à la règle « si je ne trouve pas, j'écris non trouvé », voic
 | **Délais, garanties, disponibilités de candidats** | **non recherchés** | Idem : ce sont des engagements que Yallah n'a pas communiqués. |
 | Volume réel des besoins (nombre d'agents, fréquence) | **non trouvé** | Information interne aux établissements : elle se découvre à l'appel, pas sur un site. |
 | Coordonnée directe de **The White Palace** | **non trouvé** | Le site ne publie qu'un formulaire (niveau C). |
+| Contacts de restaurants, riads, traiteurs et commerces en **phase 2** | **non trouvé** | Aucune de ces structures ne publie de contact vérifiable sur un site qui lui appartienne. Voir « Ce qui manque en phase 2 ». |
+| Email d'**Urban Hôtel** (Kénitra) | **non trouvé** | Aucune adresse email publiée sur les pages consultées. |
 
 ### Anomalies de données à connaître avant d'appeler
 
@@ -253,7 +298,7 @@ Deux formulations sont également à éviter même si le garde-fou ne les attrap
 | Canal | Appel, WhatsApp, email professionnel | Plateformes d'emploi, réseaux sociaux, affichage |
 | Contenu | Services, formats (permanent / temporaire / renfort), demande d'échange | Poste, missions, prérequis, modalités de candidature |
 
-**Conséquence opérationnelle :** les 26 contacts de ce document sont des **entreprises**. Ils ne doivent jamais recevoir un message du type « nous recrutons des femmes de ménage » : cela les transformerait en source de candidats alors qu'ils sont une source de clients, et brouillerait la position de Yallah. Si un établissement demande à recruter directement, cela relève d'un autre module et d'un autre cadre (voir § 11).
+**Conséquence opérationnelle :** les 37 contacts de ce document sont des **entreprises**. Ils ne doivent jamais recevoir un message du type « nous recrutons des femmes de ménage » : cela les transformerait en source de candidats alors qu'ils sont une source de clients, et brouillerait la position de Yallah. Si un établissement demande à recruter directement, cela relève d'un autre module et d'un autre cadre (voir § 11).
 
 ---
 
@@ -262,15 +307,33 @@ Deux formulations sont également à éviter même si le garde-fou ne les attrap
 1. **Reconfirmer les 13 fiches de niveau B** avant tout envoi engageant, en commençant par celles en zone phase 1.
 2. **Ne pas automatiser l'envoi.** Un envoi en masse vers des coordonnées professionnelles collectées sur des sites expose à des obligations de protection des données. À faire valider : les règles applicables au démarchage (loi 09-08 relative à la protection des données personnelles, cadre du démarchage commercial) auprès de la CNDP, avant toute campagne d'emailing.
 3. **Ne conserver que des coordonnées d'entreprise.** Aucun nom de personne physique ne doit être ajouté au fichier ; les prénoms publiés sur deux sites (Dar Challa, Maison Ayda) ne sont pas repris dans le CSV.
-4. **Mettre à jour le module B2C existant** (`yallah_b2c.py`) : sa base de faits cite **Salé**, absent de toutes les zones de la fiche, et omet **El Jadida** (phase 3). Deux corrections à faire avant toute génération de contenu.
+4. ~~Mettre à jour le module B2C existant (`yallah_b2c.py`) : base de faits citant Salé et omettant El Jadida.~~ **Corrigé le 21/10/2026** : la base de faits reprend désormais les zones et les trois phases de la fiche, et les constantes `PHASE_2` / `PHASE_3` sont partagées avec le module de prospection.
 5. **Ouvrir le segment « porteurs de projets »** avec une méthode dédiée : la recherche publique ne suffit pas (§ 7).
-6. **Étendre aux phases 2 et 3** (Tanger, Agadir, Mohammedia, Kénitra ; puis Fès, El Jadida, Témara/Harhoura) en réutilisant exactement la même grille de niveaux A/B/C.
+6. **Compléter la phase 2 sur le terrain** : les 11 fiches actuelles sont toutes hôtelières. Les restaurants, riads et traiteurs de ces quatre villes exigent une collecte physique ou un contact direct, pas une recherche en ligne.
+7. **Étendre à la phase 3** (Fès, El Jadida, Témara/Harhoura) avec la même grille A/B/C — et le même constat attendu : la couverture sera hôtelière tant qu'on reste en source ouverte.
 
 ---
 
 ## 12. Journal des sources
 
 Toutes les pages ci-dessous ont été consultées le **21 octobre 2026**.
+
+**Phase 2 — niveau A :**
+- Idou Malabata — https://idoumalabata.com/en/contact/
+- Intouriste Hotel & Suites — https://intouriste.com/contact/
+- Hotel Mamora Kénitra — https://mamorakenitra.com/
+- Relax Hôtel Kénitra — https://myrelaxhotels.com/our-hotels/kenitra/relax-kenitra
+
+**Phase 2 — niveau B :**
+- Mövenpick Malabata — https://movenpick.accor.com/fr/africa/morocco/tangier/hotel-malabata-tanger.html
+- Hilton Tanger City Center — https://www.hilton.com/fr/hotels/tngcchi-hilton-tangier-city-center/
+- Iberostar Waves Founty Beach — https://www.iberostar.com/fr/hotels/agadir/iberostar-waves-founty-beach/
+- Avanti Mohammedia — https://www.petitfute.com/v46127-mohammedia/c1166-hebergement/c158-hotel/463898-avanti-mohammedia-hotel.html
+- Novotel Mohammedia — https://all.accor.com/hotel/9746/index.en.shtml
+- ibis Mohammedia — https://all.accor.com/hotel/9747/index.en.shtml
+- Urban Hôtel & Spa — https://urbanhotel.ma/
+
+**Phase 1 :**
 
 **Niveau A — page officielle consultée :**
 - Idou Anfa — https://hotelidouanfacasablanca.com/contact
@@ -310,13 +373,15 @@ Toutes les pages ci-dessous ont été consultées le **21 octobre 2026**.
 
 | Fichier | Rôle |
 |---|---|
-| `prospects_b2b.json` | Source unique et versionnée des 26 fiches (URL + date + niveau + faits observés) |
+| `prospects_b2b.json` | Source unique et versionnée des 37 fiches (URL + date + niveau + phase + faits observés) |
 | `yallah_prospection.py` | Valide les fiches, calcule la priorité, génère les messages, applique le garde-fou, exporte le CSV |
 | `prospects_b2b.csv` | Artefact de travail généré (ignoré par Git) |
-| `tests/test_prospection.py` | 17 tests : garde-fou, validation des sources, priorité, messages |
+| `tests/test_prospection.py` | 20 tests : garde-fou, validation des sources, priorité, phases, messages |
 
 ```bash
-python yallah_prospection.py --check                    # valide les 26 fiches et les messages
+python yallah_prospection.py --check                    # valide les 37 fiches et les messages
+python yallah_prospection.py --phase 1                  # phase 1 seule
+python yallah_prospection.py --phase 2 --ville Tanger
 python yallah_prospection.py --ville Rabat              # CSV filtré
 python yallah_prospection.py --segment hotel --langue darija
 python yallah_prospection.py --niveau A --sans-messages

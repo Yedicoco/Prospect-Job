@@ -51,6 +51,7 @@ class TestValidation(unittest.TestCase):
             "source_url": "https://exemple.ma/contact",
             "date_consultation": "2026-10-21",
             "niveau": "A",
+            "phase": 1,
             "tel": "+212 5 00 00 00 00",
         }
 
@@ -65,6 +66,11 @@ class TestValidation(unittest.TestCase):
     def test_date_mal_formee(self):
         f = self.fiche_valide()
         f["date_consultation"] = "21/10/2026"
+        self.assertTrue(yp.valider_fiche(f))
+
+    def test_phase_invalide(self):
+        f = self.fiche_valide()
+        f["phase"] = 4
         self.assertTrue(yp.valider_fiche(f))
 
     def test_segment_inconnu(self):
@@ -85,6 +91,14 @@ class TestPriorite(unittest.TestCase):
         self.assertTrue(yp.zone_phase_1("Casablanca", "Anfa"))
         self.assertTrue(yp.zone_phase_1("Marrakech", "Palmeraie"))
         self.assertFalse(yp.zone_phase_1("Casablanca", "Maarif"))
+
+    def test_phase_deduite_de_la_ville(self):
+        self.assertEqual(yp.phase_de({"ville": "Tanger"}), 2)
+        self.assertEqual(yp.phase_de({"ville": "El Jadida"}), 3)
+        self.assertEqual(yp.phase_de({"ville": "Rabat"}), 1)
+
+    def test_phase_declaree_prime(self):
+        self.assertEqual(yp.phase_de({"ville": "Tanger", "phase": 1}), 1)
 
     def test_hotel_en_zone_classe_au_dessus(self):
         base = {

@@ -7,9 +7,10 @@ Deux modules distincts :
 | **B2C** (particuliers) | `yallah_b2c.py` | Contenus de publication à destination des particuliers |
 | **B2B** (entreprises) | `yallah_prospection.py` | Prospection d'entreprises clientes, à partir d'un fichier de prospects sourcés |
 
-La recherche de prospects et la synthèse sont dans **`PROSPECTION_B2B_PHASE1.md`**
-(26 établissements à Casablanca, Rabat, Marrakech et Bouskoura, chacun avec URL
-source et date de consultation).
+La recherche de prospects et la synthèse sont dans **`PROSPECTION_B2B.md`**
+(37 établissements : 26 en phase 1 à Casablanca, Rabat, Marrakech et Bouskoura,
+11 en phase 2 à Tanger, Agadir, Mohammedia et Kénitra, chacun avec URL source et
+date de consultation).
 
 ## Module B2C
 
@@ -80,10 +81,12 @@ sans source est refusée : aucune coordonnée ne peut entrer sans provenance.
 ```bash
 python yallah_prospection.py --check                     # validation, code retour 1 si anomalie
 python yallah_prospection.py                             # CSV complet
+python yallah_prospection.py --phase 1
+python yallah_prospection.py --phase 2 --ville Tanger
 python yallah_prospection.py --ville Rabat --niveau A
 python yallah_prospection.py --segment hotel --langue darija
 python yallah_prospection.py --sans-messages             # contacts seuls
-python -m unittest discover -s tests -v                  # 17 tests
+python -m unittest discover -s tests -v                  # 20 tests
 ```
 
 ### Niveaux de vérification
@@ -100,7 +103,7 @@ Uniquement des **coordonnées professionnelles publiées par l'établissement
 lui-même**, pour le contacter au sujet d'une prestation. Pas d'annuaire acheté,
 pas d'extraction de données personnelles, pas d'envoi automatisé en masse.
 Les messages générés sont des **offres commerciales** : ils ne doivent jamais
-être envoyés comme des offres d'emploi (voir `PROSPECTION_B2B_PHASE1.md`, § 10).
+être envoyés comme des offres d'emploi (voir `PROSPECTION_B2B.md`, § 10).
 
 ## Contact
 

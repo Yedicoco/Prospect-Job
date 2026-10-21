@@ -3,7 +3,7 @@
     "projet": "Yallah Services - prospection B2B phase 1",
     "date_collecte": "2026-10-21",
     "regle": "Aucune coordonnee inventee. Chaque fiche porte une source (URL) et une date de consultation. Niveau A = coordonnee lue sur la page officielle consultee ; niveau B = coordonnee vue dans un extrait de moteur de recherche ou une page sociale, non reconfirmee sur la page officielle ; niveau C = aucun contact direct publie (formulaire uniquement).",
-    "perimetre": "Coordonnees professionnelles publiees par les etablissements eux-memes, pour les seuls besoins de les contacter au sujet d'une prestation professionnelle.",
+    "perimetre": "Coordonnees professionnelles publiees par les etablissements eux-memes, pour les seuls besoins de les contacter au sujet d'une prestation professionnelle. Phase 1 : Casablanca, Bouskoura, Rabat, Marrakech. Phase 2 : Tanger, Agadir, Mohammedia, Kenitra.",
     "contact_yallah_whatsapp": "212691733585"
   },
   "prospects": [
@@ -20,9 +20,15 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "220 chambres, 3 restaurants, 7 salles de seminaire, spa et piscine (page A propos du site officiel).",
-      "besoins_probables": ["PRP", "CUI", "SRV", "REN"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
       "angle": "Volumetrie chambres + seminaires : entretien, plonge, extras evenementiels.",
-      "anomalies": ""
+      "anomalies": "",
+      "phase": 1
     },
     {
       "nom": "Le Palace d'Anfa",
@@ -37,9 +43,15 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "4 restaurants et bars, 9 salles de reunion, spa (page d'accueil officielle consultee). Telephone et email issus d'un extrait de recherche, non reconfirmes sur la page.",
-      "besoins_probables": ["PRP", "CUI", "SRV", "REN"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
       "angle": "4 points de restauration + 9 salles : besoins recurrents en cuisine, plonge et service.",
-      "anomalies": "Telephone a reconfirmer avant appel (niveau B)."
+      "anomalies": "Telephone a reconfirmer avant appel (niveau B).",
+      "phase": 1
     },
     {
       "nom": "Le Casablanca Hotel",
@@ -54,9 +66,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "68 chambres et suites, 3 restaurants/bars, espaces seminaires et spa (page d'accueil officielle).",
-      "besoins_probables": ["PRP", "CUI", "SRV"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
       "angle": "Hotel a taille humaine : interlocuteur unique possible (direction), besoin d'entretien et de cuisine.",
-      "anomalies": ""
+      "anomalies": "",
+      "phase": 1
     },
     {
       "nom": "Boutique Hotel Gauthier",
@@ -71,9 +88,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "53 chambres, restaurant Le Patio ouvert de 7h a 00h (page d'accueil officielle consultee). Telephone vu sur la page Facebook officielle et la page reservation, non affiche sur la page consultee.",
-      "besoins_probables": ["PRP", "CUI", "SRV"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
       "angle": "Restaurant ouvert 7h-minuit + 53 chambres : deux besoins distincts, souvent en renfort.",
-      "anomalies": "Telephone a reconfirmer (niveau B)."
+      "anomalies": "Telephone a reconfirmer (niveau B).",
+      "phase": 1
     },
     {
       "nom": "La Cantine de Gauthier",
@@ -88,9 +110,13 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Page Facebook presentee comme page officielle du restaurant (adresse, telephone, email publies).",
-      "besoins_probables": ["CUI", "SRV"],
+      "besoins_probables": [
+        "CUI",
+        "SRV"
+      ],
       "angle": "Restaurant de quartier a forte frequentation : plonge et service en renfort.",
-      "anomalies": "Pas de site officiel identifie ; fiche a verifier sur place."
+      "anomalies": "Pas de site officiel identifie ; fiche a verifier sur place.",
+      "phase": 1
     },
     {
       "nom": "I-Klean",
@@ -105,9 +131,13 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Societe de nettoyage B2B, creee en 2015, 300+ collaborateurs declares CNSS, interventions corporate, industriel, evenementiel (page d'accueil officielle).",
-      "besoins_probables": ["NET", "PRP"],
+      "besoins_probables": [
+        "NET",
+        "PRP"
+      ],
       "angle": "Sous-traitance de volumes et remplacement de agents : cible 'societe de nettoyage' citee dans la fiche.",
-      "anomalies": "Siege hors des quartiers phase 1."
+      "anomalies": "Siege hors des quartiers phase 1.",
+      "phase": 1
     },
     {
       "nom": "SBTH - Special Batiment & Travaux Hajji",
@@ -122,9 +152,13 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Entreprise de construction et BTP, page contact officielle (adresse, telephone, fax).",
-      "besoins_probables": ["NET", "GAR"],
+      "besoins_probables": [
+        "NET",
+        "GAR"
+      ],
       "angle": "Nettoyage fin de chantier et gardiennage de base de vie.",
-      "anomalies": "La page contact officielle contient des liens injectes sans rapport avec l'entreprise (site possiblement compromis) : verifier par telephone avant toute relance par le site."
+      "anomalies": "La page contact officielle contient des liens injectes sans rapport avec l'entreprise (site possiblement compromis) : verifier par telephone avant toute relance par le site.",
+      "phase": 1
     },
     {
       "nom": "TGCC - Travaux Generaux de Construction",
@@ -139,9 +173,13 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Groupe de travaux generaux de construction ; coordonnees vues dans l'extrait de recherche de la page d'accueil officielle.",
-      "besoins_probables": ["NET", "GAR"],
+      "besoins_probables": [
+        "NET",
+        "GAR"
+      ],
       "angle": "Chantiers de grande taille : effectifs de nettoyage et gardiennage.",
-      "anomalies": "Coordonnees a reconfirmer (niveau B)."
+      "anomalies": "Coordonnees a reconfirmer (niveau B).",
+      "phase": 1
     },
     {
       "nom": "Le Prunier Traiteur",
@@ -156,9 +194,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Traiteur specialise dans les receptions d'entreprise (reunions, seminaires, inaugurations) ; contact WhatsApp et email publies.",
-      "besoins_probables": ["REN", "CUI", "SRV"],
+      "besoins_probables": [
+        "REN",
+        "CUI",
+        "SRV"
+      ],
       "angle": "Extras de service et plonge sur seminaires et inaugurations.",
-      "anomalies": "Adresse hors quartiers phase 1 (Maarif)."
+      "anomalies": "Adresse hors quartiers phase 1 (Maarif).",
+      "phase": 1
     },
     {
       "nom": "Rahal Maitre Traiteur",
@@ -173,9 +216,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Traiteur corporate, diplomatique et mariages ; annonce intervenir a Casablanca, Rabat, Marrakech, Tanger, Fes, Agadir (FAQ de la page contact officielle).",
-      "besoins_probables": ["REN", "SRV", "CUI"],
+      "besoins_probables": [
+        "REN",
+        "SRV",
+        "CUI"
+      ],
       "angle": "Renforts ponctuels sur receptions diplomatiques et corporate.",
-      "anomalies": "La page publiee annonce une reponse sous 48h ouvrables : c'est leur delai, pas un engagement Yallah (ne pas reprendre dans nos messages)."
+      "anomalies": "La page publiee annonce une reponse sous 48h ouvrables : c'est leur delai, pas un engagement Yallah (ne pas reprendre dans nos messages).",
+      "phase": 1
     },
     {
       "nom": "The View Rabat",
@@ -190,9 +238,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Hotel de 17 etages avec spa et restaurants (page officielle consultee) ; la page contact officielle ne publie qu'un formulaire. Telephone et email issus d'un extrait de recherche.",
-      "besoins_probables": ["PRP", "CUI", "SRV"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
       "angle": "Grande capacite + spa : entretien quotidien et service.",
-      "anomalies": "Aucun telephone sur la page contact officielle ; coordonnee a reconfirmer."
+      "anomalies": "Aucun telephone sur la page contact officielle ; coordonnee a reconfirmer.",
+      "phase": 1
     },
     {
       "nom": "Atlantic Hotel Agdal",
@@ -207,9 +260,15 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Hotel avec restaurant L'Avenue, salles de reunion et spa (page contact officielle consultee).",
-      "besoins_probables": ["PRP", "CUI", "SRV", "REN"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
       "angle": "Restaurant + seminaires : plonge et extras.",
-      "anomalies": "L'adresse email affichee sur la page contact est une adresse technique de preproduction (non exploitable) : ne pas l'utiliser."
+      "anomalies": "L'adresse email affichee sur la page contact est une adresse technique de preproduction (non exploitable) : ne pas l'utiliser.",
+      "phase": 1
     },
     {
       "nom": "Gardenia Boutique Hotel",
@@ -224,9 +283,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Hotel boutique avec restaurant, proche gare TGV Rabat Agdal (page contact officielle).",
-      "besoins_probables": ["PRP", "CUI", "SRV"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
       "angle": "Petite structure : decision rapide, besoin polyvalent.",
-      "anomalies": ""
+      "anomalies": "",
+      "phase": 1
     },
     {
       "nom": "La Maison Fresh & Bio",
@@ -241,9 +305,13 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Cafe-restaurant et epicerie fine, service petit-dejeuner a diner (extrait de la page officielle).",
-      "besoins_probables": ["CUI", "SRV"],
+      "besoins_probables": [
+        "CUI",
+        "SRV"
+      ],
       "angle": "Amplitude horaire large : plonge et service en renfort.",
-      "anomalies": "Coordonnees a reconfirmer (niveau B)."
+      "anomalies": "Coordonnees a reconfirmer (niveau B).",
+      "phase": 1
     },
     {
       "nom": "Afrah Ryad Traiteur",
@@ -258,9 +326,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Traiteur et organisation de mariages a Hay Riad (page Facebook presentee comme officielle).",
-      "besoins_probables": ["REN", "SRV", "CUI"],
+      "besoins_probables": [
+        "REN",
+        "SRV",
+        "CUI"
+      ],
       "angle": "Renforts de service sur mariages et receptions.",
-      "anomalies": "Site officiel non consulte ; fiche a verifier."
+      "anomalies": "Site officiel non consulte ; fiche a verifier.",
+      "phase": 1
     },
     {
       "nom": "Rabat Marriott Hotel",
@@ -275,9 +348,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Hotel international rattache a un centre commercial (extrait de la page officielle Marriott).",
-      "besoins_probables": ["PRP", "CUI", "SRV"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
       "angle": "Groupe international : entree par le service achats ou la direction d'exploitation.",
-      "anomalies": "Standard international probable : processus fournisseur long. Coordonnee a reconfirmer (niveau B)."
+      "anomalies": "Standard international probable : processus fournisseur long. Coordonnee a reconfirmer (niveau B).",
+      "phase": 1
     },
     {
       "nom": "The White Palace Rabat",
@@ -292,9 +370,13 @@
       "date_consultation": "2026-10-21",
       "niveau": "C",
       "faits_observes": "Complexe 5 etoiles de 12 chambres et suites, situe a Souissi (page officielle consultee).",
-      "besoins_probables": ["PRP", "CUI"],
+      "besoins_probables": [
+        "PRP",
+        "CUI"
+      ],
       "angle": "Tres petite capacite (12 chambres) : besoin probablement limite a l'entretien et au petit-dejeuner.",
-      "anomalies": "Aucun telephone ni email publie sur les pages consultees : contact par formulaire uniquement."
+      "anomalies": "Aucun telephone ni email publie sur les pages consultees : contact par formulaire uniquement.",
+      "phase": 1
     },
     {
       "nom": "Dar Challa",
@@ -309,9 +391,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Villa d'hotes de 8 chambres (16 adultes), privatisable, avec personnel de maison et restauration sur place (page officielle consultee).",
-      "besoins_probables": ["MAI", "CUI", "PRP"],
+      "besoins_probables": [
+        "MAI",
+        "CUI",
+        "PRP"
+      ],
       "angle": "Maison d'hotes : personnel polyvalent de maison et cuisine.",
-      "anomalies": "Le site publie un prenom de contact (personne physique) : ne pas conserver d'autre donnee personnelle."
+      "anomalies": "Le site publie un prenom de contact (personne physique) : ne pas conserver d'autre donnee personnelle.",
+      "phase": 1
     },
     {
       "nom": "Hivernage Hotel & Spa",
@@ -326,9 +413,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Hotel 5 etoiles avec restaurant La Table du Marche, spa et rooftop (pages officielles consultees).",
-      "besoins_probables": ["PRP", "CUI", "SRV"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
       "angle": "Restaurant et spa : entretien, plonge, service.",
-      "anomalies": ""
+      "anomalies": "",
+      "phase": 1
     },
     {
       "nom": "Riad Marrakech by Hivernage",
@@ -343,9 +435,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Riad du meme groupe que l'Hivernage Hotel & Spa (site dedie, coordonnees publiees).",
-      "besoins_probables": ["MAI", "CUI", "PRP"],
+      "besoins_probables": [
+        "MAI",
+        "CUI",
+        "PRP"
+      ],
       "angle": "Meme groupe que l'hotel : approche groupe plutot qu'etablissement par etablissement.",
-      "anomalies": "Coordonnees a reconfirmer (niveau B)."
+      "anomalies": "Coordonnees a reconfirmer (niveau B).",
+      "phase": 1
     },
     {
       "nom": "Barcelo Palmeraie Oasis Resort",
@@ -360,9 +457,15 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Resort du groupe Barcelo en Palmeraie (extrait de la page officielle).",
-      "besoins_probables": ["PRP", "CUI", "SRV", "REN"],
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
       "angle": "Resort : volumes d'entretien et de restauration, renforts saisonniers.",
-      "anomalies": "Groupe international : circuit achat probable. Coordonnee a reconfirmer."
+      "anomalies": "Groupe international : circuit achat probable. Coordonnee a reconfirmer.",
+      "phase": 1
     },
     {
       "nom": "Maison Ayda",
@@ -377,9 +480,13 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Maison d'hotes de 3 suites en Palmeraie, restauration sur place (page contact officielle consultee).",
-      "besoins_probables": ["MAI", "CUI"],
+      "besoins_probables": [
+        "MAI",
+        "CUI"
+      ],
       "angle": "Tres petite structure, proprietaire non resident : besoin de personnel de confiance sur place.",
-      "anomalies": "Numero francais : verifier la langue et le fuseau avant appel."
+      "anomalies": "Numero francais : verifier la langue et le fuseau avant appel.",
+      "phase": 1
     },
     {
       "nom": "Les Maitres Prestiges Traiteur",
@@ -394,9 +501,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Traiteur de luxe et organisation de mariages a Marrakech (page officielle, coordonnees dans l'extrait).",
-      "besoins_probables": ["REN", "SRV", "CUI"],
+      "besoins_probables": [
+        "REN",
+        "SRV",
+        "CUI"
+      ],
       "angle": "Renforts de service sur mariages (forte saisonnalite).",
-      "anomalies": "Adresse hors zones phase 1. Coordonnee a reconfirmer."
+      "anomalies": "Adresse hors zones phase 1. Coordonnee a reconfirmer.",
+      "phase": 1
     },
     {
       "nom": "La Plaza de Bouskoura",
@@ -411,9 +523,14 @@
       "date_consultation": "2026-10-21",
       "niveau": "A",
       "faits_observes": "Centre commercial de proximite (restauration, pharmacie, optique, pressing, pret-a-porter, supermarche) — page contact officielle consultee.",
-      "besoins_probables": ["PRP", "GAR", "REN"],
+      "besoins_probables": [
+        "PRP",
+        "GAR",
+        "REN"
+      ],
       "angle": "Approche par la gestion du centre : mutualise plusieurs enseignes en un seul contact.",
-      "anomalies": ""
+      "anomalies": "",
+      "phase": 1
     },
     {
       "nom": "Triangle Vert",
@@ -428,9 +545,13 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Centre commercial de 8500 m2 avec commerces, cafes, restaurants et espace de coworking (page officielle consultee) ; coordonnees vues dans l'extrait de recherche.",
-      "besoins_probables": ["PRP", "GAR"],
+      "besoins_probables": [
+        "PRP",
+        "GAR"
+      ],
       "angle": "Entretien des parties communes et gardiennage.",
-      "anomalies": "Coordonnees a reconfirmer (niveau B)."
+      "anomalies": "Coordonnees a reconfirmer (niveau B).",
+      "phase": 1
     },
     {
       "nom": "Beverly Ville Verte",
@@ -445,9 +566,259 @@
       "date_consultation": "2026-10-21",
       "niveau": "B",
       "faits_observes": "Programme immobilier de villas a Ville Verte (site officiel, coordonnees dans l'extrait).",
-      "besoins_probables": ["NET", "GAR"],
+      "besoins_probables": [
+        "NET",
+        "GAR"
+      ],
       "angle": "Fin de chantier et gardiennage de residences en livraison.",
-      "anomalies": "Rattache au segment 'porteur de projets' par analogie (livraison de programme), pas par source explicite."
+      "anomalies": "Rattache au segment 'porteur de projets' par analogie (livraison de programme), pas par source explicite.",
+      "phase": 1
+    },
+    {
+      "nom": "Mövenpick Hotel & Casino Malabata Tanger",
+      "segment": "hotel",
+      "ville": "Tanger",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Avenue Mohamed VI, Baie de Tanger, 90000 Tanger",
+      "tel": "+212 539 329 300",
+      "email": "hotel.tangier.casino@movenpick.com",
+      "site": "https://movenpick.accor.com/fr/africa/morocco/tangier/hotel-malabata-tanger.html",
+      "source_url": "https://movenpick.accor.com/fr/africa/morocco/tangier/hotel-malabata-tanger.html",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel 5 etoiles sur la baie, casino, plusieurs restaurants et bars, plusieurs salles de reunion, centre de remise en forme (page officielle Accor consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
+      "angle": "Volumetrie chambres + casino + salles de reunion : entretien, plonge et service en continu.",
+      "anomalies": "Telephone et email vus dans l'extrait de la page officielle, non reaffirmes dans la page consultee : a reconfirmer."
+    },
+    {
+      "nom": "Idou Malabata Beach & Spa",
+      "segment": "hotel",
+      "ville": "Tanger",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Zone touristique Ghandouri, 90000 Tanger",
+      "tel": "+212 539 309 055",
+      "email": "info@idoumalabata.com",
+      "site": "https://idoumalabata.com",
+      "source_url": "https://idoumalabata.com/en/contact/",
+      "date_consultation": "2026-10-21",
+      "niveau": "A",
+      "faits_observes": "Hotel les pieds dans l'eau a Ghandouri, a 25 min de l'aeroport et 7 min de la gare (page contact officielle).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Hotel de bord de mer : entretien quotidien des chambres et service.",
+      "anomalies": "Contradiction sur le site officiel : le numero affiche (+212 539 309 055) differe du lien d'appel (+212 539 304 019). A verifier des le premier appel."
+    },
+    {
+      "nom": "Hilton Tanger City Center",
+      "segment": "hotel",
+      "ville": "Tanger",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Tanger City Center, Tanger",
+      "tel": "+212 539 309 700",
+      "email": "tngcc_hotel@hilton.com",
+      "site": "https://www.hilton.com/fr/hotels/tngcchi-hilton-tangier-city-center/",
+      "source_url": "https://www.hilton.com/fr/hotels/tngcchi-hilton-tangier-city-center/",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel Hilton en centre-ville de Tanger (page officielle Hilton consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Groupe international : entree par l'exploitation, pas par la reservation.",
+      "anomalies": "Coordonnee vue dans l'extrait de la page officielle. Circuit achat groupe probable."
+    },
+    {
+      "nom": "Iberostar Waves Founty Beach",
+      "segment": "hotel",
+      "ville": "Agadir",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Chemin des Dunes, Cite Founty, BP 1039, 80000 Agadir",
+      "tel": "+212 528 844 444",
+      "email": "founty.beach@iberostar.com",
+      "site": "https://www.iberostar.com/fr/hotels/agadir/iberostar-waves-founty-beach/",
+      "source_url": "https://www.iberostar.com/fr/hotels/agadir/iberostar-waves-founty-beach/",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel 4 etoiles en bord de plage a Cite Founty (page officielle Iberostar consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
+      "angle": "Resort de plage : entretien, restauration et renforts saisonniers.",
+      "anomalies": "Coordonnee vue dans l'extrait de la page officielle. Groupe international : circuit achat probable."
+    },
+    {
+      "nom": "Intouriste Hotel & Suites",
+      "segment": "hotel",
+      "ville": "Agadir",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Founty, Agadir",
+      "tel": "+212 528 237 515",
+      "email": "reservation@intouriste.com",
+      "site": "https://intouriste.com",
+      "source_url": "https://intouriste.com/contact/",
+      "date_consultation": "2026-10-21",
+      "niveau": "A",
+      "faits_observes": "Hotel et suites avec plusieurs points de restauration (KLAY, Kong Food), spa, accueil de groupes et d'evenements (page contact officielle).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
+      "angle": "Plusieurs restaurants + evenements/groupes : plonge et extras.",
+      "anomalies": ""
+    },
+    {
+      "nom": "Avanti Mohammedia Hotel",
+      "segment": "hotel",
+      "ville": "Mohammedia",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Boulevard Moulay Youssef, La Corniche, BP 208, 20800 Mohammedia",
+      "tel": "+212 521 492 121",
+      "email": "reservations@avantimohammedia.com",
+      "site": "",
+      "source_url": "https://www.petitfute.com/v46127-mohammedia/c1166-hebergement/c158-hotel/463898-avanti-mohammedia-hotel.html",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "156 chambres et suites, salles de seminaire, restaurant et bar de plage (presentation de la page Instagram officielle) ; coordonnees publiees sur la fiche Petit Fute.",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
+      "angle": "Gros volume chambres sur la corniche + seminaires : entretien et service.",
+      "anomalies": "Site officiel (myguests) inaccessible au moment de la collecte (erreur serveur) : coordonnees non reconfirmees sur le site de l'etablissement."
+    },
+    {
+      "nom": "Novotel Mohammedia",
+      "segment": "hotel",
+      "ville": "Mohammedia",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Angle boulevard de Fes et Mohamed Zerktouni, 20800 Mohammedia",
+      "tel": "+212 523 309 600",
+      "email": "H9746@accor.com",
+      "site": "https://all.accor.com/hotel/9746/index.en.shtml",
+      "source_url": "https://all.accor.com/hotel/9746/index.en.shtml",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel du groupe Accor a Mohammedia, avec restaurant et salles de reunion (fiche officielle Accor consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Hotel urbain, clientele affaires : entretien quotidien et restaurant.",
+      "anomalies": "Coordonnee vue dans l'extrait de la fiche officielle. Groupe : circuit achat probable."
+    },
+    {
+      "nom": "ibis Mohammedia",
+      "segment": "hotel",
+      "ville": "Mohammedia",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Rue Tripoli, Central Park, 20800 Mohammedia",
+      "tel": "+212 523 309 000",
+      "email": "H9747@accor.com",
+      "site": "https://all.accor.com/hotel/9747/index.en.shtml",
+      "source_url": "https://all.accor.com/hotel/9747/index.en.shtml",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel economique du groupe Accor a Mohammedia, avec restaurant et bar (fiche officielle Accor consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI"
+      ],
+      "angle": "Format economique : entretien et petit-dejeuner, effectif reduit mais recurrent.",
+      "anomalies": "Coordonnee vue dans l'extrait de la fiche officielle."
+    },
+    {
+      "nom": "Urban Hotel & Spa Kenitra",
+      "segment": "hotel",
+      "ville": "Kenitra",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Avenue Qadissia, Kenitra",
+      "tel": "+212 537 307 540",
+      "email": "",
+      "site": "https://urbanhotel.ma",
+      "source_url": "https://urbanhotel.ma/",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel 4 etoiles de 58 chambres et suites, restaurant interieur et exterieur, salles de reunion, piscine et salle de fitness (page officielle consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Hotel d'affaires proche gare : entretien et restaurant, besoin regulier et stable.",
+      "anomalies": "Aucun email publie sur les pages consultees ; telephone vu dans l'entete du site, a reconfirmer."
+    },
+    {
+      "nom": "Hotel Mamora Kenitra",
+      "segment": "hotel",
+      "ville": "Kenitra",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Avenue Hassan II, place administrative, 14020 Kenitra",
+      "tel": "+212 537 371 310",
+      "email": "info@mamorakenitra.com",
+      "site": "https://mamorakenitra.com",
+      "source_url": "https://mamorakenitra.com/",
+      "date_consultation": "2026-10-21",
+      "niveau": "A",
+      "faits_observes": "69 chambres dont 3 suites, restaurant, bar, salles de reunion, reception d'evenements (page officielle consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
+      "angle": "Restaurant + evenements + 69 chambres : trois besoins distincts a couvrir.",
+      "anomalies": "Le site affiche des tarifs de chambre (990 a 1500 MAD la nuit) : ne jamais reprendre ces montants dans nos messages."
+    },
+    {
+      "nom": "Relax Hotel Kenitra",
+      "segment": "hotel",
+      "ville": "Kenitra",
+      "zone": "Ville entière",
+      "phase": 2,
+      "adresse": "Parc d'activite commerciale Marjane, 14000 Kenitra",
+      "tel": "+212 529 080 132",
+      "email": "reservation@hotelsatlas.com",
+      "site": "https://myrelaxhotels.com/our-hotels/kenitra/relax-kenitra",
+      "source_url": "https://myrelaxhotels.com/our-hotels/kenitra/relax-kenitra",
+      "date_consultation": "2026-10-21",
+      "niveau": "A",
+      "faits_observes": "Hotel 3 etoiles de 60 chambres, piscine exterieure, restaurant et salles de reunion ; groupe Atlas Hospitality (page officielle du groupe consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Groupe multi-villes (Casablanca, Marrakech, Oujda, Kenitra) : approche groupe possible.",
+      "anomalies": ""
     }
   ]
 }

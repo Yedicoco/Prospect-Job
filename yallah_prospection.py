@@ -48,9 +48,9 @@ CHAMPS_REQUIS = ["nom", "segment", "ville", "zone", "source_url", "date_consulta
 # module B2C pour eviter toute divergence entre les deux modules).
 # ---------------------------------------------------------------------------
 try:
-    from yallah_b2c import PHASE_1
+    from yallah_b2c import PHASE_1, PHASE_2, PHASE_3
 except ImportError:  # pragma: no cover
-    PHASE_1 = {}
+    PHASE_1, PHASE_2, PHASE_3 = {}, (), ()
 
 ZONES_PHASE_1 = {
     ville: set(bloc[villes].keys())
@@ -177,6 +177,9 @@ def valider_fiche(p: dict) -> list:
     if p.get("niveau") not in {"A", "B", "C"}:
         anomalies.append("niveau attendu : A, B ou C")
 
+    if p.get("phase") not in (1, 2, 3):
+        anomalies.append("phase attendue : 1, 2 ou 3")
+
     if p.get("segment") not in SEGMENTS:
         anomalies.append(f"segment inconnu : {p.get('segment')}")
 
@@ -194,11 +197,23 @@ def zone_phase_1(ville: str, zone: str) -> bool:
     return zone in ZONES_PHASE_1.get(ville, set())
 
 
+def phase_de(p: dict) -> int:
+    """Phase déclarée dans la fiche, sinon déduite de la ville."""
+    if p.get("phase") in (1, 2, 3):
+        return p["phase"]
+    if p.get("ville") in PHASE_2:
+        return 2
+    if p.get("ville") in PHASE_3:
+        return 3
+    return 1
+
+
 def priorite(p: dict) -> tuple:
     """Score de 0 a 10 + libelle. Heuristique d'ordonnancement, pas une prevision."""
     score = 2
     score += SEGMENTS.get(p.get("segment"), {}).get("poids", 0)
     score += 3 if zone_phase_1(p.get("ville", ""), p.get("zone", "")) else 0
+    score += {1: 1, 2: 0, 3: 0}.get(phase_de(p), 0)
     score += {"A": 2, "B": 1, "C": 0}.get(p.get("niveau"), 0)
     if p.get("anomalies"):
         score -= 1
@@ -258,7 +273,7 @@ def lien_whatsapp(p: dict) -> str:
 # Export
 # ---------------------------------------------------------------------------
 COLONNES = [
-    "ref", "nom", "segment", "ville", "zone", "zone_phase1", "adresse",
+    "ref", "nom", "segment", "phase", "ville", "zone", "zone_phase1", "adresse",
     "tel", "email", "site", "source_url", "date_consultation", "niveau",
     "besoins_probables", "angle", "score", "priorite", "anomalies_fiche",
     "message", "alertes_message", "statut", "lien_whatsapp",
@@ -284,6 +299,7 @@ def construire_lignes(prospects: list, langue: str, avec_messages: bool) -> list
             "ref": f"B2B-{i:03d}",
             "nom": p.get("nom", ""),
             "segment": SEGMENTS.get(p.get("segment"), {}).get("libelle", p.get("segment", "")),
+            "phase": phase_de(p),
             "ville": p.get("ville", ""),
             "zone": p.get("zone", ""),
             "zone_phase1": "oui" if zone_phase_1(p.get("ville", ""), p.get("zone", "")) else "non",
@@ -314,6 +330,7 @@ def main():
     parser.add_argument("--ville", help="filtrer par ville")
     parser.add_argument("--segment", choices=sorted(SEGMENTS), help="filtrer par segment")
     parser.add_argument("--niveau", choices=["A", "B", "C"], help="filtrer par niveau de verification")
+    parser.add_argument("--phase", type=int, choices=[1, 2, 3], help="filtrer par phase (1, 2 ou 3)")
     parser.add_argument("--langue", choices=["fr", "darija", "arabe"], default="fr")
     parser.add_argument("--sans-messages", action="store_true", help="contacts seuls, sans texte")
     parser.add_argument("--check", action="store_true", help="validation seule, sans ecriture CSV")
@@ -330,11 +347,13 @@ def main():
         prospects = [p for p in prospects if p.get("segment") == args.segment]
     if args.niveau:
         prospects = [p for p in prospects if p.get("niveau") == args.niveau]
+    if args.phase:
+        prospects = [p for p in prospects if phase_de(p) == args.phase]
     if not prospects:
         sys.exit("Aucun prospect ne correspond a ces filtres.")
 
     lignes = construire_lignes(prospects, args.langue, not args.sans_messages)
-    lignes.sort(key=lambda l: (-l["score"], l["ville"], l["nom"]))
+    lignes.sort(key=lambda l: (l["phase"], -l["score"], l["ville"], l["nom"]))
 
     bloquantes = [l for l in lignes if l["statut"] != "a valider"]
 
