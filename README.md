@@ -1,4 +1,17 @@
-# Prospect-Job — Module B2C Yallah Services
+# Prospect-Job — Yallah Services
+
+Deux modules distincts :
+
+| Module | Fichier | Objet |
+|---|---|---|
+| **B2C** (particuliers) | `yallah_b2c.py` | Contenus de publication à destination des particuliers |
+| **B2B** (entreprises) | `yallah_prospection.py` | Prospection d'entreprises clientes, à partir d'un fichier de prospects sourcés |
+
+La recherche de prospects et la synthèse sont dans **`PROSPECTION_B2B_PHASE1.md`**
+(26 établissements à Casablanca, Rabat, Marrakech et Bouskoura, chacun avec URL
+source et date de consultation).
+
+## Module B2C
 
 `yallah_b2c.py` prépare les contenus de publication B2C (particuliers) de
 Yallah Services, structure de recherche et de mise en relation de personnel
@@ -56,6 +69,38 @@ statut passe à "BLOQUÉ - à corriger" dans le CSV.
 
 Le CSV de sortie (`contenus_b2c.csv` par défaut) est un artefact de travail :
 il ne doit pas être commité dans Git (voir `.gitignore`).
+
+## Module B2B — prospection d'entreprises clientes
+
+`yallah_prospection.py` lit `prospects_b2b.json` (fiches **sourcées** : URL +
+date de consultation obligatoires), calcule une priorité, génère un message
+**commercial** par segment et par langue, puis applique le garde-fou. Une fiche
+sans source est refusée : aucune coordonnée ne peut entrer sans provenance.
+
+```bash
+python yallah_prospection.py --check                     # validation, code retour 1 si anomalie
+python yallah_prospection.py                             # CSV complet
+python yallah_prospection.py --ville Rabat --niveau A
+python yallah_prospection.py --segment hotel --langue darija
+python yallah_prospection.py --sans-messages             # contacts seuls
+python -m unittest discover -s tests -v                  # 17 tests
+```
+
+### Niveaux de vérification
+
+| Niveau | Signification |
+|---|---|
+| `A` | Coordonnée lue sur la page officielle consultée |
+| `B` | Coordonnée vue dans un extrait de recherche / page sociale, à reconfirmer |
+| `C` | Aucun contact direct publié (formulaire uniquement) |
+
+### Périmètre de collecte
+
+Uniquement des **coordonnées professionnelles publiées par l'établissement
+lui-même**, pour le contacter au sujet d'une prestation. Pas d'annuaire acheté,
+pas d'extraction de données personnelles, pas d'envoi automatisé en masse.
+Les messages générés sont des **offres commerciales** : ils ne doivent jamais
+être envoyés comme des offres d'emploi (voir `PROSPECTION_B2B_PHASE1.md`, § 10).
 
 ## Contact
 
