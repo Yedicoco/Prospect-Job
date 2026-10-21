@@ -6,6 +6,7 @@ Lancement : python -m unittest discover -s tests -v
 import json
 import os
 import sys
+import pathlib
 import unittest
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -132,13 +133,14 @@ class TestPublication(unittest.TestCase):
         self.assertTrue(lien.startswith("mailto:" + ye.CONTACT_EMAIL))
         self.assertIn("EMP-001", lien)
 
-    def test_aucune_mention_de_frais_par_defaut(self):
-        """Politique par defaut = inconnu : on n'ecrit rien, ni frais ni gratuite."""
-        self.assertEqual(ye.POLITIQUE_FRAIS, "inconnu")
+    def test_decision_du_21_10_2026_aucun_frais_candidat(self):
+        """Le renoncement aux 100 MAD est ecrit dans les annonces, sans montant."""
+        self.assertEqual(ye.POLITIQUE_FRAIS, "aucun")
         for langue in ("fr", "darija", "arabe"):
-            texte = ye.annonce(besoin(), langue).lower()
-            for mot in ("frais", "khols", "مصاريف", "gratuit", "gratuite"):
-                self.assertNotIn(mot, texte, f"{langue} : {mot}")
+            texte = ye.annonce(besoin(), langue)
+            self.assertIn(ye.PHRASES_FRAIS["aucun"][langue], texte, langue)
+            self.assertNotIn("100 MAD", texte, langue)
+            self.assertNotIn("Des frais sont", texte, langue)
 
     def test_trois_langues_sans_alerte(self):
         for langue in ("fr", "darija", "arabe"):
@@ -193,9 +195,11 @@ class TestPolitiqueFrais(unittest.TestCase):
         ye.POLITIQUE_FRAIS = "peut-etre"
         self.assertTrue(ye.valider_besoin(besoin()))
 
-    def test_politique_aucun_nest_jamais_devinee(self):
-        """Garde-fou de conception : la valeur par defaut doit rester 'inconnu'."""
-        self.assertEqual(ye.POLITIQUE_FRAIS, "inconnu")
+    def test_la_politique_est_une_decision_datee_pas_un_defaut(self):
+        """'aucun' resulte de la decision du 21/10/2026, pas d'une valeur par defaut."""
+        self.assertEqual(ye.POLITIQUE_FRAIS, "aucun")
+        source = pathlib.Path(ye.__file__).read_text(encoding="utf-8")
+        self.assertIn("21/10/2026", source)
 
 
 class TestVerrouJuridiqueFrais(unittest.TestCase):

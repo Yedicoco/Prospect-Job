@@ -4,7 +4,8 @@
     "date_collecte": "2026-10-21",
     "regle": "Aucune coordonnee inventee. Chaque fiche porte une source (URL) et une date de consultation. Niveau A = coordonnee lue sur la page officielle consultee ; niveau B = coordonnee vue dans un extrait de moteur de recherche ou une page sociale, non reconfirmee sur la page officielle ; niveau C = aucun contact direct publie (formulaire uniquement).",
     "perimetre": "Coordonnees professionnelles publiees par les etablissements eux-memes, pour les seuls besoins de les contacter au sujet d'une prestation professionnelle. Phase 1 : Casablanca, Bouskoura, Rabat, Marrakech. Phase 2 : Tanger, Agadir, Mohammedia, Kenitra. Phase 3 : Fes, El Jadida, Temara/Harhoura.",
-    "contact_yallah_whatsapp": "212691733585"
+    "contact_yallah_whatsapp": "212691733585",
+    "politique_conservation": "Fiches conservees, revérifiées chaque jour (decision du 21/10/2026). Une fiche dont la date_derniere_verification n'est pas celle du jour ne peut recevoir aucun message. Retrait immediat sur demande (meta.refus)."
   },
   "prospects": [
     {

@@ -175,27 +175,68 @@ Ce module propose des garde-fous, il ne remplace pas un avis juridique.
 - **Minimisation** : on ne stocke que ce qui est nécessaire au contact
   (nom d'usage, ville, zone, téléphone ou email publié, URL source, date).
   Rien sur la vie privée, la famille ou la situation personnelle.
-- **Conservation** : non tranchée à ce jour — la durée de conservation des
-  fiches contactées doit être fixée avant une campagne durable.
+- **Conservation** : décidée le 21/10/2026 — **on conserve, mais on actualise
+  chaque jour**. Une fiche non revérifiée le jour même ne peut plus recevoir de
+  message (statut `A ACTUALISER`). La durée de conservation définitive et la
+  déclaration CNDP restent à confirmer par un juriste.
 - **Pas d'envoi de masse** : aucune automatisation d'envoi, aucune API WhatsApp
   Business, aucun routage SMTP.
 
 ---
 
-## 7. Côté B2C : pourquoi zéro fiche réelle aujourd'hui
+## 6 bis. L'actualisation quotidienne
 
-La recherche du 2026-10-21 (Avito section « demandes », MarocAnnonces, pages
-d'offres d'emploi) n'a renvoyé que :
+Chaque fiche porte deux dates :
 
-- des **demandeurs d'emploi** qui proposent leurs services (ce sont des
-  candidats, pas des clients) ;
-- des **agences concurrentes** qui se positionnent sur le même métier ;
-- des annonces d'**employeurs** (sociétés, cliniques) cherchant du personnel,
-  qui relèvent du B2B.
+| Champ | Sens |
+|---|---|
+| `date_consultation` | quand la fiche a été trouvée et sourcée (péremption à 90 jours) |
+| `date_derniere_verification` | quand elle a été revérifiée pour la dernière fois (à défaut : la date de consultation) |
 
-Aucune annonce de particulier cherchant du personnel avec un contact public n'a
-pu être vérifiée. Plutôt que de remplir le fichier avec des fiches douteuses, il
-reste vide : **mieux vaut zéro fiche qu'une fiche inventée.**
+Le matin :
+
+```bash
+python3 yallah_messages.py --actualiser actualisation.md
+```
+
+Le fichier liste les fiches à revérifier, avec le lien source et le contact à
+reconfirmer. Vous ouvrez chaque source, vous vérifiez que le contact est toujours
+publié et identique, puis :
+
+```bash
+python3 yallah_messages.py --verifie B2B-001 B2B-002 B2B-003
+```
+
+Les fiches estampillées deviennent envoyables le jour même ; les autres restent
+en `A ACTUALISER`. Une fiche dont le contact a disparu ou changé ne doit pas être
+estampillée : corrigez-la ou retirez-la du fichier.
+
+---
+
+## 7. Côté B2C : la collecte manuelle, et son résultat
+
+Collecte manuelle faite le 2026-10-21, source par source :
+
+| Source | Ce qu'on y trouve | Verdict |
+|---|---|---|
+| [Avito — « demandes » femmes de ménage](https://www.avito.ma/fr/maroc/femme_de_menage--demandes) | quasi exclusivement des **agences** (HOME SERVICE, MG Expert Service, Akla Service…) et des personnes qui **proposent** leurs services | écarté : concurrents ou candidats, pas des clients |
+| [MarocAnnonces — emploi femme de ménage](https://www.marocannonces.com/emploi-femme-menage) | annonces d'**employeurs** (sociétés, cliniques, hôtels) | relève du **B2B**, pas du B2C |
+| [Nounou.ma — offres d'emploi](https://nounou.ma/en/jobs) | vraies demandes de familles (Casablanca, Rabat), avec budget et quartier | **non retenu** : les coordonnées sont derrière un compte, aucun contact public affiché → niveau C, donc non contactable |
+| Souika | annonces de sociétés | B2B |
+
+Aucune annonce de particulier cherchant du personnel **avec un contact public
+vérifiable** n'a donc pu être retenue. Le fichier reste vide : **mieux vaut zéro
+fiche qu'une fiche inventée.**
+
+### La routine quotidienne qui remplace la collecte automatique
+
+1. **Pendant la journée** : toute demande entrante (WhatsApp, recommandation,
+   annonce repérée) est ajoutée à `prospects_b2c.json` dans la minute, avec
+   l'URL de l'annonce et la date.
+2. **Le matin** : `--actualiser` sort la liste ; `--verifie` estampille ce qui a
+   été reconfirmé.
+3. **Ensuite seulement** : `--prenom "..." --type b2c` génère les messages.
+4. **Une seule relance**, jamais avant 7 jours, jamais après un refus.
 
 ### Ajouter une fiche B2C (2 minutes)
 
@@ -243,6 +284,10 @@ python3 yallah_messages.py --type b2c --langue darija --prenom "Youssef"
 
 # Inclure aussi les fiches non qualifiées (audit du fichier source)
 python3 yallah_messages.py --prenom "Youssef" --tous-les-statuts
+
+# Actualisation quotidienne : checklist puis estampillage
+python3 yallah_messages.py --actualiser actualisation.md
+python3 yallah_messages.py --verifie B2B-001 B2B-002
 ```
 
 | Option | Rôle |
@@ -252,6 +297,8 @@ python3 yallah_messages.py --prenom "Youssef" --tous-les-statuts
 | `--prenom` | signataire ; sans lui, aucun lien n'est créé (`YALLAH_PRENOM` accepté) |
 | `--markdown` | écrit la file d'envoi détaillée |
 | `--tous-les-statuts` | inclut les fiches rejetées dans le CSV |
+| `--actualiser FICHIER` | écrit la checklist des fiches à revérifier aujourd'hui |
+| `--verifie REF…` | estampille les fiches reconfirmées à la date du jour |
 | `--check` | validation seule, code retour exploitable |
 | `--envoyer` | **refusé** : ce script ne réalise aucun envoi |
 
@@ -271,6 +318,6 @@ Les deux fiches non qualifiées :
   seulement, niveau C) ;
 - `BC-001 Annonce exemple` — fiche de démonstration, jamais envoyable.
 
-Tests : `tests/test_messages.py`, 32 tests (qualification, non-envoi, liens,
-doublons, registre des refus, sources périmées, trois langues, cadence).
-Total du dépôt : **94 tests**.
+Tests : `tests/test_messages.py`, 36 tests (qualification, non-envoi, liens,
+doublons, registre des refus, sources périmées, actualisation quotidienne,
+trois langues, cadence). Total du dépôt : **98 tests**.
