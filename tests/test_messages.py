@@ -126,9 +126,20 @@ class TestQualification(unittest.TestCase):
         self.assertIn("doublon", verdict["motifs"][0])
 
     def test_source_perimee_bloquante(self):
-        verdict = self.qualifier(fiche(date_consultation="2025-01-01"))
+        verdict = self.qualifier(fiche(date_consultation="2025-01-01",
+                                       date_derniere_verification="2026-10-21"))
         self.assertTrue(verdict["qualifie"])
         self.assertTrue(any("reconfirmer" in a for a in verdict["alertes"]))
+
+    def test_fiche_non_verifiee_aujourdhui_non_envoyable(self):
+        """Actualisation quotidienne : une fiche non revérifiée aujourd'hui est bloquée."""
+        verdict = self.qualifier(fiche(date_derniere_verification="2026-10-20"))
+        self.assertFalse(verdict["qualifie"])
+        self.assertIn("actualisation", verdict["motifs"][0])
+
+    def test_fiche_verifiee_aujourdhui_envoyable(self):
+        verdict = self.qualifier(fiche(date_derniere_verification="2026-10-21"))
+        self.assertTrue(verdict["qualifie"], verdict)
 
     def test_niveau_b_est_une_reserve_pas_un_blocage(self):
         verdict = self.qualifier(fiche(niveau="B"))
@@ -235,6 +246,47 @@ class TestAucunEnvoi(unittest.TestCase):
             self.assertIn("lien_whatsapp", contenu.splitlines()[0])
             self.assertIn("PRE", contenu)
             self.assertIn("Jour 1", pathlib.Path(md_path).read_text(encoding="utf-8"))
+
+
+class TestActualisationQuotidienne(unittest.TestCase):
+    def test_checklist_du_jour_et_estamplillage(self):
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = os.path.join(dossier, "b2c.json")
+            pathlib.Path(chemin).write_text(
+                json.dumps(jeu([fiche(date_consultation="2026-10-19"),
+                                fiche(tel="+212 700 00 00 00", nom="Autre famille",
+                                      date_consultation="2026-10-19")]),
+                           ensure_ascii=False), encoding="utf-8")
+
+            hier = date(2026, 10, 20)
+            lignes = ym.construire_lignes([("b2c", ym.charger(chemin))], "fr", "Youssef", hier)
+            self.assertTrue(all(l["statut"] == "A ACTUALISER" for l in lignes))
+
+            md = os.path.join(dossier, "actu.md")
+            n = ym.ecrire_actualisation(md, lignes, hier)
+            self.assertEqual(n, 2)
+            texte = pathlib.Path(md).read_text(encoding="utf-8")
+            self.assertIn("2026-10-20", texte)
+            self.assertIn("BC-001", texte)
+            self.assertIn("--verifie", texte)
+
+            marquees = ym.marquer_verifie({"b2c": chemin}, ["BC-001"], hier)
+            self.assertEqual(marquees, ["BC-001"])
+            donnees = json.loads(pathlib.Path(chemin).read_text(encoding="utf-8"))
+            self.assertEqual(donnees["prospects"][0]["date_derniere_verification"], "2026-10-20")
+            self.assertNotIn("date_derniere_verification", donnees["prospects"][1])
+            self.assertEqual(donnees["meta"]["date_maj"], "2026-10-20")
+
+            lignes = ym.construire_lignes([("b2c", ym.charger(chemin))], "fr", "Youssef", hier)
+            self.assertEqual(lignes[0]["statut"], "PRET - envoi manuel")
+            self.assertEqual(lignes[1]["statut"], "A ACTUALISER")
+
+    def test_reference_inconnue_ignoree(self):
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = os.path.join(dossier, "b2c.json")
+            pathlib.Path(chemin).write_text(json.dumps(jeu([fiche()]), ensure_ascii=False),
+                                            encoding="utf-8")
+            self.assertEqual(ym.marquer_verifie({"b2c": chemin}, ["BC-999"], AUJOURDHUI), [])
 
 
 class TestJeuB2C(unittest.TestCase):

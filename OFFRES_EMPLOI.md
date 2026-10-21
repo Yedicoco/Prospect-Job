@@ -211,15 +211,26 @@ Le cycle complet, une fois un client intéressé :
 
 Elles bloquent la publication réelle, pas le développement.
 
-**État au 21 octobre 2026 :** question 1 reçue mais **bloquée par un verrou juridique** (art. 480) · question 2 tranchée · question 3 partiellement tranchée · question 4 sans réponse.
+**État au 21 octobre 2026 :** question 1 **tranchée : aucun frais** · question 2 tranchée · question 3 tranchée · question 4 tranchée (conservation + actualisation quotidienne).
 
-### 1. Frais demandés aux candidats — **décision reçue, publication bloquée**
+### 1. Frais demandés aux candidats — **tranché : aucun frais**
 
 **Décision transmise le 21/10/2026 :** « Des frais, 100 MAD à l'inscription. »
+**Décision finale le 21/10/2026 :** « ignorer pour respecter la loi. »
 
-**Elle n'a pas été appliquée, et voici pourquoi.**
+Les 100 MAD sont abandonnés. `POLITIQUE_FRAIS` est réglé sur `"aucun"` : chaque
+annonce écrit désormais noir sur blanc qu'aucun frais n'est demandé au candidat,
+et aucun montant n'apparaît nulle part.
 
-L'article 480 du Code du travail marocain (loi 65-99) dispose qu'« il est interdit aux agences de recrutement privées de percevoir, directement ou indirectement, des demandeurs d'emploi des émoluments ou frais, en partie ou en totalité ». L'article 477 définit l'agence de recrutement privée comme toute personne morale dont l'activité consiste notamment à « rapprocher les demandes et les offres d'emploi ». Facturer 100 MAD à l'inscription d'un candidat entre très probablement dans le champ de cette interdiction.
+#### Pourquoi ce revirement
+
+L'article 480 du Code du travail marocain (loi 65-99) dispose qu'« il est
+interdit aux agences de recrutement privées de percevoir, directement ou
+indirectement, des demandeurs d'emploi des émoluments ou frais, en partie ou en
+totalité ». L'article 477 définit l'agence de recrutement privée comme toute
+personne morale dont l'activité consiste notamment à « rapprocher les demandes et
+les offres d'emploi ». Facturer 100 MAD à l'inscription d'un candidat entre très
+probablement dans le champ de cette interdiction.
 
 **Sources consultées le 21 octobre 2026 :**
 
@@ -231,27 +242,37 @@ L'article 480 du Code du travail marocain (loi 65-99) dispose qu'« il est inter
 | [Ministère de l'emploi — agences de recrutement privées](https://miepeec.gov.ma/mtip-espace-emploi/intermediation-en-matiere-demploi/agences-de-recrutement-privees/apercu/?lang=fr) | L'activité d'intermédiation est soumise à autorisation préalable |
 | [OIT — guide pour les agences d'emploi privées](https://www.ilo.org/sites/default/files/wcmsp5/groups/public/@ed_norm/@declaration/documents/instructionalmaterial/wcms_103883.pdf) | Convention n° 181, art. 7 : même principe d'interdiction de faire payer les travailleurs |
 
-**Ce que je ne dis pas :** je ne suis pas juriste et je n'affirme pas que la situation de Yallah tombe avec certitude sous cet article. Cette qualification dépend de son statut exact et de son activité réelle. Mais le risque est assez sérieux pour ne pas écrire « 100 MAD à l'inscription » dans une annonce publique avant vérification.
+**Ce que je ne dis pas :** je ne suis pas juriste et je n'affirme pas que la
+situation de Yallah tombe avec certitude sous cet article. Cette qualification
+dépend de son statut exact et de son activité réelle. Le renoncement reste
+néanmoins la position la plus sûre, et la seule qui permette d'écrire une phrase
+vraie dans chaque annonce.
 
 #### Ce que fait le code
 
-Un verrou a été ajouté. Même si la politique est réglée sur `"factures"`, **aucun montant de frais n'apparaît dans une annonce et aucune annonce ne peut être publiée** tant qu'une validation juridique datée n'est pas enregistrée :
-
 ```python
-FRAIS_CANDIDAT_VALIDATION = None   # → {"reference": "...", "date": "AAAA-MM-JJ"}
+POLITIQUE_FRAIS = "aucun"          # décision du 21/10/2026, pas une valeur par défaut
+FRAIS_CANDIDAT_VALIDATION = None   # verrou toujours armé
 ```
 
-Le message de blocage cite l'article 480, pour que la raison soit lisible dans le CSV et pas seulement dans la tête de celui qui a écrit le code. Cinq tests couvrent ce verrou, dont un qui vérifie que « 100 MAD » n'apparaît nulle part dans le texte généré.
+- La phrase d'annonce est : « Aucun frais n'est demandé au candidat, à aucune
+  étape de la mise en relation » — traduite en darija et en arabe.
+- Le garde-fou ne se signale plus lui-même : cette phrase interne est neutralisée
+  avant analyse, alors que « sans frais » ou « inscription gratuite » improvisés
+  restent bloqués.
+- **Le verrou juridique reste en place.** Si la politique repassait un jour sur
+  `"factures"` sans validation juridique datée, aucune annonce affichant des
+  frais ne serait publiable, avec un motif citant l'article 480.
+- « 100 MAD » n'apparaît dans aucune annonce, dans aucune langue. C'est testé.
 
-Renseigner ce champ ne rend pas l'annonce légale : cela documente seulement que la question a été tranchée par un professionnel du droit.
+#### Les deux autres voies restent ouvertes
 
-#### Trois voies possibles
-
-1. **Faire vérifier la qualification** auprès d'un avocat en droit du travail, ou de l'inspection du travail. Si l'avis confirme que l'interdiction ne s'applique pas à Yallah, renseigner `FRAIS_CANDIDAT_VALIDATION` et la publication des 100 MAD devient possible.
-2. **Facturer l'employeur plutôt que le candidat.** C'est le modèle dominant des cabinets de recrutement au Maroc : honoraires de 15 à 25 % du salaire annuel brut, payés par l'entreprise ([Jobsquare, 2026](https://www.jobsquare.ma/blog/agences-recrutement-maroc-cabinets-chasse-tetes/)). Surtout, cela supprime le risque : l'article 480 ne protège que les demandeurs d'emploi.
-3. **Ne rien facturer aux candidats** et passer la politique à `"aucun"`. L'annonce affiche alors « Aucun frais n'est demandé au candidat » — un argument commercial réel face aux pratiques du secteur.
-
-**En attendant votre décision, la politique reste sur `"inconnu"`** : le module ne dit ni qu'il y a des frais, ni qu'il n'y en a pas.
+1. **Facturer l'employeur plutôt que le candidat.** C'est le modèle dominant des
+   cabinets de recrutement au Maroc : honoraires de 15 à 25 % du salaire annuel
+   brut, payés par l'entreprise ([Jobsquare, 2026](https://www.jobsquare.ma/blog/agences-recrutement-maroc-cabinets-chasse-tetes/)).
+   L'article 480 ne protège que les demandeurs d'emploi.
+2. **Revenir aux frais candidats** si un avis juridique daté écartait
+   l'interdiction : il suffira alors de renseigner `FRAIS_CANDIDAT_VALIDATION`.
 
 ### 2. Canal de candidature — **tranché : WhatsApp + email**
 
@@ -268,9 +289,22 @@ L'email fourni est un **canal de réception**, pas un lieu de publication. Le mo
 
 Restent à définir : groupes Facebook de quartier, Instagram, TikTok, affichage physique, bouche-à-oreille. Chaque canal impose son format et ses règles.
 
-### 4. Conservation des candidatures — **sans réponse**
+### 4. Conservation des candidatures — **tranché : conserver + actualiser chaque jour**
 
 Une annonce génère des CV, des numéros et des adresses : ce sont des données personnelles. La loi 09-08 et les obligations déclaratives auprès de la CNDP s'appliquent probablement à ce traitement, mais **je ne l'affirme pas** — c'est à faire vérifier par un juriste avant d'ouvrir un fichier de candidatures.
+
+**Décision du 21/10/2026 :** « conserver mais faire l'actualisation chaque jour. »
+Autrement dit : on garde les fiches et les échanges, mais on revérifie chaque jour
+ce qui est encore vrai. Côté prospection, cette règle est déjà outillée : une
+fiche non revérifiée le jour même ne peut recevoir aucun message, et
+`--actualiser` produit la checklist du jour (voir `MESSAGES_PROSPECTION.md`,
+section 6 bis). Côté candidatures, la même discipline s'applique à la main : la
+boîte `servicesyallah@gmail.com` et le WhatsApp sont relus chaque jour, et une
+candidature sans suite est archivée ou supprimée plutôt que laissée en vrac.
+
+**Ce qui reste à faire vérifier :** la durée de conservation et la déclaration
+CNDP applicable à ce traitement. Je ne l'affirme pas — c'est à faire confirmer
+par un juriste.
 
 **Point rassurant sur l'outil lui-même :** les scripts ne stockent aucune candidature. Ils produisent du texte ; les messages restent dans WhatsApp et dans la boîte email. Il n'y a donc pas, aujourd'hui, de fichier de candidats créé par ce dépôt. La question portera sur ce que vous ferez de ces messages (recherche, relance, archivage), pas sur ce que fait le code.
 
@@ -284,7 +318,7 @@ python yallah_emploi.py                          # CSV des besoins publiables (v
 python yallah_emploi.py --avec-exemples          # aperçu incluant la fiche de démonstration
 python yallah_emploi.py --langue darija
 python yallah_emploi.py --langue arabe --ref EMP-001
-python -m unittest discover -s tests -v          # 62 tests (20 prospection + 42 emploi)
+python -m unittest discover -s tests -v          # 98 tests (20 prospection + 42 emploi + 36 messages)
 ```
 
 **Colonnes du CSV :** `ref`, `poste`, `ville`, `zone`, `format`, `statut`, `publiable`, `remuneration`, `horaires`, `informations_non_communiquees`, `annonce`, `alertes`, `problemes`, `source_confirmation`, `date_confirmation`, `lien_whatsapp`, `lien_email`.

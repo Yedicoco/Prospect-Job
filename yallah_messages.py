@@ -56,12 +56,14 @@ PLACEHOLDER_PRENOM = "[prenom]"
 TYPES = {
     "b2b": {
         "fichier": "prospects_b2b.json",
+        "prefixe": "B2B",
         "libelle": "entreprise cliente",
         "champs_requis": ["nom", "segment", "ville", "zone", "source_url",
                           "date_consultation", "niveau"],
     },
     "b2c": {
         "fichier": "prospects_b2c.json",
+        "prefixe": "BC",
         "libelle": "particulier",
         "champs_requis": ["nom", "besoin", "ville", "zone", "source_url",
                           "date_consultation", "niveau"],
@@ -128,12 +130,23 @@ def cles_contact(p: dict) -> list:
 # ---------------------------------------------------------------------------
 # Qualification
 # ---------------------------------------------------------------------------
+def date_verification(p: dict) -> str:
+    """Date de la derniere verification de la fiche (a defaut, date de consultation)."""
+    return str(p.get("date_derniere_verification") or p.get("date_consultation", ""))
+
+
 def age_source(p: dict, date_reference: date) -> int:
+    """Age de la source d'origine (date de consultation), en jours."""
     try:
         annee, mois, jour = (int(x) for x in str(p.get("date_consultation", "")).split("-"))
         return (date_reference - date(annee, mois, jour)).days
     except (ValueError, TypeError):
         return -1
+
+
+def a_actualiser(p: dict, date_reference: date) -> bool:
+    """Vrai si la fiche n'a pas ete revérifiée le jour meme (actualisation quotidienne)."""
+    return date_verification(p) != date_reference.isoformat()
 
 
 def valider_fiche(p: dict, type_prospect: str) -> list:
@@ -210,11 +223,15 @@ def qualifier(p: dict, type_prospect: str, contacts_vus: dict,
     if p.get("niveau") == "C":
         motifs.append("aucun contact direct publie : formulaire uniquement, message non prepare")
 
+    if a_actualiser(p, date_reference):
+        motifs.append(f"actualisation du jour non faite (derniere verification : "
+                      f"{date_verification(p) or 'aucune'})")
+
     age = age_source(p, date_reference)
     if age > PEREMPTION_JOURS:
         alertes.append(f"source datee de {age} jours : a reconfirmer avant envoi")
     elif age < 0:
-        alertes.append("date de consultation illisible")
+        alertes.append("date de consultation incoherente (posterieure a la date de reference)")
 
     if p.get("niveau") == "B":
         reserves.append("coordonnee vue en extrait, non reconfirmee sur la page officielle")
@@ -441,7 +458,8 @@ def construire_lignes(jeux: list, langue: str, prenom: str, date_reference: date
             mail = lien_email(p, message, type_prospect) if message else ""
 
             if not verdict["qualifie"]:
-                statut = "NON QUALIFIE"
+                statut = ("A ACTUALISER" if any(m.startswith("actualisation") for m in verdict["motifs"])
+                          else "NON QUALIFIE")
             elif PLACEHOLDER_PRENOM in message:
                 statut = "A COMPLETER - prenom manquant"
             elif alertes:
@@ -454,7 +472,7 @@ def construire_lignes(jeux: list, langue: str, prenom: str, date_reference: date
 
             lignes.append({
                 "jour": 0,
-                "ref": f"{'B2B' if type_prospect == 'b2b' else 'BC'}-{i:03d}",
+                "ref": f"{TYPES[type_prospect]['prefixe']}-{i:03d}",
                 "type": type_prospect,
                 "nom": p.get("nom", ""),
                 "categorie": categorie,
@@ -524,6 +542,54 @@ def ecrire_markdown(chemin: str, lignes: list, langue: str) -> None:
                 f.write("\n")
 
 
+def marquer_verifie(chemins: dict, refs: list, jour: date) -> list:
+    """Inscrit la date du jour comme date de verification des refs indiquees."""
+    refs = {r.strip().upper() for r in refs if r.strip()}
+    marquees = []
+    for type_prospect, chemin in chemins.items():
+        if not os.path.exists(chemin):
+            continue
+        with open(chemin, encoding="utf-8") as f:
+            donnees = json.load(f)
+        prefixe = TYPES[type_prospect]["prefixe"]
+        modifie = False
+        for i, p in enumerate(donnees.get("prospects", []), start=1):
+            ref = f"{prefixe}-{i:03d}"
+            if ref in refs:
+                p["date_derniere_verification"] = jour.isoformat()
+                marquees.append(ref)
+                modifie = True
+        if modifie:
+            donnees.setdefault("meta", {})["date_maj"] = jour.isoformat()
+            with open(chemin, "w", encoding="utf-8") as f:
+                json.dump(donnees, f, ensure_ascii=False, indent=2)
+                f.write("\n")
+    return marquees
+
+
+def ecrire_actualisation(chemin: str, lignes: list, jour: date) -> int:
+    """Checklist du jour : fiches a revérifier avant tout envoi."""
+    a_faire = [l for l in lignes if l["statut"] == "A ACTUALISER"]
+    with open(chemin, "w", encoding="utf-8") as f:
+        f.write(f"# Actualisation des fiches - {jour.isoformat()}\n\n")
+        f.write("Regle : une fiche non revérifiée le jour même ne reçoit aucun message.\n")
+        f.write("Ouvrez chaque source, vérifiez que le contact est toujours publié et identique, ")
+        f.write("puis estampillez la fiche. Si le contact a disparu ou changé, corrigez la fiche ")
+        f.write("dans le JSON avant de l'estampiller.\n\n")
+        f.write(f"**{len(a_faire)} fiche(s) à revérifier aujourd'hui.**\n\n")
+        for l in a_faire:
+            f.write(f"- [ ] **{l['ref']}** - {l['nom']} ({l['ville']}, {l['zone']})  \n")
+            f.write(f"      source : {l['source_url']}  \n")
+            f.write(f"      contact à reconfirmer : {l['tel'] or '—'} / {l['email'] or '—'}\n")
+        if a_faire:
+            f.write("\nUne fois les fiches vérifiées une par une :\n\n")
+            f.write("```bash\n")
+            f.write("python3 yallah_messages.py --verifie " + " ".join(l["ref"] for l in a_faire[:5]))
+            f.write((" ..." if len(a_faire) > 5 else "") + "\n")
+            f.write("```\n")
+    return len(a_faire)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Yallah Services - messages de prospection (aucun envoi automatique)")
@@ -538,6 +604,9 @@ def main():
     parser.add_argument("--tous-les-statuts", action="store_true",
                         help="inclure les fiches non qualifiees dans le CSV")
     parser.add_argument("--check", action="store_true", help="validation seule, sans ecriture")
+    parser.add_argument("--actualiser", help="ecrit la checklist du jour (fiches a revérifier)")
+    parser.add_argument("--verifie", nargs="+", metavar="REF",
+                        help="estampille les fiches verifiees aujourd'hui (ex. B2B-001 B2B-002)")
     parser.add_argument("--envoyer", action="store_true",
                         help="refuse : ce script ne realise aucun envoi")
     args = parser.parse_args()
@@ -545,6 +614,20 @@ def main():
     if args.envoyer:
         sys.exit("Envoi automatique refuse : ce script prepare des messages, il n'en envoie aucun.\n"
                  "Ouvrez le lien wa.me / mailto de la ligne voulue depuis votre propre compte.")
+
+    chemins = {}
+    if args.type in ("b2b", "tous"):
+        chemins["b2b"] = args.source_b2b
+    if args.type in ("b2c", "tous"):
+        chemins["b2c"] = args.source_b2c
+
+    if args.verifie:
+        marquees = marquer_verifie(chemins, args.verifie, date.today())
+        inconnues = sorted({r.upper() for r in args.verifie} - set(marquees))
+        print(f"{len(marquees)} fiche(s) estampillee(s) au {date.today().isoformat()} : "
+              f"{', '.join(marquees) or '—'}")
+        if inconnues:
+            print(f"Reference(s) introuvable(s) : {', '.join(inconnues)}")
 
     jeux = []
     if args.type in ("b2b", "tous"):
@@ -557,17 +640,24 @@ def main():
     bloques = [l for l in lignes if l["statut"] == "BLOQUE - a corriger"]
     incomplets = [l for l in lignes if l["statut"] == "A COMPLETER - prenom manquant"]
     rejetes = [l for l in lignes if l["statut"] == "NON QUALIFIE"]
+    a_jour = [l for l in lignes if l["statut"] == "A ACTUALISER"]
+
+    if args.actualiser:
+        n = ecrire_actualisation(args.actualiser, lignes, date.today())
+        print(f"Checklist du jour ecrite dans {args.actualiser} : {n} fiche(s) a revérifier.")
+        return
 
     if args.check:
         print(f"{len(lignes)} fiche(s) : {len(prets)} prete(s), {len(bloques)} bloquee(s), "
-              f"{len(incomplets)} a completer, {len(rejetes)} non qualifiee(s).")
+              f"{len(incomplets)} a completer, {len(a_jour)} a actualiser, "
+              f"{len(rejetes)} non qualifiee(s).")
         for l in bloques + rejetes:
             print(f"  - {l['ref']} {l['nom']} : {l['motifs_non_qualification'] or l['alertes']}")
         if incomplets:
             print("  Rappel : sans --prenom, aucun lien d'envoi n'est genere.")
         sys.exit(1 if bloques else 0)
 
-    ecrites = lignes if args.tous_les_statuts else prets + bloques + incomplets
+    ecrites = lignes if args.tous_les_statuts else prets + bloques + incomplets + a_jour
     with open(args.sortie, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=COLONNES, extrasaction="ignore")
         writer.writeheader()
@@ -578,7 +668,8 @@ def main():
 
     print(f"{len(ecrites)} ligne(s) ecrite(s) dans {args.sortie}")
     print(f"  {len(prets)} prete(s) a envoyer a la main, {len(bloques)} bloquee(s), "
-          f"{len(incomplets)} a completer, {len(rejetes)} non qualifiee(s).")
+          f"{len(incomplets)} a completer, {len(a_jour)} a actualiser, "
+          f"{len(rejetes)} non qualifiee(s).")
     if prets:
         jours = sorted({l["jour"] for l in prets})
         print(f"  Plan : {len(prets)} message(s) sur {len(jours)} jour(s), "

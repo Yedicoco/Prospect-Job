@@ -49,8 +49,15 @@ CONTACT_EMAIL = "servicesyallah@gmail.com"
 #   "factures" -> les annonces doivent afficher le montant source, sinon rien n'est publiable
 #   "inconnu"  -> silence total sur les frais : ni promesse, ni omission trompeuse
 # Ne jamais passer a "aucun" si ce n'est pas vrai : c'est un engagement public.
+#
+# DECISION YALLAH DU 21/10/2026 : renoncement aux 100 MAD a l'inscription, pour
+# respecter l'article 480 du Code du travail (voir le verrou ci-dessous). D'ou
+# POLITIQUE_FRAIS = "aucun" : les annonces disent noir sur blanc qu'aucun frais
+# n'est demande. Ce n'est pas une valeur par defaut technique, c'est une decision
+# datee ; si la politique change, la ligne ci-dessous et ce commentaire changent
+# ensemble.
 # ---------------------------------------------------------------------------
-POLITIQUE_FRAIS = "inconnu"
+POLITIQUE_FRAIS = "aucun"
 
 # ---------------------------------------------------------------------------
 # VERROU JURIDIQUE - frais demandes aux candidats
@@ -132,6 +139,12 @@ PATTERNS_INTERDITS = PATTERNS_B2C + PATTERNS_SPECIFIQUES
 
 def verifier_annonce(texte: str) -> list:
     alertes = []
+    if POLITIQUE_FRAIS == "aucun":
+        # Notre propre phrase sur les frais est une information, pas une promesse
+        # commerciale : on la neutralise avant le passage du garde-fou, sinon elle
+        # se signale elle-meme ("aucun frais" ressemble a une gratuite annoncee).
+        for phrase in PHRASES_FRAIS["aucun"].values():
+            texte = (texte or "").replace(phrase, "[PHRASE-FRAIS-INTERNE]")
     bas = (texte or "").lower()
     for motif, libelle in PATTERNS_INTERDITS:
         trouve = re.search(motif, bas, flags=re.IGNORECASE)

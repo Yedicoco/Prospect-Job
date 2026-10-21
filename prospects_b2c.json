@@ -7,7 +7,15 @@
     "pourquoi_zero_fiche": "La recherche du 2026-10-21 (Avito section demandes, MarocAnnonces, pages d'offres d'emploi) n'a renvoyé que des demandeurs d'emploi qui proposent leurs services, ou des agences concurrentes — pas des particuliers cherchant du personnel. Aucune fiche réelle n'a donc été créée ici : mieux vaut zéro fiche qu'une fiche inventée. Les fiches se remplissent au fil des demandes entrantes (WhatsApp, recommandations, annonces repérées).",
     "niveau": "A = contact lu sur la publication elle-même ; B = contact vu dans un extrait de moteur de recherche, non reconfirmé ; C = aucun contact direct publié.",
     "refus": [],
-    "contact_yallah_whatsapp": "212691733585"
+    "contact_yallah_whatsapp": "212691733585",
+    "journal_collecte_2026-10-21": {
+      "avito_demandes": "https://www.avito.ma/fr/maroc/femme_de_menage--demandes - quasi exclusivement des agences (HOME SERVICE, MG Expert Service, Akla Service...) et des personnes proposant leurs services. Ecarte.",
+      "marocannonces": "https://www.marocannonces.com/emploi-femme-menage - annonces d'employeurs (societes, cliniques, hotels). Releve du B2B.",
+      "nounou_ma": "https://nounou.ma/en/jobs - vraies demandes de familles (Casablanca, Rabat) mais coordonnees derriere un compte, aucun contact public. Niveau C, non contactable, non retenu.",
+      "souika": "https://www.souika.ma/ - annonces de societes. B2B.",
+      "conclusion": "Aucune annonce de particulier avec contact public verifiable : 0 fiche reelle creee."
+    },
+    "politique_conservation": "Fiches conservees, revérifiées chaque jour (decision du 21/10/2026). Une fiche dont la date_derniere_verification n'est pas celle du jour ne peut recevoir aucun message. Retrait immediat sur demande (meta.refus)."
   },
   "prospects": [
     {
