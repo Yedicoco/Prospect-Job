@@ -37,6 +37,16 @@ from yallah_b2c import PATTERNS_INTERDITS as PATTERNS_B2C
 from yallah_b2c import WHATSAPP_NUMBER
 
 SOURCE_PAR_DEFAUT = "besoins_emploi.json"
+
+# Canaux de reception des candidatures, fournis par Yallah Services (21/10/2026).
+# WhatsApp : meme numero que la fiche. Email : adresse dediee au service.
+CONTACT_EMAIL = "servicesyallah@gmail.com"
+
+# Frais demandes aux candidats : question ouverte (voir OFFRES_EMPLOI.md, section 9).
+# Tant qu'elle n'est pas tranchee, aucune mention de gratuite n'est ecrite dans les
+# annonces : le garde-fou bloque deja "sans frais" / "gratuit". Passer a True
+# uniquement apres decision explicite, et adapter alors le texte de l'annonce.
+ECRIRE_AUCUN_FRAIS = False
 DATE_ATTENDUE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 # ---------------------------------------------------------------------------
@@ -190,8 +200,8 @@ def annonce(b: dict, langue: str) -> str:
             + (" Ce besoin a été confirmé par un employeur ; les éléments ci-dessus sont "
                "ceux qu'il a communiqués, sans ajout de notre part." if confirme else "")
             + "\n\n"
-            f"Pour proposer votre candidature, écrivez sur WhatsApp en précisant la "
-            f"référence {ref} et le poste."
+            f"Pour proposer votre candidature, écrivez-nous sur WhatsApp ou par email à "
+            f"{CONTACT_EMAIL}, en précisant la référence {ref} et le poste."
         )
 
     if langue == "darija":
@@ -204,7 +214,8 @@ def annonce(b: dict, langue: str) -> str:
             + (" Had lkhdma m2ekda mn 3and chi mchghl, w lma3lomat li foq hiya li 3tana, "
                "bla ma nzido 7ta haja mn 3andna." if confirme else "")
             + "\n\n"
-            f"Ila bghiti t9edem, sift message f WhatsApp w kteb fih raqm {ref} w smit lkhedma."
+            f"Ila bghiti t9edem, sift message f WhatsApp wla f email l {CONTACT_EMAIL}, "
+            f"w kteb fih raqm {ref} w smit lkhedma."
         )
 
     return (
@@ -216,7 +227,8 @@ def annonce(b: dict, langue: str) -> str:
         + (" هذه الحاجة مؤكدة من طرف صاحب عمل، والمعطيات أعلاه هي التي قدمها دون أي إضافة منا."
            if confirme else "")
         + "\n\n"
-        f"لتقديم ترشيحك، أرسل رسالة على واتساب مع ذكر المرجع {ref} والمنصب."
+        f"لتقديم ترشيحك، أرسل رسالة على واتساب أو عبر البريد الإلكتروني {CONTACT_EMAIL} "
+        f"مع ذكر المرجع {ref} والمنصب."
     )
 
 
@@ -226,13 +238,20 @@ def lien_whatsapp(b: dict) -> str:
     return f"https://wa.me/{WHATSAPP_NUMBER}?text={quote(message)}"
 
 
+def lien_email(b: dict) -> str:
+    metier = METIERS.get(b.get("metier", ""), b.get("metier", ""))
+    sujet = f"Candidature - {metier} (ref {b.get('ref', '')})"
+    return f"mailto:{CONTACT_EMAIL}?subject={quote(sujet)}"
+
+
 # ---------------------------------------------------------------------------
 # Construction des lignes
 # ---------------------------------------------------------------------------
 COLONNES = [
     "ref", "poste", "ville", "zone", "format", "statut", "publiable",
     "remuneration", "horaires", "informations_non_communiquees", "annonce",
-    "alertes", "problemes", "source_confirmation", "date_confirmation", "lien_whatsapp",
+    "alertes", "problemes", "source_confirmation", "date_confirmation",
+    "lien_whatsapp", "lien_email",
 ]
 
 
@@ -275,6 +294,7 @@ def construire_lignes(besoins: list, langue: str, avec_exemples: bool) -> list:
             "source_confirmation": b.get("source_confirmation", ""),
             "date_confirmation": b.get("date_confirmation", ""),
             "lien_whatsapp": lien_whatsapp(b),
+            "lien_email": lien_email(b),
         })
     return lignes
 

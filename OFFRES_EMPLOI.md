@@ -1,6 +1,6 @@
 # Offres d'emploi — module candidats
 ### Yallah Services · séparation stricte avec l'offre commerciale
-**Créé le 21 octobre 2026** · 0 besoin réel en base · 47 tests
+**Créé le 21 octobre 2026** · 0 besoin réel en base · 50 tests
 
 ---
 
@@ -108,7 +108,7 @@ Une annonce qui dit « rémunération non communiquée » est moins vendeuse qu'
 >
 > Yallah Services met en relation des employeurs et des candidats au Maroc. Ce besoin a été confirmé par un employeur ; les éléments ci-dessus sont ceux qu'il a communiqués, sans ajout de notre part.
 >
-> Pour proposer votre candidature, écrivez sur WhatsApp en précisant la référence EMP-001 et le poste.
+> Pour proposer votre candidature, écrivez-nous sur WhatsApp ou par email à servicesyallah@gmail.com, en précisant la référence EMP-001 et le poste.
 
 ### Darija (lettres latines)
 
@@ -120,7 +120,7 @@ Une annonce qui dit « rémunération non communiquée » est moins vendeuse qu'
 >
 > Yallah Services kantwesel bin l2arbab lkhedma w lkandidates f lMaghrib. Had lkhdma m2ekda mn 3and chi mchghl, w lma3lomat li foq hiya li 3tana, bla ma nzido 7ta haja mn 3andna.
 >
-> Ila bghiti t9edem, sift message f WhatsApp w kteb fih raqm EMP-001 w smit lkhedma.
+> Ila bghiti t9edem, sift message f WhatsApp wla f email l servicesyallah@gmail.com, w kteb fih raqm EMP-001 w smit lkhedma.
 
 ### Arabe
 
@@ -132,9 +132,18 @@ Une annonce qui dit « rémunération non communiquée » est moins vendeuse qu'
 >
 > Yallah Services تعمل على الربط بين أصحاب العمل والمرشحين في المغرب. هذه الحاجة مؤكدة من طرف صاحب عمل، والمعطيات أعلاه هي التي قدمها دون أي إضافة منا.
 >
-> لتقديم ترشيحك، أرسل رسالة على واتساب مع ذكر المرجع EMP-001 والمنصب.
+> لتقديم ترشيحك، أرسل رسالة على واتساب أو عبر البريد الإلكتروني servicesyallah@gmail.com مع ذكر المرجع EMP-001 والمنصب.
 
 **La phrase de confirmation est conditionnelle.** Elle n'apparaît que si `source_confirmation` est rempli. Une fiche sans source ne dit jamais « ce besoin a été confirmé ».
+
+**Deux canaux de candidature, décidés le 21/10/2026 :**
+
+| Canal | Valeur | Usage |
+|---|---|---|
+| WhatsApp | +212 691 733 585 (numéro de la fiche) | Lien `wa.me` prérempli avec la référence du poste |
+| Email | servicesyallah@gmail.com | Lien `mailto:` avec objet prérempli « Candidature — [poste] (réf …) » |
+
+Les deux figurent dans le texte de l'annonce et dans deux colonnes séparées du CSV (`lien_whatsapp`, `lien_email`), pour que la publication sur un canal donné n'oblige pas à réécrire le texte.
 
 ---
 
@@ -194,14 +203,48 @@ Le cycle complet, une fois un client intéressé :
 
 ---
 
-## 9. Quatre questions que je ne peux pas trancher à votre place
+## 9. Les quatre questions, et où elles en sont
 
 Elles bloquent la publication réelle, pas le développement.
 
-1. **Frais demandés aux candidats.** Yallah demande-t-elle quelque chose aux candidats — inscription, dossier, placement ? Si oui, dans quelles limites ? Si non, faut-il l'écrire (« aucun frais ») ? Tant que la réponse n'est pas fixée, le garde-fou bloque toute mention de gratuité, et l'annonce reste muette sur le sujet. **Une annonce muette vaut mieux qu'une promesse non tenue.**
-2. **Canal de candidature.** Le module pointe aujourd'hui vers le WhatsApp de la fiche (+212 691 733 585), le même que celui utilisé pour les clients. Est-ce voulu, ou faut-il une ligne dédiée au recrutement ? Mélanger candidats et clients dans une même boîte de réception est un choix qui se paie plus tard.
-3. **Où publier.** Groupes Facebook de quartier, Instagram, TikTok, affichage physique, bouche-à-oreille ? Le module produit le texte, pas la diffusion. Chaque canal a ses règles et ses contraintes de format.
-4. **Conservation des candidatures.** Une annonce génère des CV et des numéros : ce sont des données personnelles. La loi 09-08 et les obligations déclaratives auprès de la CNDP s'appliquent probablement à ce traitement, mais **je ne l'affirme pas** — c'est à faire vérifier par un juriste avant d'ouvrir un fichier de candidatures. En attendant, la bonne pratique est de ne conserver que ce qui est nécessaire, pour une durée annoncée, et de le dire aux candidats.
+**État au 21 octobre 2026 :** question 1 en attente · question 2 tranchée · question 3 partiellement tranchée · question 4 sans réponse.
+
+### 1. Frais demandés aux candidats — **en attente, non tranchée**
+
+La réponse reçue (« oui ») pouvait signifier deux choses opposées : « oui, des frais sont facturés » ou « oui, aucun frais, et il faut l'écrire ». Les deux mènent à des annonces différentes, donc **aucune n'a été appliquée**.
+
+Par défaut, le module reste donc **muet sur les frais** : il ne dit ni qu'il y en a, ni qu'il n'y en a pas. C'est le seul texte qui ne peut pas être faux.
+
+Un interrupteur existe dans `yallah_emploi.py` :
+
+```python
+ECRIRE_AUCUN_FRAIS = False   # passer à True après décision explicite
+```
+
+Le passer à `True` sans modifier le corps de l'annonce ne change rien : il faut aussi y ajouter la phrase correspondante. **Ne pas activer avant d'avoir tranché**, et ne l'activer que pour dire « aucun frais » — jamais pour annoncer un montant sans source.
+
+Ce qu'il reste à décider, en une phrase : *Yallah facture-t-elle quelque chose au candidat, et si oui quoi, quand, et combien ?*
+
+### 2. Canal de candidature — **tranché : WhatsApp + email**
+
+Décision du 21/10/2026 : les candidatures arrivent sur **WhatsApp** (+212 691 733 585) et sur **servicesyallah@gmail.com**. Les deux canaux sont intégrés au module et apparaissent dans les trois langues.
+
+Deux conséquences à garder en tête :
+
+- **La boîte WhatsApp est partagée** avec les clients. Un candidat et un hôtel client écrivent au même endroit. Ce n'est pas bloquant, mais il faudra trier — un message qui commence par « réf EMP-… » est une candidature, le reste est du commercial.
+- **L'adresse email semble avoir été créée pour ce module.** Si elle reçoit aussi des demandes clients, la même règle de tri s'applique.
+
+### 3. Où publier — **partiellement tranché**
+
+L'email fourni est un **canal de réception**, pas un lieu de publication. Le module produit le texte et les liens ; il ne diffuse rien.
+
+Restent à définir : groupes Facebook de quartier, Instagram, TikTok, affichage physique, bouche-à-oreille. Chaque canal impose son format et ses règles.
+
+### 4. Conservation des candidatures — **sans réponse**
+
+Une annonce génère des CV, des numéros et des adresses : ce sont des données personnelles. La loi 09-08 et les obligations déclaratives auprès de la CNDP s'appliquent probablement à ce traitement, mais **je ne l'affirme pas** — c'est à faire vérifier par un juriste avant d'ouvrir un fichier de candidatures.
+
+**Point rassurant sur l'outil lui-même :** les scripts ne stockent aucune candidature. Ils produisent du texte ; les messages restent dans WhatsApp et dans la boîte email. Il n'y a donc pas, aujourd'hui, de fichier de candidats créé par ce dépôt. La question portera sur ce que vous ferez de ces messages (recherche, relance, archivage), pas sur ce que fait le code.
 
 ---
 
@@ -213,10 +256,10 @@ python yallah_emploi.py                          # CSV des besoins publiables (v
 python yallah_emploi.py --avec-exemples          # aperçu incluant la fiche de démonstration
 python yallah_emploi.py --langue darija
 python yallah_emploi.py --langue arabe --ref EMP-001
-python -m unittest discover -s tests -v          # 47 tests (20 prospection + 27 emploi)
+python -m unittest discover -s tests -v          # 50 tests (20 prospection + 30 emploi)
 ```
 
-**Colonnes du CSV :** `ref`, `poste`, `ville`, `zone`, `format`, `statut`, `publiable`, `remuneration`, `horaires`, `informations_non_communiquees`, `annonce`, `alertes`, `problemes`, `source_confirmation`, `date_confirmation`, `lien_whatsapp`.
+**Colonnes du CSV :** `ref`, `poste`, `ville`, `zone`, `format`, `statut`, `publiable`, `remuneration`, `horaires`, `informations_non_communiquees`, `annonce`, `alertes`, `problemes`, `source_confirmation`, `date_confirmation`, `lien_whatsapp`, `lien_email`.
 
 La colonne `informations_non_communiquees` est votre liste de relance : chaque champ qui y figure est une question à poser au client.
 
@@ -228,5 +271,5 @@ La colonne `informations_non_communiquees` est votre liste de relance : chaque c
 |---|---|
 | `besoins_emploi.json` | Besoins de recrutement confirmés — **aucun à ce jour**, une fiche d'exemple |
 | `yallah_emploi.py` | Validation, règle « valeur ⇒ source », rédaction des annonces, garde-fou |
-| `tests/test_emploi.py` | 20 tests : garde-fou emploi, règle de sourçage, publication, non-publication des exemples |
+| `tests/test_emploi.py` | 30 tests : garde-fou emploi, règle de sourçage, canaux, publication, non-publication des exemples |
 | `offres_emploi.csv` | Artefact de travail généré (ignoré par Git) |

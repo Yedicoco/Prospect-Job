@@ -122,6 +122,24 @@ class TestPublication(unittest.TestCase):
         lignes = ye.construire_lignes([besoin()], "fr", False)
         self.assertIn("EMP-001", lignes[0]["lien_whatsapp"])
 
+    def test_email_de_candidature_present_dans_les_trois_langues(self):
+        for langue in ("fr", "darija", "arabe"):
+            self.assertIn(ye.CONTACT_EMAIL, ye.annonce(besoin(), langue), langue)
+
+    def test_lien_email_prefill_sujet_et_reference(self):
+        lignes = ye.construire_lignes([besoin()], "fr", False)
+        lien = lignes[0]["lien_email"]
+        self.assertTrue(lien.startswith("mailto:" + ye.CONTACT_EMAIL))
+        self.assertIn("EMP-001", lien)
+
+    def test_aucune_mention_de_gratuite_par_defaut(self):
+        """Tant que la politique de frais n'est pas tranchee, on n'ecrit rien sur le sujet."""
+        self.assertFalse(ye.ECRIRE_AUCUN_FRAIS)
+        for langue in ("fr", "darija", "arabe"):
+            texte = ye.annonce(besoin(), langue).lower()
+            for interdit in ("sans frais", "aucun frais", "gratuit", "gratuite"):
+                self.assertNotIn(interdit, texte, f"{langue} : {interdit}")
+
     def test_trois_langues_sans_alerte(self):
         for langue in ("fr", "darija", "arabe"):
             self.assertEqual(ye.verifier_annonce(ye.annonce(besoin(), langue)), [], langue)
