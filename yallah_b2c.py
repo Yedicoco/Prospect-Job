@@ -85,6 +85,12 @@ PHASE_1 = {
     },
 }
 
+# ---------------------------------------------------------------------------
+# Phases 2 et 3 (fiche, section 3) : villes entières, quartiers non précisés
+# ---------------------------------------------------------------------------
+PHASE_2 = ("Tanger", "Agadir", "Mohammedia", "Kénitra")
+PHASE_3 = ("Fès", "El Jadida", "Témara/Harhoura")
+
 PLATEFORMES = {
     "tiktok": "script vidéo court (accroche de 2 secondes, 3 phrases maximum, appel à l'action)",
     "instagram": "légende courte et dynamique avec 3 à 5 hashtags locaux",
@@ -106,7 +112,11 @@ Yallah Services est une structure spécialisée dans la recherche et la mise en 
 pour les particuliers et les entreprises au Maroc.
 Services aux particuliers : femmes de ménage, nounous et garde d'enfants, aide aux personnes âgées,
 cuisinières à domicile, gardiens, chauffeurs, nettoyage ponctuel.
-Villes d'intervention : Casablanca, Rabat, Marrakech, Tanger, Agadir, Fès, Kénitra, Mohammedia, Témara, Salé.
+Zones d'intervention phase 1 : Casablanca (Anfa, Aïn Diab, Californie, Racine, Gauthier, CIL, CFC),
+Bouskoura (Ville Verte), Rabat (Hay Riad, Souissi, Les Ambassadeurs, Agdal),
+Marrakech (Palmeraie, Hivernage, Agdal, Targa, Amelkis).
+Villes phase 2 : Tanger, Agadir, Mohammedia, Kénitra.
+Villes phase 3 : Fès, El Jadida, Témara/Harhoura.
 Besoins : personnel permanent, temporaire ou renfort journalier, selon la demande du client.
 Contact prioritaire : WhatsApp. Signature : « Votre besoin en personnel, notre priorité. »
 Ton : professionnel, chaleureux, rassurant, simple, dynamique, local, orienté action.

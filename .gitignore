@@ -7,3 +7,7 @@ __pycache__/
 *.py[cod]
 .env
 .venv/
+
+# File d'envoi generee (contient des coordonnees, ne pas versionner)
+file_envoi.md
+file_envoi.csv

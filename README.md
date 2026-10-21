@@ -1,4 +1,37 @@
-# Prospect-Job — Module B2C Yallah Services
+# Prospect-Job — Yallah Services
+
+Trois modules distincts, et une frontière à ne jamais franchir : **une offre
+commerciale s'adresse à un client, une offre d'emploi s'adresse à un candidat.**
+
+| Module | Fichier | Objet |
+|---|---|---|
+| **B2C** (particuliers) | `yallah_b2c.py` | Contenus de publication à destination des particuliers |
+| **B2B** (entreprises clientes) | `yallah_prospection.py` | Prospection d'entreprises, à partir d'un fichier de prospects sourcés |
+| **Messages** (B2B + B2C) | `yallah_messages.py` | Messages de prospection personnalisés, contrôlés, avec liens préremplis — **aucun envoi automatique** |
+| **Emploi** (candidats) | `yallah_emploi.py` | Annonces d'emploi, uniquement pour des besoins confirmés par un employeur |
+
+La recherche de prospects et la synthèse sont dans **`PROSPECTION_B2B.md`**
+(48 établissements : 26 en phase 1 à Casablanca, Rabat, Marrakech et Bouskoura,
+11 en phase 2 à Tanger, Agadir, Mohammedia et Kénitra, 11 en phase 3 à Fès,
+El Jadida et Témara/Harhoura, chacun avec URL source et date de consultation).
+
+## Module Messages (prospection B2B + B2C)
+
+`yallah_messages.py` transforme les fiches sourcées en messages prêts à envoyer
+**à la main**, un contact à la fois. Il ne fait aucun appel réseau : `--envoyer`
+est refusé explicitement. Voir **`MESSAGES_PROSPECTION.md`**.
+
+```bash
+python3 yallah_messages.py --check                              # contrôle seul
+python3 yallah_messages.py --prenom "Youssef" --markdown file_envoi.md
+python3 yallah_messages.py --type b2c --langue darija --prenom "Youssef"
+```
+
+État actuel : 47 messages B2B prêts (48 fiches, dont 1 sans contact direct),
+0 fiche B2C réelle (voir la section 7 de `MESSAGES_PROSPECTION.md`), 15 envois
+manuels maximum par jour, plan réparti sur 4 jours.
+
+## Module B2C
 
 `yallah_b2c.py` prépare les contenus de publication B2C (particuliers) de
 Yallah Services, structure de recherche et de mise en relation de personnel
@@ -56,6 +89,70 @@ statut passe à "BLOQUÉ - à corriger" dans le CSV.
 
 Le CSV de sortie (`contenus_b2c.csv` par défaut) est un artefact de travail :
 il ne doit pas être commité dans Git (voir `.gitignore`).
+
+## Module B2B — prospection d'entreprises clientes
+
+`yallah_prospection.py` lit `prospects_b2b.json` (fiches **sourcées** : URL +
+date de consultation obligatoires), calcule une priorité, génère un message
+**commercial** par segment et par langue, puis applique le garde-fou. Une fiche
+sans source est refusée : aucune coordonnée ne peut entrer sans provenance.
+
+```bash
+python yallah_prospection.py --check                     # validation, code retour 1 si anomalie
+python yallah_prospection.py                             # CSV complet
+python yallah_prospection.py --phase 1
+python yallah_prospection.py --phase 2 --ville Tanger
+python yallah_prospection.py --phase 3 --niveau A
+python yallah_prospection.py --ville Rabat --niveau A
+python yallah_prospection.py --segment hotel --langue darija
+python yallah_prospection.py --sans-messages             # contacts seuls
+python -m unittest discover -s tests -v                  # 20 tests
+```
+
+### Niveaux de vérification
+
+| Niveau | Signification |
+|---|---|
+| `A` | Coordonnée lue sur la page officielle consultée |
+| `B` | Coordonnée vue dans un extrait de recherche / page sociale, à reconfirmer |
+| `C` | Aucun contact direct publié (formulaire uniquement) |
+
+### Périmètre de collecte
+
+Uniquement des **coordonnées professionnelles publiées par l'établissement
+lui-même**, pour le contacter au sujet d'une prestation. Pas d'annuaire acheté,
+pas d'extraction de données personnelles, pas d'envoi automatisé en masse.
+Les messages générés sont des **offres commerciales** : ils ne doivent jamais
+être envoyés comme des offres d'emploi (voir `PROSPECTION_B2B.md`, § 10).
+
+## Module emploi — annonces pour candidats
+
+`yallah_emploi.py` transforme un besoin de recrutement **réellement confirmé par
+un employeur** en annonce pour candidats. Il ne publie rien tant qu'aucun besoin
+n'est enregistré : `besoins_emploi.json` ne contient aujourd'hui qu'une fiche
+d'exemple, que le script refuse de publier.
+
+Règle centrale : **toute valeur chiffrée doit porter sa source**. Une
+rémunération ou des horaires sans source sont supprimés de l'annonce, qui dit
+alors « non communiqué dans cette annonce ».
+
+```bash
+python yallah_emploi.py --check              # validation
+python yallah_emploi.py --avec-exemples      # aperçu du format
+python yallah_emploi.py --langue darija
+```
+
+Les candidatures sont reçues sur **WhatsApp** (+212 691 733 585) et sur
+**servicesyallah@gmail.com** : les deux liens sont préremplis avec la référence
+du poste. Le module reste **muet sur les frais candidats** : `POLITIQUE_FRAIS = "inconnu"`.
+⚠️ Publier des frais à la charge du candidat est bloqué par un verrou
+(`FRAIS_CANDIDAT_VALIDATION`) : l'article 480 du Code du travail (loi 65-99)
+interdit aux agences de recrutement privées de percevoir des émoluments auprès
+des demandeurs d'emploi. Voir `OFFRES_EMPLOI.md`, section 9, question 1.
+
+⚠️ Les contacts de `prospects_b2b.json` sont des **clients** : ils ne doivent
+jamais recevoir une annonce d'emploi. Détail et questions ouvertes dans
+`OFFRES_EMPLOI.md`.
 
 ## Contact
 

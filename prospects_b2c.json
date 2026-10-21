@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "projet": "Yallah Services - prospects B2C (particuliers)",
+    "date_maj": "2026-10-21",
+    "regle_source": "Une fiche B2C ne peut exister que si le particulier a PUBLIÉ lui-même une demande de personnel de maison, sur une page publique et contactable. On enregistre l'URL de cette publication et la date de consultation. Aucune fiche ne peut être créée à partir d'une déduction, d'un annuaire inversé ou d'un numéro trouvé ailleurs.",
+    "regle_contact": "On répond à une annonce publique, on ne démarche pas à froid. Pas de relance après un refus, une seule relance après 7 jours sans réponse, formule de retrait dans chaque message (registre dans meta.refus).",
+    "pourquoi_zero_fiche": "La recherche du 2026-10-21 (Avito section demandes, MarocAnnonces, pages d'offres d'emploi) n'a renvoyé que des demandeurs d'emploi qui proposent leurs services, ou des agences concurrentes — pas des particuliers cherchant du personnel. Aucune fiche réelle n'a donc été créée ici : mieux vaut zéro fiche qu'une fiche inventée. Les fiches se remplissent au fil des demandes entrantes (WhatsApp, recommandations, annonces repérées).",
+    "niveau": "A = contact lu sur la publication elle-même ; B = contact vu dans un extrait de moteur de recherche, non reconfirmé ; C = aucun contact direct publié.",
+    "refus": [],
+    "contact_yallah_whatsapp": "212691733585"
+  },
+  "prospects": [
+    {
+      "nom": "Annonce exemple (fictive)",
+      "besoin": "NOU",
+      "ville": "Casablanca",
+      "zone": "Anfa",
+      "tel": "",
+      "email": "exemple@exemple.invalid",
+      "source_url": "https://exemple.invalid/annonce/0000",
+      "date_consultation": "2026-10-21",
+      "niveau": "A",
+      "contexte": "Fiche de démonstration du format. Elle est marquée exemple: true et n'est jamais envoyée.",
+      "exemple": true
+    }
+  ]
+}
