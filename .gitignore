@@ -11,3 +11,6 @@ __pycache__/
 # File d'envoi generee (contient des coordonnees, ne pas versionner)
 file_envoi.md
 file_envoi.csv
+
+# Données privées de l'application web
+data/

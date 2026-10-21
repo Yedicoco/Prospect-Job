@@ -1,5 +1,18 @@
 # Prospect-Job — Yallah Services
 
+## Application web
+
+Une interface web en français est maintenant disponible : tableau de bord, gestion des prospects, préparation des messages, suivi manuel, refus et besoins d’emploi. Les **campagnes automatiques email et WhatsApp Business** sont disponibles, en simulation par défaut ; les envois réels exigent qualification des contacts, configuration des fournisseurs et activation explicite.
+
+```bash
+python3 webapp.py --port 8000
+```
+
+Ouvrez `http://localhost:8000` (ou l’aperçu Arena). Aucune dépendance externe. Les données sont importées dans une base SQLite privée, séparée des JSON utilisés par les scripts CLI.
+
+**Accès privé de confiance par défaut.** Une authentification administrateur par variable d’environnement et HTTPS sont requis pour l’envoi réel ; ne pas exposer le mode sans authentification sur Internet. Guide et limites : [WEB_APP.md](WEB_APP.md).
+
+
 Trois modules distincts, et une frontière à ne jamais franchir : **une offre
 commerciale s'adresse à un client, une offre d'emploi s'adresse à un candidat.**
 
