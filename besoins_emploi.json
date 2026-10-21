@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "projet": "Yallah Services - offres d'emploi (candidats)",
+    "date_creation": "2026-10-21",
+    "regle": "Un besoin ne peut etre publie que s'il est reellement confirme par un employeur (source_confirmation + date_confirmation). Toute valeur chiffree (remuneration, horaires) exige une source explicite : sans source, elle n'apparait pas dans l'annonce.",
+    "avertissement": "Ce fichier ne contient AUCUN besoin reel a ce jour. La fiche ci-dessous est un exemple de format, marquee exemple=true, que le script refuse de publier.",
+    "contact_candidats_whatsapp": "212691733585"
+  },
+  "besoins": [
+    {
+      "ref": "EMP-EXEMPLE",
+      "exemple": true,
+      "metier": "MEN",
+      "ville": "Casablanca",
+      "zone": "Anfa",
+      "format": "permanent",
+      "statut": "ouvert",
+      "source_confirmation": "",
+      "date_confirmation": "",
+      "remuneration": {
+        "valeur": "",
+        "source": ""
+      },
+      "horaires": {
+        "valeur": "",
+        "source": ""
+      },
+      "commentaire": "Fiche de demonstration : elle montre la structure attendue. Elle n'est adossee a aucun employeur et ne doit jamais etre publiee."
+    }
+  ]
+}

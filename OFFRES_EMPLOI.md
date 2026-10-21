@@ -1,0 +1,232 @@
+# Offres d'emploi — module candidats
+### Yallah Services · séparation stricte avec l'offre commerciale
+**Créé le 21 octobre 2026** · 0 besoin réel en base · 47 tests
+
+---
+
+## 1. Pourquoi un module séparé
+
+Jusqu'ici le dépôt produisait des **offres commerciales** : des messages adressés à des entreprises pour leur vendre une prestation de mise en relation. Il manquait le pendant : l'**offre d'emploi**, adressée à un candidat.
+
+Les deux ne peuvent pas cohabiter dans un même fichier ni dans un même canal.
+
+| | Offre commerciale (`yallah_prospection.py`) | Offre d'emploi (`yallah_emploi.py`) |
+|---|---|---|
+| Destinataire | L'établissement, en tant que **client** | Le **candidat** |
+| Objectif | Obtenir un échange sur un besoin | Recevoir des candidatures |
+| Contenu | Services, formats, demande de rendez-vous | Poste, ville, format, conditions connues, canal de candidature |
+| Fichier source | `prospects_b2b.json` (48 établissements) | `besoins_emploi.json` (0 besoin réel) |
+| Garde-fou | Prix, délais, garanties, vérifications | + urgence, promesse d'embauche, exigence de diplôme, CDI/CDD |
+
+**La règle opérationnelle qui découle de ce tableau :** les 48 contacts de `prospects_b2b.json` ne reçoivent **jamais** une annonce d'emploi. Ce sont des clients, pas des candidats. Envoyer « nous recrutons une femme de ménage » à un hôtel client brouillerait les deux positions et abîmerait la relation.
+
+---
+
+## 2. Point de départ : il n'y a rien à publier aujourd'hui
+
+`besoins_emploi.json` ne contient **aucun besoin réel**. Il contient une fiche d'exemple, marquée `exemple: true`, que le script refuse de publier.
+
+C'est volontaire. Publier une annonce suppose qu'un employeur ait réellement dit « j'ai besoin de quelqu'un ». Aucun employeur n'a été contacté à ce jour (la prospection vient d'être livrée). Inventer une offre — même pour tester — reviendrait à annoncer un poste qui n'existe pas, ce qui est exactement ce que la règle « ne jamais inventer » interdit.
+
+Le module est donc **prêt mais vide**, et il le dit :
+
+```
+$ python yallah_emploi.py
+Aucun besoin publiable : toutes les fiches sont des exemples ou ont été écartées.
+Rien n'a été publié. C'est le comportement attendu tant qu'aucun employeur n'a confirmé de besoin.
+```
+
+---
+
+## 3. La règle « valeur ⇒ source »
+
+Une annonce d'emploi contient naturellement des éléments sensibles : rémunération, horaires. Ce sont précisément les informations que la règle absolue interdit d'inventer.
+
+Le module applique donc une règle simple : **toute valeur chiffrée doit porter sa source**. Dans le fichier, ces champs ne sont pas des chaînes mais des couples :
+
+```json
+"remuneration": { "valeur": "4 500 MAD brut mensuel", "source": "client, email du 21/10/2026" }
+```
+
+Trois comportements en découlent :
+
+| Situation | Ce que fait le script |
+|---|---|
+| Valeur + source | La valeur apparaît dans l'annonce, et le garde-fou ne la bloque pas |
+| Valeur sans source | **La valeur est supprimée**, remplacée par « non communiquée dans cette annonce », et le besoin devient non publiable |
+| Pas de valeur | L'annonce dit honnêtement « non communiquée dans cette annonce » |
+
+Une annonce qui dit « rémunération non communiquée » est moins vendeuse qu'une annonce qui affiche un chiffre. Mais c'est la seule version vraie tant que l'employeur n'a rien dit. Et c'est un signal utile : chaque mention « non communiquée » vous indique exactement quoi demander au client au prochain appel.
+
+---
+
+## 4. Structure d'un besoin
+
+```json
+{
+  "ref": "EMP-001",
+  "metier": "MEN",
+  "ville": "Rabat",
+  "zone": "Agdal",
+  "format": "permanent",
+  "statut": "ouvert",
+  "source_confirmation": "Hôtel X, appel du 22/10/2026",
+  "date_confirmation": "2026-10-22",
+  "remuneration": { "valeur": "", "source": "" },
+  "horaires":     { "valeur": "", "source": "" }
+}
+```
+
+**Champs obligatoires pour être publiable :** `ref`, `metier`, `ville`, `zone`, `format`, `statut` = `ouvert`, `source_confirmation`, `date_confirmation`.
+
+**Métiers disponibles** (`--metier`) : ceux de la fiche, plus les métiers d'exécution côté entreprises.
+
+| Code | Métier | Code | Métier |
+|---|---|---|---|
+| `MEN` | femme de ménage | `CHA` | chauffeur |
+| `NOU` | nounou / garde d'enfants | `GAR` | gardien / vigile |
+| `CUI` | cuisinière à domicile | `PON` | nettoyage ponctuel |
+| `AGE` | aide aux personnes âgées | `SRV` | serveur / extra |
+| `PLG` | plongeur | `NET` | agent de nettoyage de fin de chantier |
+| `COM` | vendeur / employé de commerce | | |
+
+**Formats** : `permanent`, `temporaire`, `renfort journalier` — les trois seuls que la fiche autorise.
+
+⚠️ Le module **refuse** `CDI` et `CDD`. Ce sont des qualifications contractuelles que Yallah n'a pas communiquées : « permanent » décrit un besoin, « CDI » décrit un contrat de travail. Confondre les deux peut créer un engagement.
+
+---
+
+## 5. Ce que produit l'annonce
+
+### Français
+
+> **Femme de ménage — Rabat (Agdal)**
+>
+> Type de besoin : poste permanent.
+> Horaires : non communiqués dans cette annonce.
+> Rémunération : non communiquée dans cette annonce.
+>
+> Yallah Services met en relation des employeurs et des candidats au Maroc. Ce besoin a été confirmé par un employeur ; les éléments ci-dessus sont ceux qu'il a communiqués, sans ajout de notre part.
+>
+> Pour proposer votre candidature, écrivez sur WhatsApp en précisant la référence EMP-001 et le poste.
+
+### Darija (lettres latines)
+
+> **Femme de ménage — Rabat (Agdal)**
+>
+> Naw3 lkhedma : poste permanent.
+> Lwqiyat : ma t3atawch f had l3lan.
+> L2ajr : ma t3atatnach f had l3lan.
+>
+> Yallah Services kantwesel bin l2arbab lkhedma w lkandidates f lMaghrib. Had lkhdma m2ekda mn 3and chi mchghl, w lma3lomat li foq hiya li 3tana, bla ma nzido 7ta haja mn 3andna.
+>
+> Ila bghiti t9edem, sift message f WhatsApp w kteb fih raqm EMP-001 w smit lkhedma.
+
+### Arabe
+
+> **عاملة منزل — الرباط (أكدال)**
+>
+> نوع الحاجة: poste permanent.
+> التوقيت: غير مذكورة في هذا الإعلان.
+> الأجر: غير مذكور في هذا الإعلان.
+>
+> Yallah Services تعمل على الربط بين أصحاب العمل والمرشحين في المغرب. هذه الحاجة مؤكدة من طرف صاحب عمل، والمعطيات أعلاه هي التي قدمها دون أي إضافة منا.
+>
+> لتقديم ترشيحك، أرسل رسالة على واتساب مع ذكر المرجع EMP-001 والمنصب.
+
+**La phrase de confirmation est conditionnelle.** Elle n'apparaît que si `source_confirmation` est rempli. Une fiche sans source ne dit jamais « ce besoin a été confirmé ».
+
+---
+
+## 6. Garde-fou
+
+Le module hérite du garde-fou B2C et y ajoute six interdits spécifiques aux annonces d'emploi.
+
+| Interdit | Pourquoi | Exemple bloqué |
+|---|---|---|
+| Urgence commerciale | Crée une pression artificielle | « urgent », « dès que possible » |
+| Promesse de rémunération | Aucun engagement tarifaire n'a été pris | « salaire attractif », « bien payé » |
+| Promesse d'embauche | Yallah met en relation, elle n'embauche pas | « poste garanti » |
+| Exigence non confirmée | Le client n'a rien dit des profils | « expérience requise », « diplôme exigé » |
+| Pression à la candidature | Manipulation | « places limitées » |
+| Qualification contractuelle | « permanent » ≠ CDI | « CDI », « CDD » |
+
+S'y ajoutent les interdits hérités : prix et montants non sourcés, délais chiffrés, garanties, vérifications annoncées, certifications, superlatifs, numéro de téléphone écrit dans le texte, gratuité annoncée.
+
+**Un cas mérite une décision de votre part :** « sans frais », « aucun frais », « inscription gratuite » sont aujourd'hui **bloqués**. C'est volontaire — je ne sais pas quelle est votre politique sur les frais demandés aux candidats, et l'écrire dans une annonce en ferait un engagement public. Voir la question 1 en section 9.
+
+---
+
+## 7. Enchaînement avec le module commercial
+
+Le cycle complet, une fois un client intéressé :
+
+```
+1. Prospection B2B          →  yallah_prospection.py
+   un établissement répond et exprime un besoin
+                              ↓
+2. Le besoin est qualifié    →  vous notez : métier, ville, zone, format
+   (c'est vous, pas le script)  + QUI a confirmé et QUAND
+                              ↓
+3. Besoin ajouté            →  besoins_emploi.json
+                              ↓
+4. python yallah_emploi.py --check
+   → refuse tant que la source de confirmation manque
+                              ↓
+5. python yallah_emploi.py --langue darija
+   → annonce prête, statut « publiable : oui »
+                              ↓
+6. Publication par vos soins  →  canal à définir (section 9)
+```
+
+**L'étape 2 est la seule qui ne peut pas être automatisée.** C'est celle où une personne décide que le besoin est réel. Le script ne peut pas vérifier qu'un employeur a vraiment besoin de quelqu'un ; il peut seulement vérifier que **vous avez écrit qui l'a dit et quand**.
+
+---
+
+## 8. Ce que le module ne fera jamais
+
+- **Il n'invente pas de poste.** Sans entrée dans `besoins_emploi.json`, il ne produit rien.
+- **Il n'invente pas de condition.** Un salaire ou des horaires sans source sont supprimés, pas complétés.
+- **Il ne qualifie pas le contrat.** « Permanent » oui, « CDI » non.
+- **Il ne promet rien.** Ni embauche, ni délai, ni remplacement.
+- **Il n'écrit pas de numéro dans le texte.** Le lien WhatsApp est ajouté à côté.
+- **Il ne publie pas les fiches d'exemple.** `exemple: true` = jamais publiable, testé automatiquement.
+
+---
+
+## 9. Quatre questions que je ne peux pas trancher à votre place
+
+Elles bloquent la publication réelle, pas le développement.
+
+1. **Frais demandés aux candidats.** Yallah demande-t-elle quelque chose aux candidats — inscription, dossier, placement ? Si oui, dans quelles limites ? Si non, faut-il l'écrire (« aucun frais ») ? Tant que la réponse n'est pas fixée, le garde-fou bloque toute mention de gratuité, et l'annonce reste muette sur le sujet. **Une annonce muette vaut mieux qu'une promesse non tenue.**
+2. **Canal de candidature.** Le module pointe aujourd'hui vers le WhatsApp de la fiche (+212 691 733 585), le même que celui utilisé pour les clients. Est-ce voulu, ou faut-il une ligne dédiée au recrutement ? Mélanger candidats et clients dans une même boîte de réception est un choix qui se paie plus tard.
+3. **Où publier.** Groupes Facebook de quartier, Instagram, TikTok, affichage physique, bouche-à-oreille ? Le module produit le texte, pas la diffusion. Chaque canal a ses règles et ses contraintes de format.
+4. **Conservation des candidatures.** Une annonce génère des CV et des numéros : ce sont des données personnelles. La loi 09-08 et les obligations déclaratives auprès de la CNDP s'appliquent probablement à ce traitement, mais **je ne l'affirme pas** — c'est à faire vérifier par un juriste avant d'ouvrir un fichier de candidatures. En attendant, la bonne pratique est de ne conserver que ce qui est nécessaire, pour une durée annoncée, et de le dire aux candidats.
+
+---
+
+## 10. Commandes
+
+```bash
+python yallah_emploi.py --check                  # validation ; code retour 1 si un besoin est mal formé
+python yallah_emploi.py                          # CSV des besoins publiables (vide aujourd'hui)
+python yallah_emploi.py --avec-exemples          # aperçu incluant la fiche de démonstration
+python yallah_emploi.py --langue darija
+python yallah_emploi.py --langue arabe --ref EMP-001
+python -m unittest discover -s tests -v          # 47 tests (20 prospection + 27 emploi)
+```
+
+**Colonnes du CSV :** `ref`, `poste`, `ville`, `zone`, `format`, `statut`, `publiable`, `remuneration`, `horaires`, `informations_non_communiquees`, `annonce`, `alertes`, `problemes`, `source_confirmation`, `date_confirmation`, `lien_whatsapp`.
+
+La colonne `informations_non_communiquees` est votre liste de relance : chaque champ qui y figure est une question à poser au client.
+
+---
+
+## 11. Fichiers
+
+| Fichier | Rôle |
+|---|---|
+| `besoins_emploi.json` | Besoins de recrutement confirmés — **aucun à ce jour**, une fiche d'exemple |
+| `yallah_emploi.py` | Validation, règle « valeur ⇒ source », rédaction des annonces, garde-fou |
+| `tests/test_emploi.py` | 20 tests : garde-fou emploi, règle de sourçage, publication, non-publication des exemples |
+| `offres_emploi.csv` | Artefact de travail généré (ignoré par Git) |

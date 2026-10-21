@@ -1,11 +1,13 @@
 # Prospect-Job — Yallah Services
 
-Deux modules distincts :
+Trois modules distincts, et une frontière à ne jamais franchir : **une offre
+commerciale s'adresse à un client, une offre d'emploi s'adresse à un candidat.**
 
 | Module | Fichier | Objet |
 |---|---|---|
 | **B2C** (particuliers) | `yallah_b2c.py` | Contenus de publication à destination des particuliers |
-| **B2B** (entreprises) | `yallah_prospection.py` | Prospection d'entreprises clientes, à partir d'un fichier de prospects sourcés |
+| **B2B** (entreprises clientes) | `yallah_prospection.py` | Prospection d'entreprises, à partir d'un fichier de prospects sourcés |
+| **Emploi** (candidats) | `yallah_emploi.py` | Annonces d'emploi, uniquement pour des besoins confirmés par un employeur |
 
 La recherche de prospects et la synthèse sont dans **`PROSPECTION_B2B.md`**
 (48 établissements : 26 en phase 1 à Casablanca, Rabat, Marrakech et Bouskoura,
@@ -105,6 +107,27 @@ lui-même**, pour le contacter au sujet d'une prestation. Pas d'annuaire acheté
 pas d'extraction de données personnelles, pas d'envoi automatisé en masse.
 Les messages générés sont des **offres commerciales** : ils ne doivent jamais
 être envoyés comme des offres d'emploi (voir `PROSPECTION_B2B.md`, § 10).
+
+## Module emploi — annonces pour candidats
+
+`yallah_emploi.py` transforme un besoin de recrutement **réellement confirmé par
+un employeur** en annonce pour candidats. Il ne publie rien tant qu'aucun besoin
+n'est enregistré : `besoins_emploi.json` ne contient aujourd'hui qu'une fiche
+d'exemple, que le script refuse de publier.
+
+Règle centrale : **toute valeur chiffrée doit porter sa source**. Une
+rémunération ou des horaires sans source sont supprimés de l'annonce, qui dit
+alors « non communiqué dans cette annonce ».
+
+```bash
+python yallah_emploi.py --check              # validation
+python yallah_emploi.py --avec-exemples      # aperçu du format
+python yallah_emploi.py --langue darija
+```
+
+⚠️ Les contacts de `prospects_b2b.json` sont des **clients** : ils ne doivent
+jamais recevoir une annonce d'emploi. Détail et questions ouvertes dans
+`OFFRES_EMPLOI.md`.
 
 ## Contact
 
