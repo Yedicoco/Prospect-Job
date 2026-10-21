@@ -127,10 +127,11 @@ python yallah_emploi.py --langue darija
 
 Les candidatures sont reçues sur **WhatsApp** (+212 691 733 585) et sur
 **servicesyallah@gmail.com** : les deux liens sont préremplis avec la référence
-du poste. Le module reste volontairement **muet sur les frais candidats** tant que la
-politique n'est pas tranchée : `POLITIQUE_FRAIS = "inconnu"` dans
-`yallah_emploi.py`. Les deux autres issues (`"aucun"`, `"factures"`) sont
-outillées et testées.
+du poste. Le module reste **muet sur les frais candidats** : `POLITIQUE_FRAIS = "inconnu"`.
+⚠️ Publier des frais à la charge du candidat est bloqué par un verrou
+(`FRAIS_CANDIDAT_VALIDATION`) : l'article 480 du Code du travail (loi 65-99)
+interdit aux agences de recrutement privées de percevoir des émoluments auprès
+des demandeurs d'emploi. Voir `OFFRES_EMPLOI.md`, section 9, question 1.
 
 ⚠️ Les contacts de `prospects_b2b.json` sont des **clients** : ils ne doivent
 jamais recevoir une annonce d'emploi. Détail et questions ouvertes dans

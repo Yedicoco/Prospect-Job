@@ -52,6 +52,32 @@ CONTACT_EMAIL = "servicesyallah@gmail.com"
 # ---------------------------------------------------------------------------
 POLITIQUE_FRAIS = "inconnu"
 
+# ---------------------------------------------------------------------------
+# VERROU JURIDIQUE - frais demandes aux candidats
+#
+# L'article 480 du Code du travail marocain (loi 65-99) interdit aux agences de
+# recrutement privees de percevoir, directement ou indirectement, des demandeurs
+# d'emploi des emoluments ou frais, en partie ou en totalite.
+# L'article 477 definit l'agence de recrutement privee comme toute personne morale
+# dont l'activite consiste notamment a rapprocher les demandes et les offres d'emploi.
+#
+# Consequence pour ce module : aucune annonce affichant des frais candidats ne peut
+# etre publiee tant qu'une validation juridique datee n'est pas enregistree ici.
+# Renseigner ce champ ne rend PAS l'annonce legale : cela documente seulement que
+# la question a ete tranchee par un professionnel du droit.
+#
+#   FRAIS_CANDIDAT_VALIDATION = {"reference": "avocat X, avis du ...", "date": "AAAA-MM-JJ"}
+# ---------------------------------------------------------------------------
+FRAIS_CANDIDAT_VALIDATION = None
+
+MOTIF_VERROU_FRAIS = (
+    "publication bloquee : l'article 480 du Code du travail (loi 65-99) interdit aux "
+    "agences de recrutement privees de percevoir des emoluments ou frais aupres des "
+    "demandeurs d'emploi, directement ou indirectement. Aucune annonce affichant des "
+    "frais candidats ne peut etre publiee sans validation juridique datee "
+    "(FRAIS_CANDIDAT_VALIDATION dans yallah_emploi.py)."
+)
+
 PHRASES_FRAIS = {
     "aucun": {
         "fr": "Aucun frais n'est demandé au candidat, à aucune étape de la mise en relation.",
@@ -194,7 +220,9 @@ def valider_besoin(b: dict) -> list:
 
     # Frais : la coherence entre la politique et les sources conditionne la publication.
     if not b.get("exemple"):
-        if POLITIQUE_FRAIS == "factures":
+        if POLITIQUE_FRAIS == "factures" and not FRAIS_CANDIDAT_VALIDATION:
+            problemes.append(MOTIF_VERROU_FRAIS)
+        elif POLITIQUE_FRAIS == "factures":
             montant, moment = frais_annoncables(b)
             if not montant or not moment:
                 problemes.append(
@@ -230,7 +258,7 @@ def ligne_frais(b: dict, langue: str) -> str:
     """Phrase sur les frais, ou chaine vide si la politique impose le silence."""
     if POLITIQUE_FRAIS == "aucun":
         return PHRASES_FRAIS["aucun"][langue]
-    if POLITIQUE_FRAIS == "factures":
+    if POLITIQUE_FRAIS == "factures" and FRAIS_CANDIDAT_VALIDATION:
         montant, moment = frais_annoncables(b)
         if montant and moment:
             return PHRASES_FRAIS["factures"][langue].format(montant=montant, moment=moment)

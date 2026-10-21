@@ -150,9 +150,11 @@ class TestPolitiqueFrais(unittest.TestCase):
 
     def setUp(self):
         self.avant = ye.POLITIQUE_FRAIS
+        self.avant_valid = ye.FRAIS_CANDIDAT_VALIDATION
 
     def tearDown(self):
         ye.POLITIQUE_FRAIS = self.avant
+        ye.FRAIS_CANDIDAT_VALIDATION = self.avant_valid
 
     def test_politique_aucun_ecrit_la_gratuite(self):
         ye.POLITIQUE_FRAIS = "aucun"
@@ -173,6 +175,7 @@ class TestPolitiqueFrais(unittest.TestCase):
 
     def test_politique_factures_avec_montant_source_publie(self):
         ye.POLITIQUE_FRAIS = "factures"
+        ye.FRAIS_CANDIDAT_VALIDATION = {"reference": "avis juridique de test", "date": "2026-11-01"}
         b = besoin(
             frais_montant={"valeur": "200 MAD", "source": "decision interne 21/10"},
             frais_moment={"valeur": "à l'inscription", "source": "decision interne 21/10"},
@@ -193,6 +196,46 @@ class TestPolitiqueFrais(unittest.TestCase):
     def test_politique_aucun_nest_jamais_devinee(self):
         """Garde-fou de conception : la valeur par defaut doit rester 'inconnu'."""
         self.assertEqual(ye.POLITIQUE_FRAIS, "inconnu")
+
+
+class TestVerrouJuridiqueFrais(unittest.TestCase):
+    """Art. 480 du Code du travail : aucun frais candidat publie sans validation juridique."""
+
+    def setUp(self):
+        self.avant = ye.POLITIQUE_FRAIS
+        self.avant_valid = ye.FRAIS_CANDIDAT_VALIDATION
+        ye.POLITIQUE_FRAIS = "factures"
+        ye.FRAIS_CANDIDAT_VALIDATION = None
+        self.b = besoin(
+            frais_montant={"valeur": "100 MAD", "source": "decision interne"},
+            frais_moment={"valeur": "à l'inscription", "source": "decision interne"},
+        )
+
+    def tearDown(self):
+        ye.POLITIQUE_FRAIS = self.avant
+        ye.FRAIS_CANDIDAT_VALIDATION = self.avant_valid
+
+    def test_verrou_actif_par_defaut(self):
+        self.assertIsNone(ye.FRAIS_CANDIDAT_VALIDATION)
+
+    def test_frais_bloques_sans_validation_juridique(self):
+        ligne = ye.construire_lignes([self.b], "fr", False)[0]
+        self.assertEqual(ligne["publiable"], "non")
+        self.assertIn("article 480", ligne["problemes"])
+
+    def test_montant_absent_du_texte_tant_que_le_verrou_est_actif(self):
+        self.assertNotIn("100 MAD", ye.annonce(self.b, "fr"))
+
+    def test_montant_publie_apres_validation_datee(self):
+        ye.FRAIS_CANDIDAT_VALIDATION = {"reference": "avis juridique", "date": "2026-11-01"}
+        ligne = ye.construire_lignes([self.b], "fr", False)[0]
+        self.assertEqual(ligne["publiable"], "oui")
+        self.assertIn("100 MAD", ligne["annonce"])
+
+    def test_le_verrou_ne_bloque_pas_une_politique_sans_frais(self):
+        ye.POLITIQUE_FRAIS = "aucun"
+        ligne = ye.construire_lignes([besoin()], "fr", False)[0]
+        self.assertEqual(ligne["publiable"], "oui")
 
 
 class TestFichierFourni(unittest.TestCase):

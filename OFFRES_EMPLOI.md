@@ -1,6 +1,6 @@
 # Offres d'emploi — module candidats
 ### Yallah Services · séparation stricte avec l'offre commerciale
-**Créé le 21 octobre 2026** · 0 besoin réel en base · 57 tests
+**Créé le 21 octobre 2026** · 0 besoin réel en base · 62 tests
 
 ---
 
@@ -211,29 +211,47 @@ Le cycle complet, une fois un client intéressé :
 
 Elles bloquent la publication réelle, pas le développement.
 
-**État au 21 octobre 2026 :** question 1 en attente mais outillée dans ses trois issues · question 2 tranchée · question 3 partiellement tranchée · question 4 sans réponse.
+**État au 21 octobre 2026 :** question 1 reçue mais **bloquée par un verrou juridique** (art. 480) · question 2 tranchée · question 3 partiellement tranchée · question 4 sans réponse.
 
-### 1. Frais demandés aux candidats — **en attente, mais les trois cas sont outillés**
+### 1. Frais demandés aux candidats — **décision reçue, publication bloquée**
 
-La décision reste à prendre. En attendant, le module sait traiter **les trois réponses possibles** sans jamais deviner. Une seule variable pilote tout (`yallah_emploi.py`) :
+**Décision transmise le 21/10/2026 :** « Des frais, 100 MAD à l'inscription. »
+
+**Elle n'a pas été appliquée, et voici pourquoi.**
+
+L'article 480 du Code du travail marocain (loi 65-99) dispose qu'« il est interdit aux agences de recrutement privées de percevoir, directement ou indirectement, des demandeurs d'emploi des émoluments ou frais, en partie ou en totalité ». L'article 477 définit l'agence de recrutement privée comme toute personne morale dont l'activité consiste notamment à « rapprocher les demandes et les offres d'emploi ». Facturer 100 MAD à l'inscription d'un candidat entre très probablement dans le champ de cette interdiction.
+
+**Sources consultées le 21 octobre 2026 :**
+
+| Source | Ce qu'elle établit |
+|---|---|
+| [Fiscamaroc — Intermédiation en matière de recrutement](https://www.fiscamaroc.com/fr/travail/lintermediation-en-matiere-de-recrutement-et-dembauchage-790/lintermediation-en-matiere-de-recrutement-859.htm) | Texte de l'article 480 : interdiction de percevoir des émoluments ou frais auprès des demandeurs d'emploi |
+| [DRH.ma — Code du travail](https://drh.ma/legislation-travail-maroc/code-du-travail-maroc/) | Sommaire du Livre IV : « Interdiction aux agences de recrutement privées de percevoir des émoluments (Article 480) » |
+| [Rekrute — sanctions Code du travail](https://www.rekrute.com/emplois-les-sanctions-que-vous-encourez-en-cas-de-non-respect-du-code-du-travail-xvii-conseils-carriere-918.html) | Reprise de l'article 480 ; amendes évoquées jusqu'à 60 000 DH en cas de manquement |
+| [Ministère de l'emploi — agences de recrutement privées](https://miepeec.gov.ma/mtip-espace-emploi/intermediation-en-matiere-demploi/agences-de-recrutement-privees/apercu/?lang=fr) | L'activité d'intermédiation est soumise à autorisation préalable |
+| [OIT — guide pour les agences d'emploi privées](https://www.ilo.org/sites/default/files/wcmsp5/groups/public/@ed_norm/@declaration/documents/instructionalmaterial/wcms_103883.pdf) | Convention n° 181, art. 7 : même principe d'interdiction de faire payer les travailleurs |
+
+**Ce que je ne dis pas :** je ne suis pas juriste et je n'affirme pas que la situation de Yallah tombe avec certitude sous cet article. Cette qualification dépend de son statut exact et de son activité réelle. Mais le risque est assez sérieux pour ne pas écrire « 100 MAD à l'inscription » dans une annonce publique avant vérification.
+
+#### Ce que fait le code
+
+Un verrou a été ajouté. Même si la politique est réglée sur `"factures"`, **aucun montant de frais n'apparaît dans une annonce et aucune annonce ne peut être publiée** tant qu'une validation juridique datée n'est pas enregistrée :
 
 ```python
-POLITIQUE_FRAIS = "inconnu"   # "aucun" | "factures" | "inconnu"
+FRAIS_CANDIDAT_VALIDATION = None   # → {"reference": "...", "date": "AAAA-MM-JJ"}
 ```
 
-| Politique | Ce que dit l'annonce | Publication |
-|---|---|---|
-| `"inconnu"` (actuel) | Rien. Ni frais, ni gratuité. | Autorisée |
-| `"aucun"` | « Aucun frais n'est demandé au candidat, à aucune étape de la mise en relation. » | Autorisée si le reste est bon |
-| `"factures"` | « Des frais sont demandés au candidat : [montant] ([moment]). Ils sont annoncés avant tout engagement. » | **Refusée** tant que le montant et le moment ne sont pas sourcés |
+Le message de blocage cite l'article 480, pour que la raison soit lisible dans le CSV et pas seulement dans la tête de celui qui a écrit le code. Cinq tests couvrent ce verrou, dont un qui vérifie que « 100 MAD » n'apparaît nulle part dans le texte généré.
 
-**Pourquoi `"factures"` bloque par défaut :** une annonce qui dirait « des frais s'appliquent » sans dire combien serait pire que le silence — le candidat postulerait sans savoir. Si des frais existent, ils doivent être chiffrés et sourcés avant publication, sinon rien ne sort.
+Renseigner ce champ ne rend pas l'annonce légale : cela documente seulement que la question a été tranchée par un professionnel du droit.
 
-**Pourquoi `"inconnu"` reste la valeur par défaut :** écrire « aucun frais » est un engagement public. Un test verrouille cette valeur (`test_politique_aucun_nest_jamais_devinee`) pour qu'elle ne puisse pas changer par inadvertance.
+#### Trois voies possibles
 
-**Ce qu'il reste à décider, en une phrase :** *Yallah facture-t-elle quelque chose au candidat — et si oui, quel montant, à quel moment ?*
+1. **Faire vérifier la qualification** auprès d'un avocat en droit du travail, ou de l'inspection du travail. Si l'avis confirme que l'interdiction ne s'applique pas à Yallah, renseigner `FRAIS_CANDIDAT_VALIDATION` et la publication des 100 MAD devient possible.
+2. **Facturer l'employeur plutôt que le candidat.** C'est le modèle dominant des cabinets de recrutement au Maroc : honoraires de 15 à 25 % du salaire annuel brut, payés par l'entreprise ([Jobsquare, 2026](https://www.jobsquare.ma/blog/agences-recrutement-maroc-cabinets-chasse-tetes/)). Surtout, cela supprime le risque : l'article 480 ne protège que les demandeurs d'emploi.
+3. **Ne rien facturer aux candidats** et passer la politique à `"aucun"`. L'annonce affiche alors « Aucun frais n'est demandé au candidat » — un argument commercial réel face aux pratiques du secteur.
 
-Si la réponse est « oui, des frais » : renseigner le montant **et** le moment dans chaque besoin, avec leur source, puis passer la politique à `"factures"`. Si la réponse est « non » : passer à `"aucun"`, et c'est réglé.
+**En attendant votre décision, la politique reste sur `"inconnu"`** : le module ne dit ni qu'il y a des frais, ni qu'il n'y en a pas.
 
 ### 2. Canal de candidature — **tranché : WhatsApp + email**
 
@@ -266,7 +284,7 @@ python yallah_emploi.py                          # CSV des besoins publiables (v
 python yallah_emploi.py --avec-exemples          # aperçu incluant la fiche de démonstration
 python yallah_emploi.py --langue darija
 python yallah_emploi.py --langue arabe --ref EMP-001
-python -m unittest discover -s tests -v          # 57 tests (20 prospection + 37 emploi)
+python -m unittest discover -s tests -v          # 62 tests (20 prospection + 42 emploi)
 ```
 
 **Colonnes du CSV :** `ref`, `poste`, `ville`, `zone`, `format`, `statut`, `publiable`, `remuneration`, `horaires`, `informations_non_communiquees`, `annonce`, `alertes`, `problemes`, `source_confirmation`, `date_confirmation`, `lien_whatsapp`, `lien_email`.
@@ -281,5 +299,5 @@ La colonne `informations_non_communiquees` est votre liste de relance : chaque c
 |---|---|
 | `besoins_emploi.json` | Besoins de recrutement confirmés — **aucun à ce jour**, une fiche d'exemple |
 | `yallah_emploi.py` | Validation, règle « valeur ⇒ source », rédaction des annonces, garde-fou |
-| `tests/test_emploi.py` | 37 tests : garde-fou emploi, règle de sourçage, trois politiques de frais, canaux, publication |
+| `tests/test_emploi.py` | 42 tests : garde-fou emploi, règle de sourçage, politiques de frais, verrou juridique art. 480, canaux |
 | `offres_emploi.csv` | Artefact de travail généré (ignoré par Git) |
