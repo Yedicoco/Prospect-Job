@@ -1,6 +1,6 @@
 # Offres d'emploi — module candidats
 ### Yallah Services · séparation stricte avec l'offre commerciale
-**Créé le 21 octobre 2026** · 0 besoin réel en base · 50 tests
+**Créé le 21 octobre 2026** · 0 besoin réel en base · 57 tests
 
 ---
 
@@ -72,10 +72,14 @@ Une annonce qui dit « rémunération non communiquée » est moins vendeuse qu'
   "statut": "ouvert",
   "source_confirmation": "Hôtel X, appel du 22/10/2026",
   "date_confirmation": "2026-10-22",
-  "remuneration": { "valeur": "", "source": "" },
-  "horaires":     { "valeur": "", "source": "" }
+  "remuneration":  { "valeur": "", "source": "" },
+  "horaires":      { "valeur": "", "source": "" },
+  "frais_montant": { "valeur": "", "source": "" },
+  "frais_moment":  { "valeur": "", "source": "" }
 }
 ```
+
+Les deux champs `frais_*` ne servent que si `POLITIQUE_FRAIS = "factures"` : ils sont alors obligatoires, et sans source ils bloquent la publication.
 
 **Champs obligatoires pour être publiable :** `ref`, `metier`, `ville`, `zone`, `format`, `statut` = `ouvert`, `source_confirmation`, `date_confirmation`.
 
@@ -162,7 +166,7 @@ Le module hérite du garde-fou B2C et y ajoute six interdits spécifiques aux an
 
 S'y ajoutent les interdits hérités : prix et montants non sourcés, délais chiffrés, garanties, vérifications annoncées, certifications, superlatifs, numéro de téléphone écrit dans le texte, gratuité annoncée.
 
-**Un cas mérite une décision de votre part :** « sans frais », « aucun frais », « inscription gratuite » sont aujourd'hui **bloqués**. C'est volontaire — je ne sais pas quelle est votre politique sur les frais demandés aux candidats, et l'écrire dans une annonce en ferait un engagement public. Voir la question 1 en section 9.
+**Cas particulier des frais :** « sans frais », « aucun frais », « inscription gratuite » restent **bloqués** quand ils seraient écrits par improvisation. La seule exception est la phrase de politique `"aucun"`, explicitement activée par vous : elle est neutralisée avant le passage du garde-fou parce qu'elle découle d'une décision, pas d'une génération. Voir la question 1 en section 9.
 
 ---
 
@@ -207,23 +211,29 @@ Le cycle complet, une fois un client intéressé :
 
 Elles bloquent la publication réelle, pas le développement.
 
-**État au 21 octobre 2026 :** question 1 en attente · question 2 tranchée · question 3 partiellement tranchée · question 4 sans réponse.
+**État au 21 octobre 2026 :** question 1 en attente mais outillée dans ses trois issues · question 2 tranchée · question 3 partiellement tranchée · question 4 sans réponse.
 
-### 1. Frais demandés aux candidats — **en attente, non tranchée**
+### 1. Frais demandés aux candidats — **en attente, mais les trois cas sont outillés**
 
-La réponse reçue (« oui ») pouvait signifier deux choses opposées : « oui, des frais sont facturés » ou « oui, aucun frais, et il faut l'écrire ». Les deux mènent à des annonces différentes, donc **aucune n'a été appliquée**.
-
-Par défaut, le module reste donc **muet sur les frais** : il ne dit ni qu'il y en a, ni qu'il n'y en a pas. C'est le seul texte qui ne peut pas être faux.
-
-Un interrupteur existe dans `yallah_emploi.py` :
+La décision reste à prendre. En attendant, le module sait traiter **les trois réponses possibles** sans jamais deviner. Une seule variable pilote tout (`yallah_emploi.py`) :
 
 ```python
-ECRIRE_AUCUN_FRAIS = False   # passer à True après décision explicite
+POLITIQUE_FRAIS = "inconnu"   # "aucun" | "factures" | "inconnu"
 ```
 
-Le passer à `True` sans modifier le corps de l'annonce ne change rien : il faut aussi y ajouter la phrase correspondante. **Ne pas activer avant d'avoir tranché**, et ne l'activer que pour dire « aucun frais » — jamais pour annoncer un montant sans source.
+| Politique | Ce que dit l'annonce | Publication |
+|---|---|---|
+| `"inconnu"` (actuel) | Rien. Ni frais, ni gratuité. | Autorisée |
+| `"aucun"` | « Aucun frais n'est demandé au candidat, à aucune étape de la mise en relation. » | Autorisée si le reste est bon |
+| `"factures"` | « Des frais sont demandés au candidat : [montant] ([moment]). Ils sont annoncés avant tout engagement. » | **Refusée** tant que le montant et le moment ne sont pas sourcés |
 
-Ce qu'il reste à décider, en une phrase : *Yallah facture-t-elle quelque chose au candidat, et si oui quoi, quand, et combien ?*
+**Pourquoi `"factures"` bloque par défaut :** une annonce qui dirait « des frais s'appliquent » sans dire combien serait pire que le silence — le candidat postulerait sans savoir. Si des frais existent, ils doivent être chiffrés et sourcés avant publication, sinon rien ne sort.
+
+**Pourquoi `"inconnu"` reste la valeur par défaut :** écrire « aucun frais » est un engagement public. Un test verrouille cette valeur (`test_politique_aucun_nest_jamais_devinee`) pour qu'elle ne puisse pas changer par inadvertance.
+
+**Ce qu'il reste à décider, en une phrase :** *Yallah facture-t-elle quelque chose au candidat — et si oui, quel montant, à quel moment ?*
+
+Si la réponse est « oui, des frais » : renseigner le montant **et** le moment dans chaque besoin, avec leur source, puis passer la politique à `"factures"`. Si la réponse est « non » : passer à `"aucun"`, et c'est réglé.
 
 ### 2. Canal de candidature — **tranché : WhatsApp + email**
 
@@ -256,7 +266,7 @@ python yallah_emploi.py                          # CSV des besoins publiables (v
 python yallah_emploi.py --avec-exemples          # aperçu incluant la fiche de démonstration
 python yallah_emploi.py --langue darija
 python yallah_emploi.py --langue arabe --ref EMP-001
-python -m unittest discover -s tests -v          # 50 tests (20 prospection + 30 emploi)
+python -m unittest discover -s tests -v          # 57 tests (20 prospection + 37 emploi)
 ```
 
 **Colonnes du CSV :** `ref`, `poste`, `ville`, `zone`, `format`, `statut`, `publiable`, `remuneration`, `horaires`, `informations_non_communiquees`, `annonce`, `alertes`, `problemes`, `source_confirmation`, `date_confirmation`, `lien_whatsapp`, `lien_email`.
@@ -271,5 +281,5 @@ La colonne `informations_non_communiquees` est votre liste de relance : chaque c
 |---|---|
 | `besoins_emploi.json` | Besoins de recrutement confirmés — **aucun à ce jour**, une fiche d'exemple |
 | `yallah_emploi.py` | Validation, règle « valeur ⇒ source », rédaction des annonces, garde-fou |
-| `tests/test_emploi.py` | 30 tests : garde-fou emploi, règle de sourçage, canaux, publication, non-publication des exemples |
+| `tests/test_emploi.py` | 37 tests : garde-fou emploi, règle de sourçage, trois politiques de frais, canaux, publication |
 | `offres_emploi.csv` | Artefact de travail généré (ignoré par Git) |

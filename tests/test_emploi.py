@@ -132,17 +132,67 @@ class TestPublication(unittest.TestCase):
         self.assertTrue(lien.startswith("mailto:" + ye.CONTACT_EMAIL))
         self.assertIn("EMP-001", lien)
 
-    def test_aucune_mention_de_gratuite_par_defaut(self):
-        """Tant que la politique de frais n'est pas tranchee, on n'ecrit rien sur le sujet."""
-        self.assertFalse(ye.ECRIRE_AUCUN_FRAIS)
+    def test_aucune_mention_de_frais_par_defaut(self):
+        """Politique par defaut = inconnu : on n'ecrit rien, ni frais ni gratuite."""
+        self.assertEqual(ye.POLITIQUE_FRAIS, "inconnu")
         for langue in ("fr", "darija", "arabe"):
             texte = ye.annonce(besoin(), langue).lower()
-            for interdit in ("sans frais", "aucun frais", "gratuit", "gratuite"):
-                self.assertNotIn(interdit, texte, f"{langue} : {interdit}")
+            for mot in ("frais", "khols", "مصاريف", "gratuit", "gratuite"):
+                self.assertNotIn(mot, texte, f"{langue} : {mot}")
 
     def test_trois_langues_sans_alerte(self):
         for langue in ("fr", "darija", "arabe"):
             self.assertEqual(ye.verifier_annonce(ye.annonce(besoin(), langue)), [], langue)
+
+
+class TestPolitiqueFrais(unittest.TestCase):
+    """Trois politiques possibles, jamais devinees a la place de Yallah."""
+
+    def setUp(self):
+        self.avant = ye.POLITIQUE_FRAIS
+
+    def tearDown(self):
+        ye.POLITIQUE_FRAIS = self.avant
+
+    def test_politique_aucun_ecrit_la_gratuite(self):
+        ye.POLITIQUE_FRAIS = "aucun"
+        texte = ye.annonce(besoin(), "fr")
+        self.assertIn("Aucun frais", texte)
+
+    def test_politique_aucun_ne_declenche_pas_le_garde_fou(self):
+        ye.POLITIQUE_FRAIS = "aucun"
+        ligne = ye.construire_lignes([besoin()], "fr", False)[0]
+        self.assertEqual(ligne["alertes"], "")
+        self.assertEqual(ligne["publiable"], "oui")
+
+    def test_politique_factures_sans_montant_source_refuse_la_publication(self):
+        ye.POLITIQUE_FRAIS = "factures"
+        ligne = ye.construire_lignes([besoin()], "fr", False)[0]
+        self.assertEqual(ligne["publiable"], "non")
+        self.assertIn("frais", ligne["problemes"])
+
+    def test_politique_factures_avec_montant_source_publie(self):
+        ye.POLITIQUE_FRAIS = "factures"
+        b = besoin(
+            frais_montant={"valeur": "200 MAD", "source": "decision interne 21/10"},
+            frais_moment={"valeur": "à l'inscription", "source": "decision interne 21/10"},
+        )
+        ligne = ye.construire_lignes([b], "fr", False)[0]
+        self.assertEqual(ligne["publiable"], "oui")
+        self.assertIn("200 MAD", ligne["annonce"])
+
+    def test_montant_sans_source_napparait_pas(self):
+        ye.POLITIQUE_FRAIS = "factures"
+        b = besoin(frais_montant={"valeur": "200 MAD", "source": ""})
+        self.assertNotIn("200 MAD", ye.annonce(b, "fr"))
+
+    def test_politique_inconnue_est_signalee(self):
+        ye.POLITIQUE_FRAIS = "peut-etre"
+        self.assertTrue(ye.valider_besoin(besoin()))
+
+    def test_politique_aucun_nest_jamais_devinee(self):
+        """Garde-fou de conception : la valeur par defaut doit rester 'inconnu'."""
+        self.assertEqual(ye.POLITIQUE_FRAIS, "inconnu")
 
 
 class TestFichierFourni(unittest.TestCase):

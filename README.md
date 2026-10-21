@@ -127,8 +127,10 @@ python yallah_emploi.py --langue darija
 
 Les candidatures sont reçues sur **WhatsApp** (+212 691 733 585) et sur
 **servicesyallah@gmail.com** : les deux liens sont préremplis avec la référence
-du poste. Le module reste volontairement **muet sur les frais candidats** tant
-que la politique n'est pas tranchée.
+du poste. Le module reste volontairement **muet sur les frais candidats** tant que la
+politique n'est pas tranchée : `POLITIQUE_FRAIS = "inconnu"` dans
+`yallah_emploi.py`. Les deux autres issues (`"aucun"`, `"factures"`) sont
+outillées et testées.
 
 ⚠️ Les contacts de `prospects_b2b.json` sont des **clients** : ils ne doivent
 jamais recevoir une annonce d'emploi. Détail et questions ouvertes dans

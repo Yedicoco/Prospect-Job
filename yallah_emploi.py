@@ -42,11 +42,28 @@ SOURCE_PAR_DEFAUT = "besoins_emploi.json"
 # WhatsApp : meme numero que la fiche. Email : adresse dediee au service.
 CONTACT_EMAIL = "servicesyallah@gmail.com"
 
-# Frais demandes aux candidats : question ouverte (voir OFFRES_EMPLOI.md, section 9).
-# Tant qu'elle n'est pas tranchee, aucune mention de gratuite n'est ecrite dans les
-# annonces : le garde-fou bloque deja "sans frais" / "gratuit". Passer a True
-# uniquement apres decision explicite, et adapter alors le texte de l'annonce.
-ECRIRE_AUCUN_FRAIS = False
+# ---------------------------------------------------------------------------
+# Politique de frais applicables aux CANDIDATS (decision Yallah, pas du client).
+# Trois etats seulement, et un seul peut etre actif :
+#   "aucun"    -> les annonces ecrivent noir sur blanc qu'aucun frais n'est demande
+#   "factures" -> les annonces doivent afficher le montant source, sinon rien n'est publiable
+#   "inconnu"  -> silence total sur les frais : ni promesse, ni omission trompeuse
+# Ne jamais passer a "aucun" si ce n'est pas vrai : c'est un engagement public.
+# ---------------------------------------------------------------------------
+POLITIQUE_FRAIS = "inconnu"
+
+PHRASES_FRAIS = {
+    "aucun": {
+        "fr": "Aucun frais n'est demandé au candidat, à aucune étape de la mise en relation.",
+        "darija": "Ma kayn 7ta khols 3la lkandidat, f 7ta mar7ala mn lmowasala.",
+        "arabe": "لا تُطلب أي مصاريف من المرشح في أي مرحلة من مراحل الربط.",
+    },
+    "factures": {
+        "fr": "Des frais sont demandés au candidat : {montant} ({moment}). Ils sont annoncés avant tout engagement.",
+        "darija": "Kayn khols 3la lkandidat : {montant} ({moment}). Kayt3aref bih 9bel ay iltizam.",
+        "arabe": "تُطلب مصاريف من المرشح: {montant} ({moment}). ويُعلم بها قبل أي التزام.",
+    },
+}
 DATE_ATTENDUE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 # ---------------------------------------------------------------------------
@@ -67,7 +84,7 @@ FORMATS = {
 }
 
 # Champs dont une valeur chiffree doit toujours etre sourcee.
-CHAMPS_SOURCES = ("remuneration", "horaires")
+CHAMPS_SOURCES = ("remuneration", "horaires", "frais_montant", "frais_moment")
 
 CHAMPS_REQUIS = ["ref", "metier", "ville", "zone", "format"]
 
@@ -128,6 +145,27 @@ def demasquer(valeurs: list, texte: str) -> str:
 # ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
+def bloc_frais(besoin: dict) -> dict:
+    """Bloc 'frais' du besoin, ou un bloc vide."""
+    return besoin.get("frais") or {}
+
+
+def frais_annoncables(b: dict) -> tuple:
+    """Retourne (montant, moment) si et seulement si la politique et les sources le permettent.
+
+    - politique "aucun"    : rien a afficher, la phrase de gratuite suffit ;
+    - politique "factures" : le montant ET le moment doivent etre sources ;
+    - sinon                : rien n'est affiche, quel que soit le contenu du fichier.
+    """
+    if POLITIQUE_FRAIS != "factures":
+        return None, None
+    montant, src_montant = lire_champ_source(b, "frais_montant")
+    moment, src_moment = lire_champ_source(b, "frais_moment")
+    if not montant or not moment or not src_montant or not src_moment:
+        return None, None
+    return montant, moment
+
+
 def valider_besoin(b: dict) -> list:
     problemes = []
     for champ in CHAMPS_REQUIS:
@@ -154,6 +192,18 @@ def valider_besoin(b: dict) -> list:
         if str(bloc.get("valeur", "")).strip() and not str(bloc.get("source", "")).strip():
             problemes.append(f"{champ} sans source : valeur refusee")
 
+    # Frais : la coherence entre la politique et les sources conditionne la publication.
+    if not b.get("exemple"):
+        if POLITIQUE_FRAIS == "factures":
+            montant, moment = frais_annoncables(b)
+            if not montant or not moment:
+                problemes.append(
+                    "frais factures mais montant ou moment non source : annonce refusee "
+                    "(un candidat doit connaitre les frais avant de postuler)"
+                )
+        elif POLITIQUE_FRAIS not in ("aucun", "inconnu"):
+            problemes.append(f"politique de frais inconnue : {POLITIQUE_FRAIS}")
+
     return problemes
 
 
@@ -176,6 +226,17 @@ LIGNES_NON_COMMUNIQUEES = {
 }
 
 
+def ligne_frais(b: dict, langue: str) -> str:
+    """Phrase sur les frais, ou chaine vide si la politique impose le silence."""
+    if POLITIQUE_FRAIS == "aucun":
+        return PHRASES_FRAIS["aucun"][langue]
+    if POLITIQUE_FRAIS == "factures":
+        montant, moment = frais_annoncables(b)
+        if montant and moment:
+            return PHRASES_FRAIS["factures"][langue].format(montant=montant, moment=moment)
+    return ""
+
+
 def annonce(b: dict, langue: str) -> str:
     metier = METIERS.get(b.get("metier", ""), b.get("metier", ""))
     format_libelle = FORMATS.get(b.get("format", ""), b.get("format", ""))
@@ -190,13 +251,17 @@ def annonce(b: dict, langue: str) -> str:
     # La phrase de confirmation n'apparait que si le besoin est reellement adosse a une source.
     confirme = bool(str(b.get("source_confirmation", "")).strip())
 
+    # Frais : construits uniquement si la politique l'autorise.
+    phrase_frais = ligne_frais(b, langue)
+
     if langue == "fr":
         return (
             f"{metier.capitalize()} — {ville} ({zone})\n\n"
             f"Type de besoin : {format_libelle}.\n"
             f"Horaires : {ligne_hor}.\n"
             f"Rémunération : {ligne_rem}.\n\n"
-            f"Yallah Services met en relation des employeurs et des candidats au Maroc."
+            + (f"{phrase_frais}\n\n" if phrase_frais else "")
+            + f"Yallah Services met en relation des employeurs et des candidats au Maroc."
             + (" Ce besoin a été confirmé par un employeur ; les éléments ci-dessus sont "
                "ceux qu'il a communiqués, sans ajout de notre part." if confirme else "")
             + "\n\n"
@@ -210,7 +275,8 @@ def annonce(b: dict, langue: str) -> str:
             f"Naw3 lkhedma : {format_libelle}.\n"
             f"Lwqiyat : {ligne_hor}.\n"
             f"L2ajr : {ligne_rem}.\n\n"
-            f"Yallah Services kantwesel bin l2arbab lkhedma w lkandidates f lMaghrib."
+            + (f"{phrase_frais}\n\n" if phrase_frais else "")
+            + f"Yallah Services kantwesel bin l2arbab lkhedma w lkandidates f lMaghrib."
             + (" Had lkhdma m2ekda mn 3and chi mchghl, w lma3lomat li foq hiya li 3tana, "
                "bla ma nzido 7ta haja mn 3andna." if confirme else "")
             + "\n\n"
@@ -223,7 +289,8 @@ def annonce(b: dict, langue: str) -> str:
         f"نوع الحاجة: {format_libelle}.\n"
         f"التوقيت: {ligne_hor}.\n"
         f"الأجر: {ligne_rem}.\n\n"
-        f"Yallah Services تعمل على الربط بين أصحاب العمل والمرشحين في المغرب."
+        + (f"{phrase_frais}\n\n" if phrase_frais else "")
+        + f"Yallah Services تعمل على الربط بين أصحاب العمل والمرشحين في المغرب."
         + (" هذه الحاجة مؤكدة من طرف صاحب عمل، والمعطيات أعلاه هي التي قدمها دون أي إضافة منا."
            if confirme else "")
         + "\n\n"
@@ -270,7 +337,10 @@ def construire_lignes(besoins: list, langue: str, avec_exemples: bool) -> list:
 
         remun, _ = lire_champ_source(b, "remuneration")
         hor, _ = lire_champ_source(b, "horaires")
-        valeurs_sourcees = [v for v in (remun, hor) if v]
+        montant, _ = frais_annoncables(b)
+        # Les phrases de frais sont adossees a une politique ou a une source :
+        # elles ne doivent pas declencher le garde-fou sur leurs propres mots.
+        valeurs_sourcees = [v for v in (remun, hor, montant, ligne_frais(b, langue)) if v]
         alertes = verifier_annonce(masquer(valeurs_sourcees, texte))
         texte = demasquer(valeurs_sourcees, texte)
 
