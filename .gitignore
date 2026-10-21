@@ -1,0 +1,9 @@
+# Artefacts générés par le module B2C
+contenus_b2c.csv
+*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.env
+.venv/
