@@ -31,6 +31,14 @@ python3 yallah_messages.py --type b2c --langue darija --prenom "Youssef"
 0 fiche B2C réelle (voir la section 7 de `MESSAGES_PROSPECTION.md`), 15 envois
 manuels maximum par jour, plan réparti sur 4 jours.
 
+**Actualisation quotidienne** : la conservation des fiches est décidée, mais une
+fiche non revérifiée le jour même ne peut plus recevoir de message.
+
+```bash
+python3 yallah_messages.py --actualiser actualisation.md   # checklist du matin
+python3 yallah_messages.py --verifie B2B-001 B2B-002      # fiches reconfirmées
+```
+
 ## Module B2C
 
 `yallah_b2c.py` prépare les contenus de publication B2C (particuliers) de
@@ -106,7 +114,7 @@ python yallah_prospection.py --phase 3 --niveau A
 python yallah_prospection.py --ville Rabat --niveau A
 python yallah_prospection.py --segment hotel --langue darija
 python yallah_prospection.py --sans-messages             # contacts seuls
-python -m unittest discover -s tests -v                  # 20 tests
+python -m unittest discover -s tests -v                  # 98 tests
 ```
 
 ### Niveaux de vérification
@@ -144,11 +152,13 @@ python yallah_emploi.py --langue darija
 
 Les candidatures sont reçues sur **WhatsApp** (+212 691 733 585) et sur
 **servicesyallah@gmail.com** : les deux liens sont préremplis avec la référence
-du poste. Le module reste **muet sur les frais candidats** : `POLITIQUE_FRAIS = "inconnu"`.
-⚠️ Publier des frais à la charge du candidat est bloqué par un verrou
-(`FRAIS_CANDIDAT_VALIDATION`) : l'article 480 du Code du travail (loi 65-99)
-interdit aux agences de recrutement privées de percevoir des émoluments auprès
-des demandeurs d'emploi. Voir `OFFRES_EMPLOI.md`, section 9, question 1.
+du poste.
+
+**Frais candidats : aucun** (décision du 21/10/2026, pour respecter l'article 480
+du Code du travail). `POLITIQUE_FRAIS = "aucun"` : chaque annonce écrit qu'aucun
+frais n'est demandé au candidat, et aucun montant n'y figure. Le verrou
+`FRAIS_CANDIDAT_VALIDATION` reste armé : toute réactivation de frais sans
+validation juridique datée bloque la publication. Voir `OFFRES_EMPLOI.md`, § 9.
 
 ⚠️ Les contacts de `prospects_b2b.json` sont des **clients** : ils ne doivent
 jamais recevoir une annonce d'emploi. Détail et questions ouvertes dans
