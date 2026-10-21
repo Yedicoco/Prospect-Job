@@ -1,12 +1,12 @@
-# Prospection B2B — phases 1 et 2
-### Yallah Services · Casablanca · Rabat · Marrakech · Bouskoura · Tanger · Agadir · Mohammedia · Kénitra
-**Date de collecte : 21 octobre 2026** · 37 établissements identifiés · 20 en zone phase 1 · 11 en phase 2
+# Prospection B2B — phases 1, 2 et 3
+### Yallah Services · 10 villes couvertes
+**Date de collecte : 21 octobre 2026** · **48 établissements identifiés** · 20 en zone phase 1 · 11 en phase 2 · 11 en phase 3
 
 ---
 
 ## 1. Objet
 
-Ce document recense des **entreprises clientes potentielles** (hôtels, riads et maisons d'hôtes, restaurants, chantiers, sociétés de nettoyage, commerces, organisateurs d'événements) implantées dans les zones de la **phase 1** (Casablanca, Bouskoura, Rabat, Marrakech) et dans les **villes de la phase 2** (Tanger, Agadir, Mohammedia, Kénitra), avec **uniquement des coordonnées professionnelles publiquement affichées** par ces établissements.
+Ce document recense des **entreprises clientes potentielles** (hôtels, riads et maisons d'hôtes, restaurants, chantiers, sociétés de nettoyage, commerces, organisateurs d'événements) implantées dans les zones de la **phase 1** (Casablanca, Bouskoura, Rabat, Marrakech) dans les **villes de la phase 2** (Tanger, Agadir, Mohammedia, Kénitra) et dans celles de la **phase 3** (Fès, El Jadida, Témara/Harhoura), avec **uniquement des coordonnées professionnelles publiquement affichées** par ces établissements.
 
 Ce n'est **pas** une liste d'offres d'emploi. Les messages proposés en section 8 sont des **offres commerciales** destinées à un client (l'établissement). Aucun de ces contacts ne doit recevoir une annonce de recrutement : voir section 10.
 
@@ -26,9 +26,10 @@ Ce n'est **pas** une liste d'offres d'emploi. Les messages proposés en section 
 | **B** | Coordonnée vue dans un extrait de moteur de recherche ou sur une page sociale présentée comme officielle, non reconfirmée sur la page consultée | Reconfirmer avant un envoi engageant |
 | **C** | Aucun contact direct publié (formulaire uniquement) | Passage obligé par le formulaire du site |
 
-Répartition globale : **16 fiches A · 20 fiches B · 1 fiche C** (phase 1 : 12 A / 13 B / 1 C — phase 2 : 4 A / 7 B).
+Répartition globale : **18 fiches A · 29 fiches B · 1 fiche C**
+— phase 1 : 12 A / 13 B / 1 C · phase 2 : 4 A / 7 B · phase 3 : 2 A / 9 B.
 
-**Phase 1 et phase 2 ne se valent pas commercialement.** En phase 2, la fiche ne précise pas de quartiers : la zone est donc « ville entière », et le score de priorité n'accorde pas le bonus de zone phase 1. Les 11 fiches de phase 2 sont conçues comme un **démarrage progressif**, pas comme un second front à ouvrir en même temps que la phase 1.
+**Les trois phases ne se valent pas commercialement.** En phases 2 et 3, la fiche ne précise pas de quartiers : la zone est « ville entière » et le score de priorité n'accorde pas le bonus de zone. Surtout, **la qualité des sources se dégrade à mesure qu'on s'éloigne de Casablanca** : 12 fiches A en phase 1, 4 en phase 2, 2 seulement en phase 3. Ce n'est pas un hasard : les établissements de Fès, El Jadida et Harhoura publient moins souvent un contact direct sur leur propre site. Concrètement, **en phase 3, 9 fiches sur 11 demandent une reconfirmation avant le premier appel**.
 
 La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonnancement**, pas une prévision : segment (hôtel, riad, événementiel = 3 ; restaurant, chantier, nettoyage, commerce = 2 ; porteur de projet = 1) + 3 si la zone est en phase 1, + 1 si la fiche est en phase 1 sans être dans un quartier listé, + 2 si niveau A, 1 si B, − 1 en cas d'anomalie de données.
 
@@ -46,19 +47,22 @@ La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonn
 | Mohammedia | 2 | 3 | ville entière |
 | Kénitra | 2 | 3 | ville entière |
 | Agadir | 2 | 2 | ville entière |
+| Fès | 3 | 6 | ville entière |
+| El Jadida | 3 | 4 | ville entière |
+| Témara/Harhoura | 3 | 1 | ville entière |
 
 | Segment | Fiches |
 |---|---|
-| Hôtels | 22 |
+| Hôtels | 30 |
+| Riads et maisons d'hôtes | 6 |
 | Événementiel / traiteur | 4 |
-| Riads et maisons d'hôtes | 3 |
 | Restaurants | 2 |
 | Construction / chantiers | 2 |
 | Commerces et centres commerciaux | 2 |
 | Sociétés de nettoyage | 1 |
 | Porteurs de projets | 1 (par analogie, voir § 6) |
 
-**Déséquilibre assumé :** les 11 fiches de phase 2 sont **toutes des hôtels**. C'est le résultat direct de la méthode : en phase 2, seuls les hôtels publient un site avec un contact vérifiable. Aucun restaurant, riad ou traiteur de Tanger, Agadir, Mohammedia ou Kénitra n'a pu être retenu faute de coordonnée officielle vérifiable — ce n'est pas une absence sur le terrain, c'est une absence de source.
+**Déséquilibre assumé :** les 11 fiches de phase 2 sont **toutes des hôtels**, et 9 des 11 fiches de phase 3 également. C'est le résultat direct de la méthode : hors Casablanca-Rabat-Marrakech, seuls les hôtels publient un site avec un contact vérifiable. Aucun restaurant, traiteur ou commerce de Tanger, Agadir, Mohammedia, Kénitra, Fès ou El Jadida n'a pu être retenu faute de coordonnée officielle vérifiable — ce n'est pas une absence sur le terrain, c'est une absence de source. **C'est le constat le plus important de cette collecte : au-delà de la phase 1, la recherche en ligne plafonne.**
 
 **Lecture honnête de ces chiffres :** la densité vient des hôtels parce que ce sont les établissements qui publient le plus systématiquement un site avec contact. Les segments « commerces indépendants » et « porteurs de projets » sont structurellement sous-représentés, non parce qu'ils manquent, mais parce qu'ils n'ont pas d'adresse publique trouvable. Il ne faut pas lire ce tableau comme une mesure du marché.
 
@@ -117,7 +121,7 @@ La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonn
 
 ---
 
-## 6. Marrakech, Bouskoura et phase 2
+## 6. Marrakech, Bouskoura, phase 2 et phase 3
 
 ### Marrakech
 
@@ -183,6 +187,38 @@ La priorité (colonne `score` du CSV, de 0 à 10) est une **heuristique d'ordonn
 
 Aucun restaurant, riad, traiteur, chantier ou commerce de Tanger, Agadir, Mohammedia ou Kénitra n'a été retenu. La raison est constante : leurs coordonnées ne sont publiées que sur des annuaires ou des pages non officielles, ce qui interdirait de les qualifier de coordonnées « publiquement affichées par l'établissement ». **Pour ouvrir ces segments, il faut une collecte terrain**, pas une recherche en ligne.
 
+### Phase 3 — Fès, El Jadida, Témara/Harhoura
+
+| # | Établissement | Segment | Ville | Contact public | Vérif. | Source |
+|---|---|---|---|---|---|---|
+| F1 | **Palais Faraj Suites & Spa** | Riad / suites | Fès | +212 535 63 53 56 · concierge@palaisfaraj.com | A | [page contact](https://www.palaisfaraj.com/contact-and-location-of-our-luxury-hotel-of-palais-faraj-in-fes-morocco/) |
+| F2 | **Riad Fès – Relais & Châteaux** | Riad | Fès | +212 535 74 12 06 · contact@riadfes.com | B | [site officiel](https://riadfes.com/en/restaurant.html) |
+| F3 | **Palais Medina Riad Resort** | Hôtel | Fès | +212 538 90 09 00 | B | [fiche officielle](https://acollectionhotels.com/fr/our-destinations/f%C3%A8s/business/palais-medina-fes) |
+| F4 | **Hôtel Sahrai** | Hôtel | Fès | +212 535 94 03 32 · info@hotelsahrai.com | B | [site officiel](https://hotelsahrai.com/fr/) |
+| F5 | **Palais de Fès Suites & Spa** | Riad | Fès | +212 535 76 15 90 · reservations@palais-de-fes.com | B | [site officiel](https://www.palais-de-fes.com/) |
+| F6 | **Barceló Fès Medina** | Hôtel | Fès | +212 535 94 88 00 · fes@barcelo.com | B | [site officiel](https://www.barcelo.com/en-us/barcelo-fes-medina/) |
+| E1 | **Hôtel Deauville** | Hôtel 5★ | El Jadida | +212 523 33 10 10 · reservation@hoteldeauville.ma | B | [site officiel](https://hoteldeauville.ma/) |
+| E2 | **Jawharat El Jadida** | Hôtel 3★ | El Jadida | +212 523 34 16 36 · reservation@jawharateljadida.ma | A | [site officiel](https://jawharateljadida.ma/en/) |
+| E3 | **Mazagan Beach & Golf Resort** | Resort | El Jadida | +212 523 38 80 00 | B | [page de réservation](https://www.booking.com/hotel/ma/mazagan-beach-resort.html) |
+| E4 | **ibis El Jadida** | Hôtel 3★ | El Jadida | +212 523 37 95 03 · H5708@accor.com | B | [fiche officielle](https://all.accor.com/hotel/5708/index.en.shtml) |
+| H1 | **Conrad Rabat Arzana** | Resort | Harhoura | +212 537 74 99 99 | B | [site officiel](https://www.hilton.com/en/hotels/rbacici-conrad-rabat-arzana/) |
+
+#### Détail et angle d'approche
+
+- **F1 Palais Faraj** — suites et spa sur les remparts sud de la médina, accessible en voiture par Bab Ziat. C'est le seul contact de Fès lisible directement sur une page officielle (niveau A). Maison de prestige : l'argument n'est pas le volume, c'est la discrétion et la continuité.
+- **F2 Riad Fès** — Relais & Châteaux, restaurant *Gayza*, bar, rooftop, espaces réunions et mariages. Exigence gastronomique élevée : profil visé en cuisine et en salle, pas en entretien généraliste.
+- **F3 Palais Medina** — **le plus gros volume de Fès** : 146 chambres, 4 restaurants et un bar, spa, salles de réunion modulables. C'est la fiche à traiter en priorité dans cette ville. ⚠️ Aucun email d'entreprise publié : l'adresse trouvée était nominative, je l'ai **volontairement écartée**.
+- **F4 / F5 / F6** — Sahrai (hôtel contemporain avec spa), Palais de Fès (riad avec salle d'événements), Barceló Fès Medina (groupe international). Trois profils différents, trois angles : besoin structure, renfort événementiel, circuit achat.
+- **E1 Deauville** — 5 étoiles de 171 chambres et suites face à la plage, deux restaurants, bar, spa, salle de séminaires et de réceptions : **la fiche la plus complète d'El Jadida**. ⚠️ Le site affiche ses tarifs de chambre : ne jamais les reprendre.
+- **E2 Jawharat** — 3 étoiles avec salle de conférence et réception d'événements. Contact vérifié sur le site (niveau A). Effectif de base réduit, mais les événements créent des pics exploitables.
+- **E3 Mazagan** — resort avec golf et centre de conventions : **le plus gros employeur privé du secteur**, donc la cible la plus intéressante malgré un circuit d'achat lourd. ⚠️ Le numéro vient d'une plateforme de réservation, **pas du site de l'établissement** : à reconfirmer impérativement avant d'appeler.
+- **E4 ibis El Jadida** — 103 chambres, salle de réunion jusqu'à 80 personnes, restaurant. Format économique : besoin récurrent et stable.
+- **H1 Conrad Rabat Arzana** — seul établissement de Témara/Harhoura avec un site et un contact vérifiables. **C'est aussi le constat de la zone : une seule fiche.** Le reste du parc (Le Littoral, Riad Alhambra, Villa Temara Plage, Panorama) n'est joignable que via des plateformes de réservation, donc non retenu.
+
+#### Ce qui manque en phase 3, et pourquoi
+
+**Témara/Harhoura est la zone la plus mal couverte des trois phases : 1 fiche.** Aucun des petits établissements de la corniche ne publie de contact sur son propre site. Fès et El Jadida sont mieux lotis, mais restent très majoritairement hôteliers. Pour ces deux villes, la médina de Fès — dense en riads et restaurants — est un **terrain de prospection physique**, pas une cible de recherche en ligne.
+
 ---
 
 ## 7. Non trouvé — et pourquoi
@@ -198,6 +234,8 @@ Conformément à la règle « si je ne trouve pas, j'écris non trouvé », voic
 | Volume réel des besoins (nombre d'agents, fréquence) | **non trouvé** | Information interne aux établissements : elle se découvre à l'appel, pas sur un site. |
 | Coordonnée directe de **The White Palace** | **non trouvé** | Le site ne publie qu'un formulaire (niveau C). |
 | Contacts de restaurants, riads, traiteurs et commerces en **phase 2** | **non trouvé** | Aucune de ces structures ne publie de contact vérifiable sur un site qui lui appartienne. Voir « Ce qui manque en phase 2 ». |
+| Contacts des petits établissements de **Témara/Harhoura** | **non trouvé** | Le Littoral, Riad Alhambra, Villa Temara Plage, Hôtel Panorama : joignables uniquement via des plateformes de réservation, donc non retenus. |
+| Restaurants et riads de la **médina de Fès** | **non trouvé** | L'offre est dense mais les coordonnées ne sont publiées que sur des annuaires ou des pages tierces. Prospection terrain nécessaire. |
 | Email d'**Urban Hôtel** (Kénitra) | **non trouvé** | Aucune adresse email publiée sur les pages consultées. |
 
 ### Anomalies de données à connaître avant d'appeler
@@ -310,13 +348,29 @@ Deux formulations sont également à éviter même si le garde-fou ne les attrap
 4. ~~Mettre à jour le module B2C existant (`yallah_b2c.py`) : base de faits citant Salé et omettant El Jadida.~~ **Corrigé le 21/10/2026** : la base de faits reprend désormais les zones et les trois phases de la fiche, et les constantes `PHASE_2` / `PHASE_3` sont partagées avec le module de prospection.
 5. **Ouvrir le segment « porteurs de projets »** avec une méthode dédiée : la recherche publique ne suffit pas (§ 7).
 6. **Compléter la phase 2 sur le terrain** : les 11 fiches actuelles sont toutes hôtelières. Les restaurants, riads et traiteurs de ces quatre villes exigent une collecte physique ou un contact direct, pas une recherche en ligne.
-7. **Étendre à la phase 3** (Fès, El Jadida, Témara/Harhoura) avec la même grille A/B/C — et le même constat attendu : la couverture sera hôtelière tant qu'on reste en source ouverte.
+7. ~~Étendre à la phase 3 (Fès, El Jadida, Témara/Harhoura).~~ **Fait le 21/10/2026** : 11 fiches, dont 2 seulement de niveau A. Le constat est confirmé et même plus net qu'attendu : **hors phase 1, la recherche en ligne ne produit que des fiches à reconfirmer, et Témara/Harhoura ne donne qu'un seul établissement.**
+8. **Arbitrer la suite** : soit ouvrir un chantier de **collecte terrain** (médina de Fès, corniche de Harhoura, restaurants de Tanger et d'Agadir), soit **consolider la phase 1** — 26 fiches, 12 vérifiées, dans les quartiers où se trouve la cible réelle de la fiche. La seconde option est plus rentable à court terme ; la première est la seule qui fera grossir le fichier au-delà de 50 lignes.
 
 ---
 
 ## 12. Journal des sources
 
 Toutes les pages ci-dessous ont été consultées le **21 octobre 2026**.
+
+**Phase 3 — niveau A :**
+- Palais Faraj — https://www.palaisfaraj.com/contact-and-location-of-our-luxury-hotel-of-palais-faraj-in-fes-morocco/
+- Jawharat El Jadida — https://jawharateljadida.ma/en/
+
+**Phase 3 — niveau B :**
+- Riad Fès — https://riadfes.com/en/restaurant.html
+- Palais Medina Riad Resort — https://acollectionhotels.com/fr/our-destinations/f%C3%A8s/business/palais-medina-fes
+- Hôtel Sahrai — https://hotelsahrai.com/fr/
+- Palais de Fès — https://www.palais-de-fes.com/
+- Barceló Fès Medina — https://www.barcelo.com/en-us/barcelo-fes-medina/
+- Hôtel Deauville — https://hoteldeauville.ma/
+- Mazagan Beach & Golf Resort — https://www.booking.com/hotel/ma/mazagan-beach-resort.html
+- ibis El Jadida — https://all.accor.com/hotel/5708/index.en.shtml
+- Conrad Rabat Arzana — https://www.hilton.com/en/hotels/rbacici-conrad-rabat-arzana/
 
 **Phase 2 — niveau A :**
 - Idou Malabata — https://idoumalabata.com/en/contact/
@@ -373,15 +427,16 @@ Toutes les pages ci-dessous ont été consultées le **21 octobre 2026**.
 
 | Fichier | Rôle |
 |---|---|
-| `prospects_b2b.json` | Source unique et versionnée des 37 fiches (URL + date + niveau + phase + faits observés) |
+| `prospects_b2b.json` | Source unique et versionnée des 48 fiches (URL + date + niveau + phase + faits observés) |
 | `yallah_prospection.py` | Valide les fiches, calcule la priorité, génère les messages, applique le garde-fou, exporte le CSV |
 | `prospects_b2b.csv` | Artefact de travail généré (ignoré par Git) |
 | `tests/test_prospection.py` | 20 tests : garde-fou, validation des sources, priorité, phases, messages |
 
 ```bash
-python yallah_prospection.py --check                    # valide les 37 fiches et les messages
+python yallah_prospection.py --check                    # valide les 48 fiches et les messages
 python yallah_prospection.py --phase 1                  # phase 1 seule
 python yallah_prospection.py --phase 2 --ville Tanger
+python yallah_prospection.py --phase 3 --niveau A
 python yallah_prospection.py --ville Rabat              # CSV filtré
 python yallah_prospection.py --segment hotel --langue darija
 python yallah_prospection.py --niveau A --sans-messages

@@ -3,7 +3,7 @@
     "projet": "Yallah Services - prospection B2B phase 1",
     "date_collecte": "2026-10-21",
     "regle": "Aucune coordonnee inventee. Chaque fiche porte une source (URL) et une date de consultation. Niveau A = coordonnee lue sur la page officielle consultee ; niveau B = coordonnee vue dans un extrait de moteur de recherche ou une page sociale, non reconfirmee sur la page officielle ; niveau C = aucun contact direct publie (formulaire uniquement).",
-    "perimetre": "Coordonnees professionnelles publiees par les etablissements eux-memes, pour les seuls besoins de les contacter au sujet d'une prestation professionnelle. Phase 1 : Casablanca, Bouskoura, Rabat, Marrakech. Phase 2 : Tanger, Agadir, Mohammedia, Kenitra.",
+    "perimetre": "Coordonnees professionnelles publiees par les etablissements eux-memes, pour les seuls besoins de les contacter au sujet d'une prestation professionnelle. Phase 1 : Casablanca, Bouskoura, Rabat, Marrakech. Phase 2 : Tanger, Agadir, Mohammedia, Kenitra. Phase 3 : Fes, El Jadida, Temara/Harhoura.",
     "contact_yallah_whatsapp": "212691733585"
   },
   "prospects": [
@@ -819,6 +819,253 @@
       ],
       "angle": "Groupe multi-villes (Casablanca, Marrakech, Oujda, Kenitra) : approche groupe possible.",
       "anomalies": ""
+    },
+    {
+      "nom": "Riad Fes - Relais & Chateaux",
+      "segment": "riad",
+      "ville": "Fes",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "5 Derb Ben Slimane Zerbtana, 30100 Fes",
+      "tel": "+212 535 741 206",
+      "email": "contact@riadfes.com",
+      "site": "https://riadfes.com",
+      "source_url": "https://riadfes.com/en/restaurant.html",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Riad 5 etoiles dans la medina, restaurant Gayza, bar, rooftop, espaces reunions et mariages (pages officielles consultees).",
+      "besoins_probables": [
+        "MAI",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Riad gastronomique : cuisine, service et entretien des chambres, exigence elevee.",
+      "anomalies": "Coordonnee vue dans l'extrait d'une page officielle, non reaffirmee sur la page consultee."
+    },
+    {
+      "nom": "Palais Faraj Suites & Spa",
+      "segment": "riad",
+      "ville": "Fes",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "Bab Ziat, Fes Medina, 30000 Fes",
+      "tel": "+212 535 635 356",
+      "email": "concierge@palaisfaraj.com",
+      "site": "https://www.palaisfaraj.com",
+      "source_url": "https://www.palaisfaraj.com/contact-and-location-of-our-luxury-hotel-of-palais-faraj-in-fes-morocco/",
+      "date_consultation": "2026-10-21",
+      "niveau": "A",
+      "faits_observes": "Suites et spa sur les remparts sud de la medina, accessible en voiture par Bab Ziat (page contact officielle).",
+      "besoins_probables": [
+        "MAI",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Maison de prestige : personnel de maison polyvalent, discretion attendue.",
+      "anomalies": "Le site affiche des tarifs de transfert aeroport : ne pas les reprendre."
+    },
+    {
+      "nom": "Hotel Sahrai",
+      "segment": "hotel",
+      "ville": "Fes",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "Bab Lghoul, Dhar El Mehraz, 30000 Fes",
+      "tel": "+212 535 940 332",
+      "email": "info@hotelsahrai.com",
+      "site": "https://hotelsahrai.com/fr/",
+      "source_url": "https://hotelsahrai.com/fr/",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel avec spa et restaurants, hors medina sur les hauteurs (page officielle consultee) ; coordonnees vues dans l'extrait.",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Hotel contemporain : entretien et restauration, besoin structure.",
+      "anomalies": "Coordonnee vue dans l'extrait de la page officielle."
+    },
+    {
+      "nom": "Palais Medina Riad Resort",
+      "segment": "hotel",
+      "ville": "Fes",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "Boulevard Allal El Fassi, 30000 Fes",
+      "tel": "+212 538 900 900",
+      "email": "",
+      "site": "https://acollectionhotels.com/fr/our-destinations/f%C3%A8s/business/palais-medina-fes",
+      "source_url": "https://acollectionhotels.com/fr/our-destinations/f%C3%A8s/business/palais-medina-fes",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "146 chambres, 4 restaurants et un bar, piscine, spa et salles de reunion modulables (page de la collection officielle consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
+      "angle": "Le plus gros volume de Fes : entretien, plonge, service et extras de seminaire.",
+      "anomalies": "Aucun email d'entreprise publie : l'adresse trouvee etait nominative, donc volontairement ecartee. Telephone vu dans l'extrait."
+    },
+    {
+      "nom": "Barcelo Fes Medina",
+      "segment": "hotel",
+      "ville": "Fes",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "53 avenue Hassan II, 30000 Fes",
+      "tel": "+212 535 948 800",
+      "email": "fes@barcelo.com",
+      "site": "https://www.barcelo.com/en-us/barcelo-fes-medina/",
+      "source_url": "https://www.barcelo.com/en-us/barcelo-fes-medina/",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel du groupe Barcelo en bordure de medina, restauration signature (extrait de la page officielle).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV"
+      ],
+      "angle": "Groupe international : entree par l'exploitation, circuit achat probable.",
+      "anomalies": "Coordonnee vue dans l'extrait de la page officielle."
+    },
+    {
+      "nom": "Palais de Fes Suites & Spa",
+      "segment": "riad",
+      "ville": "Fes",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "15 Makhfia R'cif, pres du cinema Amal, Fes Medina",
+      "tel": "+212 535 761 590",
+      "email": "reservations@palais-de-fes.com",
+      "site": "https://www.palais-de-fes.com",
+      "source_url": "https://www.palais-de-fes.com/",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Suites, restaurant, espaces lounge, conferences et evenements en medina (page officielle consultee) ; coordonnees vues dans l'extrait.",
+      "besoins_probables": [
+        "MAI",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
+      "angle": "Riad avec salle d'evenements : renfort ponctuel en plus du personnel de maison.",
+      "anomalies": "Coordonnee vue dans l'extrait de la page officielle ; un second numero mobile est affiche sur le site."
+    },
+    {
+      "nom": "Hotel Deauville El Jadida",
+      "segment": "hotel",
+      "ville": "El Jadida",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "Avenue des Nations Unies RN 1, 24010 El Jadida",
+      "tel": "+212 523 331 010",
+      "email": "reservation@hoteldeauville.ma",
+      "site": "https://hoteldeauville.ma",
+      "source_url": "https://hoteldeauville.ma/",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Hotel 5 etoiles face a la plage (171 chambres et suites annoncees), deux restaurants, un bar, spa, salle de seminaires et de receptions (page officielle consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN"
+      ],
+      "angle": "Le plus gros volume d'El Jadida avec seminaires et mariages : entretien, plonge et extras.",
+      "anomalies": "Telephone et email vus dans l'extrait de la page officielle. Le site affiche ses tarifs de chambre : ne jamais les reprendre."
+    },
+    {
+      "nom": "Hotel Jawharat El Jadida",
+      "segment": "hotel",
+      "ville": "El Jadida",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "Avenue Jabrane Khalil, 24000 El Jadida",
+      "tel": "+212 523 341 636",
+      "email": "reservation@jawharateljadida.ma",
+      "site": "https://jawharateljadida.ma",
+      "source_url": "https://jawharateljadida.ma/en/",
+      "date_consultation": "2026-10-21",
+      "niveau": "A",
+      "faits_observes": "Hotel 3 etoiles en bord d'ocean, restaurant, salle de conference et reception d'evenements (page officielle consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "REN"
+      ],
+      "angle": "Salle de conference et evenements : renfort ponctuel, effectif de base reduit.",
+      "anomalies": "Telephone confirme sur la page officielle ; email vu dans l'extrait."
+    },
+    {
+      "nom": "Mazagan Beach & Golf Resort",
+      "segment": "hotel",
+      "ville": "El Jadida",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "Route de Casablanca, 24000 El Jadida",
+      "tel": "+212 523 388 000",
+      "email": "",
+      "site": "https://www.mazaganbeachresort.com",
+      "source_url": "https://www.booking.com/hotel/ma/mazagan-beach-resort.html",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Resort en bord de mer avec golf, plusieurs restaurants et centre de conventions (page de reservation officielle du resort consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "REN",
+        "GAR"
+      ],
+      "angle": "Le plus gros employeur prive du secteur : volumes eleves et turn-over, cible prioritaire malgre le circuit achat.",
+      "anomalies": "Numero de central de reservation vu sur une plateforme de reservation, pas sur le site de l'etablissement : a reconfirmer imperativement."
+    },
+    {
+      "nom": "ibis El Jadida",
+      "segment": "hotel",
+      "ville": "El Jadida",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "Place Nour El Kamar, route de Casablanca, 24000 El Jadida",
+      "tel": "+212 523 379 503",
+      "email": "H5708@accor.com",
+      "site": "https://all.accor.com/hotel/5708/index.en.shtml",
+      "source_url": "https://all.accor.com/hotel/5708/index.en.shtml",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "103 chambres, salle de reunion jusqu'a 80 personnes, piscine, bar et restaurant (fiche officielle Accor consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI"
+      ],
+      "angle": "Format economique : entretien quotidien et buffet, besoin recurrent et stable.",
+      "anomalies": "Coordonnee vue dans l'extrait de la fiche officielle."
+    },
+    {
+      "nom": "Conrad Rabat Arzana",
+      "segment": "hotel",
+      "ville": "Harhoura",
+      "zone": "Ville entière",
+      "phase": 3,
+      "adresse": "Plage Val d'Or, Harhoura, 12040 Rabat",
+      "tel": "+212 537 749 999",
+      "email": "",
+      "site": "https://www.hilton.com/en/hotels/rbacici-conrad-rabat-arzana/",
+      "source_url": "https://www.hilton.com/en/hotels/rbacici-conrad-rabat-arzana/",
+      "date_consultation": "2026-10-21",
+      "niveau": "B",
+      "faits_observes": "Resort Conrad en front de mer a Harhoura (page officielle Hilton consultee).",
+      "besoins_probables": [
+        "PRP",
+        "CUI",
+        "SRV",
+        "GAR"
+      ],
+      "angle": "Seul etablissement de la zone avec un site et un contact verifiables : point d'entree unique de Temara/Harhoura.",
+      "anomalies": "Coordonnee vue dans l'extrait de la page officielle. Aucun email publie."
     }
   ]
 }

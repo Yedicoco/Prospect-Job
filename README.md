@@ -8,9 +8,9 @@ Deux modules distincts :
 | **B2B** (entreprises) | `yallah_prospection.py` | Prospection d'entreprises clientes, à partir d'un fichier de prospects sourcés |
 
 La recherche de prospects et la synthèse sont dans **`PROSPECTION_B2B.md`**
-(37 établissements : 26 en phase 1 à Casablanca, Rabat, Marrakech et Bouskoura,
-11 en phase 2 à Tanger, Agadir, Mohammedia et Kénitra, chacun avec URL source et
-date de consultation).
+(48 établissements : 26 en phase 1 à Casablanca, Rabat, Marrakech et Bouskoura,
+11 en phase 2 à Tanger, Agadir, Mohammedia et Kénitra, 11 en phase 3 à Fès,
+El Jadida et Témara/Harhoura, chacun avec URL source et date de consultation).
 
 ## Module B2C
 
@@ -83,6 +83,7 @@ python yallah_prospection.py --check                     # validation, code reto
 python yallah_prospection.py                             # CSV complet
 python yallah_prospection.py --phase 1
 python yallah_prospection.py --phase 2 --ville Tanger
+python yallah_prospection.py --phase 3 --niveau A
 python yallah_prospection.py --ville Rabat --niveau A
 python yallah_prospection.py --segment hotel --langue darija
 python yallah_prospection.py --sans-messages             # contacts seuls
