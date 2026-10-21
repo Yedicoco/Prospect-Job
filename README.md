@@ -7,12 +7,29 @@ commerciale s'adresse à un client, une offre d'emploi s'adresse à un candidat.
 |---|---|---|
 | **B2C** (particuliers) | `yallah_b2c.py` | Contenus de publication à destination des particuliers |
 | **B2B** (entreprises clientes) | `yallah_prospection.py` | Prospection d'entreprises, à partir d'un fichier de prospects sourcés |
+| **Messages** (B2B + B2C) | `yallah_messages.py` | Messages de prospection personnalisés, contrôlés, avec liens préremplis — **aucun envoi automatique** |
 | **Emploi** (candidats) | `yallah_emploi.py` | Annonces d'emploi, uniquement pour des besoins confirmés par un employeur |
 
 La recherche de prospects et la synthèse sont dans **`PROSPECTION_B2B.md`**
 (48 établissements : 26 en phase 1 à Casablanca, Rabat, Marrakech et Bouskoura,
 11 en phase 2 à Tanger, Agadir, Mohammedia et Kénitra, 11 en phase 3 à Fès,
 El Jadida et Témara/Harhoura, chacun avec URL source et date de consultation).
+
+## Module Messages (prospection B2B + B2C)
+
+`yallah_messages.py` transforme les fiches sourcées en messages prêts à envoyer
+**à la main**, un contact à la fois. Il ne fait aucun appel réseau : `--envoyer`
+est refusé explicitement. Voir **`MESSAGES_PROSPECTION.md`**.
+
+```bash
+python3 yallah_messages.py --check                              # contrôle seul
+python3 yallah_messages.py --prenom "Youssef" --markdown file_envoi.md
+python3 yallah_messages.py --type b2c --langue darija --prenom "Youssef"
+```
+
+État actuel : 47 messages B2B prêts (48 fiches, dont 1 sans contact direct),
+0 fiche B2C réelle (voir la section 7 de `MESSAGES_PROSPECTION.md`), 15 envois
+manuels maximum par jour, plan réparti sur 4 jours.
 
 ## Module B2C
 
