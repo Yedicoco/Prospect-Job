@@ -220,9 +220,11 @@ def valider_besoin(b: dict) -> list:
     if not b.get("exemple"):
         if not str(b.get("source_confirmation", "")).strip():
             problemes.append("aucune source de confirmation : besoin non publiable")
-        date = str(b.get("date_confirmation", ""))
-        if date and not DATE_ATTENDUE.match(date):
-            problemes.append("date_confirmation attendue au format AAAA-MM-JJ")
+        from validation import day
+        try:
+            day(b.get("date_confirmation", ""), "date_confirmation", past=True)
+        except ValueError as exc:
+            problemes.append(str(exc))
         if b.get("statut") != "ouvert":
             problemes.append("statut non ouvert")
 

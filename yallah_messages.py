@@ -153,6 +153,8 @@ def valider_fiche(p: dict, type_prospect: str) -> list:
     """Anomalies bloquantes d'une fiche, avant meme de parler de message."""
     anomalies = []
     for champ in TYPES[type_prospect]["champs_requis"]:
+        if champ == "source_url" and p.get("source_type") == "entrant" and re.fullmatch(r"ENT-\d{6,}", str(p.get("source_reference", ""))):
+            continue  # provenance de première partie, vérifiée par l'API web
         if not str(p.get(champ, "")).strip():
             anomalies.append(f"champ manquant : {champ}")
 
@@ -384,6 +386,10 @@ def message_b2c(p: dict, langue: str) -> str:
 
 def generer_message(p: dict, type_prospect: str, langue: str, prenom: str = "") -> str:
     texte = message_b2b(p, langue) if type_prospect == "b2b" else message_b2c(p, langue)
+    if p.get("source_type") == "entrant" and type_prospect == "b2c":
+        texte = texte.replace("J'ai vu votre annonce :", "Nous avons reçu votre demande :")
+        texte = texte.replace("Chaft l'annonce dyalek:", "Twesselna b talab dyalek:")
+        texte = texte.replace("رأيت إعلانكم بخصوص", "توصلنا بطلبكم بخصوص")
     if prenom:
         texte = texte.replace(PLACEHOLDER_PRENOM, prenom)
     return texte
