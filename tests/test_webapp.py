@@ -139,3 +139,4 @@ class WebTests(unittest.TestCase):
         self.assertFalse(after_refusal['pret'])
         self.assertEqual(after_refusal['lien_whatsapp'], '')
         self.assertEqual(after_refusal['lien_email'], '')
+

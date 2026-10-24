@@ -76,6 +76,7 @@ def state(prenom='', langue='fr'):
         events = [dict(r) for r in con.execute('SELECT * FROM events ORDER BY id DESC LIMIT 200')]
         suppressed_contacts = [r['contact_key'].split(':', 1)[1] for r in con.execute('SELECT contact_key FROM suppressions')]
         opps = [dict(r) for r in con.execute('SELECT * FROM opportunities ORDER BY id DESC')]
+        daily_quota = operations.quota_journalier(con)
         for kind in ('b2b', 'b2c'):
             metas.setdefault('meta_' + kind, {}).setdefault('refus', []).extend(suppressed_contacts)
     groups = {k:[] for k in ['b2b','b2c','emploi']}
@@ -126,6 +127,7 @@ def state(prenom='', langue='fr'):
         'segments':list(SEGMENTS),
         'site_web':b2c.site_web_officiel(),
         'client_followups':client_followups,
+        'daily_quota':daily_quota,
         'today':validation.today().isoformat(),
     }
 
@@ -221,6 +223,17 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond({'error': 'Accès recrutement requis'}, 403)
             try:
                 return self.respond(operations.matches(int(args.get('need_id', ['0'])[0])))
+            except (ValueError, KeyError, TypeError) as exc:
+                return self.respond({'error': str(exc)}, 400)
+        if url.path == '/api/presentation':
+            if self.user['role'] not in ('admin', 'recrutement'):
+                return self.respond({'error': 'Accès recrutement requis'}, 403)
+            try:
+                return self.respond(operations.fiche_presentation_candidat(
+                    int(args.get('candidate_id', ['0'])[0]),
+                    int(args.get('need_id', ['0'])[0]),
+                    args.get('langue', ['fr'])[0],
+                ))
             except (ValueError, KeyError, TypeError) as exc:
                 return self.respond({'error': str(exc)}, 400)
         if url.path == '/api/health':
@@ -337,10 +350,26 @@ class Handler(BaseHTTPRequestHandler):
                         operations.suppress(con, rid, actor)
                     elif action not in ['Contact envoyé manuellement','Réponse reçue','Besoin confirmé','Note']:
                         raise ValueError('Action inconnue')
-                    if action in ('Contact envoyé manuellement', 'Réponse reçue'):
-                        channel=body.get('channel','interne')
-                        if channel not in ('email','whatsapp','telephone','interne'): raise ValueError('Canal invalide')
-                        con.execute('INSERT INTO conversations(record_id,channel,direction,body,outcome,created) VALUES (?,?,?,?,?,?)', (rid,channel,'sortant' if action=='Contact envoyé manuellement' else 'entrant',str(body.get('note',''))[:2000] or action,'note' if action=='Contact envoyé manuellement' else 'reponse',operations.now()))
+                    if action == 'Contact envoyé manuellement':
+                        channel = body.get('channel', 'interne')
+                        if channel not in ('email', 'whatsapp', 'telephone', 'interne'):
+                            raise ValueError('Canal invalide')
+                        out_cnt = con.execute("SELECT COUNT(*) FROM conversations WHERE record_id=? AND direction='sortant'", (rid,)).fetchone()[0]
+                        if out_cnt >= 2:
+                            raise ValueError('Limite atteinte : premier contact plus une relance maximum')
+                        today_iso = validation.today().isoformat()
+                        already_today = con.execute("SELECT 1 FROM conversations WHERE record_id=? AND direction='sortant' AND substr(created,1,10)=?", (rid, today_iso)).fetchone()
+                        if not already_today and operations.quota_journalier(con)['remaining'] <= 0:
+                            raise ValueError('Plafond quotidien atteint : 15 prises de contact maximum par jour')
+                        operations.enregistrer_envoi_manuel(con, rid, channel, str(body.get('note', '')), actor)
+                    elif action == 'Réponse reçue':
+                        channel = body.get('channel', 'interne')
+                        if channel not in ('email', 'whatsapp', 'telephone', 'interne'):
+                            raise ValueError('Canal invalide')
+                        eff_ch = channel if channel != 'interne' else (messages.canal_recommande(item) or 'interne')
+                        corps_rep = str(body.get('note', ''))[:2000] or action
+                        con.execute("INSERT INTO conversations(record_id,channel,direction,body,outcome,created) VALUES (?,?,'entrant',?,'reponse',?)", (rid, eff_ch, corps_rep, operations.now()))
+                        operations.traiter_reponse_entrante(con, rid, eff_ch, corps_rep, actor)
                     if body.get('note'): action+=' — '+str(body['note'])[:1000]
                 else: return self.respond({'error':'Introuvable'},404)
                 con.execute('INSERT INTO events(record_id,action,created) VALUES (?,?,?)',(rid,action,operations.now()))

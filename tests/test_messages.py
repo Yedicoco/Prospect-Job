@@ -499,6 +499,82 @@ class TestJeuB2C(unittest.TestCase):
         self.assertEqual(lignes[0]["lien_whatsapp"], "")
         self.assertEqual(lignes[0]["lien_email"], "")
 
+    def test_filtre_emails_techniques_et_staging_bascule_vers_whatsapp(self):
+        for bad in (
+            "info@benjilaliyassir-tbosh.wpcomstaging.com",
+            "user@site.wixpress.com",
+            "err@o123.ingest.sentry.io",
+            "noreply@hotel-exemple.ma",
+            "mailer-daemon@googlemail.com",
+            "postmaster@domaine.ma",
+        ):
+            self.assertFalse(ym.est_email_exploitable(bad), bad)
+        for good in (
+            "reservation@hotelidouanfa.com",
+            "contact@exemple.invalid",
+            "direction@example.test",
+        ):
+            self.assertTrue(ym.est_email_exploitable(good), good)
+        fiche_staging = {
+            "nom": "Riad Staging Test",
+            "segment": "riad",
+            "phase": 1,
+            "ville": "Rabat",
+            "zone": "Agdal",
+            "tel": "+212 661 22 33 44",
+            "email": "info@benjilaliyassir-tbosh.wpcomstaging.com",
+            "source_url": "https://riad-staging.ma/contact",
+            "date_consultation": "2026-10-24",
+            "niveau": "A",
+        }
+        self.assertEqual(ym.canal_recommande(fiche_staging), "whatsapp")
+        self.assertEqual(ym.lien_email(fiche_staging, "Bonjour", "b2b"), "")
+
+    def test_relance_j7_sans_alerte_et_bascule_mobile(self):
+        fiche_b2b = {
+            "nom": "La Plaza de Bouskoura",
+            "segment": "evenementiel",
+            "phase": 1,
+            "ville": "Bouskoura",
+            "zone": "Ville Verte",
+            "tel": "+212 661 71 73 54",
+            "email": "contact@laplazadebouskoura.com",
+            "source_url": "https://laplazadebouskoura.com",
+            "date_consultation": "2026-10-24",
+            "niveau": "A",
+        }
+        for tp, f_item in (("b2b", fiche_b2b), ("b2c", fiche())):
+            for lg in ("fr", "darija", "arabe"):
+                txt = ym.generer_relance_j7(f_item, tp, lg, "Service Commercial", "email")
+                self.assertEqual(ym.verifier_message(txt), [], f"{tp}/{lg}")
+                self.assertIn("https://yallahservices-one.vercel.app", txt)
+        pack = ym.liens_relance_j7(fiche_b2b, "b2b", "fr", "Service Commercial", "email")
+        self.assertTrue(pack["pret"])
+        self.assertTrue(pack["bascule_mobile"])
+        self.assertEqual(pack["canal_recommande"], "whatsapp")
+        self.assertTrue(pack["lien_whatsapp"].startswith("https://wa.me/212661717354?text="))
+        self.assertTrue(pack["lien_email"].startswith("mailto:contact@laplazadebouskoura.com?"))
+
+    def test_reponse_qualification_b2c_et_decodage_reference(self):
+        import yallah_b2c as yb
+
+        dec = yb.decoder_reference_b2c("Bonjour, je vous écris suite à votre publication réf CAS-ANF-MEN.")
+        self.assertIsNotNone(dec)
+        self.assertEqual(dec["ref"], "CAS-ANF-MEN")
+        self.assertEqual(dec["ville"], "Casablanca")
+        self.assertIn("Anfa", dec["zone"])
+        self.assertEqual(dec["code_besoin"], "MEN")
+        self.assertIsNone(yb.decoder_reference_b2c("Bonjour sans code valide ZZZ-YYY-XXX"))
+
+        for lg in ("fr", "darija", "arabe"):
+            rep = ym.generer_reponse_qualification_b2c(
+                {"name": "Mme Bennani", "city": dec["ville"], "zone": dec["zone"], "besoin": dec["code_besoin"], "ref": dec["ref"]},
+                lg,
+                "Service Commercial",
+            )
+            self.assertEqual(ym.verifier_message(rep), [], lg)
+            self.assertIn("https://yallahservices-one.vercel.app", rep)
+
 
 if __name__ == "__main__":
     unittest.main()

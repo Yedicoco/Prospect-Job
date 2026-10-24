@@ -622,7 +622,8 @@
       "phase": 2,
       "adresse": "Zone touristique Ghandouri, 90000 Tanger",
       "tel": "+212 539 309 055",
-      "email": "info@idoumalabata.com",
+      "email": "",
+      "email_invalide": "info@idoumalabata.com",
       "site": "https://idoumalabata.com",
       "source_url": "https://idoumalabata.com/en/contact/",
       "date_consultation": "2026-10-21",
@@ -634,7 +635,7 @@
         "SRV"
       ],
       "angle": "Hotel de bord de mer : entretien quotidien des chambres et service.",
-      "anomalies": "Contradiction sur le site officiel : le numero affiche (+212 539 309 055) differe du lien d'appel (+212 539 304 019). A verifier des le premier appel.",
+      "anomalies": "Rebond SMTP 550 5.1.10 RecipientNotFound sur info@idoumalabata.com le 24/10/2026 (bascule téléphone fixe). Contradiction sur le site officiel : +212 539 309 055 vs +212 539 304 019.",
       "date_derniere_verification": "2026-10-24"
     },
     {

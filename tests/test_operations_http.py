@@ -78,3 +78,50 @@ class OperationsHTTPTests(unittest.TestCase):
         with self.assertRaises(HTTPError) as ctx: self.request('/webhooks/meta',{'entry':[]})
         self.assertEqual(ctx.exception.code,400)
         self.assertEqual(operations.dashboard()['conversations'],[])
+
+    def test_manual_send_pipeline_j7_cap_daily_quota_and_presentation_rbac(self):
+        # 1er envoi manuel -> opportunité 'qualifie' + tâche 'Relance J+7' + quota = 1/15
+        self.request('/api/action',{'id':1,'action':'Contact envoyé manuellement','channel':'email'})
+        st=json.loads(self.request('/api/state?prenom=Youssef&langue=fr')[1])
+        self.assertEqual(st['daily_quota']['used'],1)
+        self.assertEqual(st['daily_quota']['remaining'],14)
+
+        # 2e envoi manuel (relance unique) -> autorisé ; 3e envoi manuel -> bloqué (400)
+        self.request('/api/action',{'id':1,'action':'Contact envoyé manuellement','channel':'whatsapp'})
+        with self.assertRaises(HTTPError) as ctx3:
+            self.request('/api/action',{'id':1,'action':'Contact envoyé manuellement','channel':'whatsapp'})
+        self.assertEqual(ctx3.exception.code,400)
+
+        # Plafond quotidien de 15 contacts distincts par jour
+        for rid in range(2,16):
+            self.request('/api/action',{'id':rid,'action':'Contact envoyé manuellement','channel':'email'})
+        st_full=json.loads(self.request('/api/state?prenom=Youssef&langue=fr')[1])
+        self.assertEqual(st_full['daily_quota']['used'],15)
+        self.assertEqual(st_full['daily_quota']['remaining'],0)
+        with self.assertRaises(HTTPError) as ctx16:
+            self.request('/api/action',{'id':16,'action':'Contact envoyé manuellement','channel':'email'})
+        self.assertEqual(ctx16.exception.code,400)
+
+        # Qualification 10 min autorisée au rôle commercial ; /api/presentation réservé à recrutement / admin
+        today=validation.today().isoformat()
+        cand=json.loads(self.request('/api/operations',{
+            'action':'candidate','name':'Fatima Zahra Alaoui','email':'','tel':'+212662112233',
+            'city':'Casablanca','skills':['SRV'],'languages':'Français, Arabe',
+            'available_from':today,'available_until':'2026-12-31','availability_verified':today,
+            'consent_proof':'Accord écrit candidat',
+        })[1])
+        access.add_user('sales','test-password-commercial','commercial')
+        access.add_user('recruiter','test-password-recrutement','recrutement')
+        with patch.dict(os.environ,{'YALLAH_ADMIN_PASSWORD':'test-admin-password-protected'}):
+            qn=json.loads(self.request('/api/operations',{
+                'action':'qualify_need','record_id':1,'metier':'SRV','format':'renfort journalier',
+                'postes':2,'source_confirmation':'Email direction banquet du '+today,'confirm':True,
+            },'sales:test-password-commercial')[1])
+            with self.assertRaises(HTTPError) as ctx_forb:
+                self.request(f"/api/presentation?candidate_id={cand['id']}&need_id={qn['id']}&langue=fr",login='sales:test-password-commercial')
+            self.assertEqual(ctx_forb.exception.code,403)
+            pres=json.loads(self.request(f"/api/presentation?candidate_id={cand['id']}&need_id={qn['id']}&langue=fr",login='recruiter:test-password-recrutement')[1])
+            self.assertEqual(pres['anonymized_name'],'Fatima A.')
+            self.assertNotIn('Alaoui',pres['presentation'])
+            self.assertNotIn('662112233',pres['presentation'])
+

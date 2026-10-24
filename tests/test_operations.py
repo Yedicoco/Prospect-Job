@@ -301,3 +301,133 @@ class OperationsTests(unittest.TestCase):
         self.assertEqual([f['record_id'] for f in fups],[1])
         self.execute('conversation',record_id=1,channel='whatsapp',direction='entrant',body='Merci, rappelons-nous',outcome='reponse')
         self.assertEqual(operations.dashboard()['followups'],[])
+
+    def test_inbound_reply_auto_advances_cancels_j7_and_detects_metiers(self):
+        with webapp.connect() as con:
+            out=operations.enregistrer_envoi_manuel(con,1,'email','Premier email envoyé','Service Commercial')
+        oid=out['opportunity_id']
+        dash1=operations.dashboard()
+        self.assertEqual(next(o for o in dash1['opportunities'] if o['id']==oid)['stage'],'qualifie')
+        self.assertTrue(any(t['opportunity_id']==oid and t['status']=='a_faire' and t['title'].startswith('Relance J+7') for t in dash1['tasks']))
+
+        rep=self.execute('conversation',record_id=1,channel='email',direction='entrant',body='Bonjour, nous cherchons 2 serveurs extra pour un banquet samedi et un plongeur.',outcome='reponse')
+        self.assertIn('SRV',rep['suggested_metiers'])
+        self.assertIn('PLG',rep['suggested_metiers'])
+        dash2=operations.dashboard()
+        opp=next(o for o in dash2['opportunities'] if o['id']==oid)
+        self.assertEqual(opp['stage'],'conversation')
+        self.assertEqual(opp['due'],v.today().isoformat())
+        self.assertTrue(all(t['status']=='annulee' for t in dash2['tasks'] if t['opportunity_id']==oid and t['title'].startswith('Relance J+7')))
+        self.assertTrue(any(t['opportunity_id']==oid and t['status']=='a_faire' and t['title'].startswith('Réponse reçue') for t in dash2['tasks']))
+
+    def test_qualify_need_10min_creates_publishable_job_and_matches(self):
+        cid=self.candidate()
+        res=self.execute(
+            'qualify_need',
+            record_id=1,
+            metier='MEN',
+            format='permanent',
+            postes=2,
+            ville='Casablanca',
+            zone='Anfa',
+            horaires='08h30 - 16h30 du lundi au samedi',
+            horaires_source='Appel découverte Direction RH du '+v.today().isoformat(),
+            source_confirmation='Confirmé par téléphone avec la gouvernante générale le '+v.today().isoformat(),
+            confirm=True,
+        )
+        self.assertTrue(res['ref'].startswith('EMP-'))
+        self.assertTrue(any(m['candidate_id']==cid for m in res['matches']))
+        dash=operations.dashboard()
+        opp=next(o for o in dash['opportunities'] if o['id']==res['opportunity_id'])
+        self.assertEqual(opp['stage'],'besoin_confirme')
+        self.assertTrue(any(j['id']==res['id'] for j in operations.public_jobs()))
+
+    def test_b2c_reference_decoding_in_intake_webhook_and_email_ingest(self):
+        sub=operations.intake_submit({
+            'kind':'demande',
+            'name':'Famille Alami',
+            'email':'',
+            'tel':'+212 661 88 77 66',
+            'city':'',
+            'message':'Bonjour, réf CAS-ANF-MEN, nous cherchons une aide-ménagère régulière.',
+            'acknowledge':True,
+        })
+        self.assertTrue(sub['ok'])
+        inc=operations.dashboard()['intake'][0]
+        self.assertEqual(inc['b2c_decoded']['ref'],'CAS-ANF-MEN')
+        self.assertIn('https://wa.me/212661887766?text=',inc['qualification_whatsapp'])
+        conv=self.execute('intake_opportunity',intake_id=inc['id'],owner='Service Commercial',next_action='Appeler en 10 min',due=v.today().isoformat())
+        with webapp.connect() as con:
+            created_b2c=json.loads(con.execute('SELECT payload FROM records WHERE id=?',(conv['record_id'],)).fetchone()[0])
+        self.assertEqual(created_b2c['ville'],'Casablanca')
+        self.assertIn('Anfa',created_b2c['zone'])
+        self.assertEqual(created_b2c['besoin'],'MEN')
+        self.assertEqual(campaigns.dashboard()['permissions'],[])
+
+        # Même décodage via webhook WhatsApp Meta entrant.
+        data={'entry':[{'changes':[{'value':{'messages':[{'id':'wa-b2c-1','from':'212677112233','text':{'body':'Salam, réf BSK-VVE-NOU svp'}}]}}]}]}
+        raw=json.dumps(data).encode()
+        with patch.dict(os.environ,{'WHATSAPP_APP_SECRET':'test-secret'}):
+            sig='sha256='+hmac.new(b'test-secret',raw,hashlib.sha256).hexdigest()
+            webhooks.receive('meta',raw,{'X-Hub-Signature-256':sig})
+        wa_inc=operations.dashboard()['intake'][0]
+        self.assertEqual(wa_inc['kind'],'demande')
+        self.assertEqual(wa_inc['b2c_decoded']['ref'],'BSK-VVE-NOU')
+
+    def test_multi_criteria_matching_commuter_basin_and_anonymized_sheet(self):
+        today=v.today().isoformat()
+        # Besoin à Bouskoura avec langue souhaitée Français.
+        res=self.execute(
+            'qualify_need',
+            record_id=1,
+            metier='MEN',
+            format='permanent',
+            ville='Bouskoura',
+            zone='Ville Verte',
+            langues='Français',
+            source_confirmation='Validation écrite direction du '+today,
+            confirm=True,
+        )
+        c1=self.execute('candidate',name='Khadija El Mansouri',email='',tel='+212661009988',city='Casablanca',skills=['MEN'],languages='Arabe, Français',available_from=today,available_until='2026-12-31',availability_verified=today,consent_proof='Accord écrit C1')['id']
+        m_list=operations.matches(res['id'])
+        m1=next(m for m in m_list if m['candidate_id']==c1)
+        self.assertEqual(m1['anonymized_name'],'Khadija M.')
+        self.assertGreaterEqual(m1['score'],3)
+        self.assertTrue(any('Bassin géographique proche' in r for r in m1['reasons']))
+        self.assertIn('Langue déclarée compatible',m1['reasons'])
+
+        sheet=operations.fiche_presentation_candidat(c1,res['id'],'fr')
+        self.assertIn('Khadija M.',sheet['presentation'])
+        self.assertNotIn('Mansouri',sheet['presentation'])
+        self.assertNotIn('661009988',sheet['presentation'])
+        self.assertIn('art. 480',sheet['presentation'])
+        self.assertIn('https://yallahservices-one.vercel.app',sheet['presentation'])
+
+    def test_email_bounce_invalidates_email_and_triggers_whatsapp_fallback(self):
+        today=v.today().isoformat()
+        imp=operations.import_records({'kind':'b2b','items':[{'kind':'b2b','data':{
+            'nom':'Traiteur Bounce Test','segment':'evenementiel','phase':1,'ville':'Casablanca','zone':'Maarif',
+            'tel':'+212 664 55 44 33','email':'contact-mort@traiteurbounce.invalid',
+            'source_url':'https://traiteurbounce.invalid/contact','date_consultation':today,'niveau':'A',
+        }}],'apply':True})
+        self.assertTrue(imp['applied'])
+        with webapp.connect() as con:
+            rid=con.execute("SELECT id FROM records WHERE kind='b2b' ORDER BY id DESC LIMIT 1").fetchone()[0]
+            operations.enregistrer_envoi_manuel(con,rid,'email','Envoi initial email','Service Commercial')
+        bounce=self.execute(
+            'email_ingest',
+            sender_email='mailer-daemon@googlemail.com',
+            subject='Delivery Status Notification (Failure)',
+            body='Address not found: Your message was not delivered to contact-mort@traiteurbounce.invalid because the domain does not exist.',
+            message_id='<dsn-bounce-1@example.test>',
+        )
+        self.assertEqual(bounce['classification'],'rebond_email')
+        self.assertEqual(bounce['bounced'][0]['fallback_channel'],'whatsapp')
+        with webapp.connect() as con:
+            updated=json.loads(con.execute('SELECT payload FROM records WHERE id=?',(rid,)).fetchone()[0])
+        self.assertEqual(updated['email'],'')
+        self.assertEqual(updated['email_invalide'],'contact-mort@traiteurbounce.invalid')
+        dash=operations.dashboard()
+        self.assertTrue(any(t['status']=='a_faire' and 'Rebond email' in t['title'] for t in dash['tasks']))
+        self.assertEqual(dash['funnel']['by_channel']['email']['bounced'],1)
+
