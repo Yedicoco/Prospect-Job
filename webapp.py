@@ -24,6 +24,7 @@ from urllib.parse import urlparse, parse_qs
 import yallah_messages as messages
 import yallah_emploi as emploi
 import yallah_b2c as b2c
+import yallah_sources as sources
 from yallah_prospection import SEGMENTS
 
 ROOT = Path(__file__).resolve().parent
@@ -77,6 +78,7 @@ def state(prenom='', langue='fr'):
         suppressed_contacts = [r['contact_key'].split(':', 1)[1] for r in con.execute('SELECT contact_key FROM suppressions')]
         opps = [dict(r) for r in con.execute('SELECT * FROM opportunities ORDER BY id DESC')]
         daily_quota = operations.quota_journalier(con)
+        minutes_by_rec = dict(con.execute('SELECT record_id, COALESCE(SUM(minutes),0) FROM time_logs GROUP BY record_id').fetchall())
         for kind in ('b2b', 'b2c'):
             metas.setdefault('meta_' + kind, {}).setdefault('refus', []).extend(suppressed_contacts)
     groups = {k:[] for k in ['b2b','b2c','emploi']}
@@ -84,15 +86,22 @@ def state(prenom='', langue='fr'):
         r['data'] = json.loads(r.pop('payload'))
         groups[r['kind']].append(r['data'])
     lines = messages.construire_lignes([(k,{'meta':metas.get('meta_'+k,{}),'prospects':groups[k]}) for k in ['b2b','b2c']],langue,prenom,validation.today())
+    rec_by_id = {r['id']: r for r in records}
     for k in ['b2b','b2c']:
         ids = [r['id'] for r in records if r['kind']==k]
         prefix = messages.TYPES[k]['prefixe']
         for line in lines:
             if line['type']==k:
                 line['id'] = ids[int(line['ref'].removeprefix(prefix+'-'))-1]
+                rec_item = rec_by_id[line['id']]['data']
+                src_key = sources.resoudre_source(k, rec_item)
+                src_info = sources.SOURCES[src_key]
+                line['source'] = src_key
+                line['source_rang'] = src_info['rang']
+                line['source_libelle'] = src_info['libelle']
+                line['minutes'] = int(minutes_by_rec.get(line['id'], 0))
                 if line['statut'] != 'PRET - envoi manuel':
                     line['lien_whatsapp'] = line['lien_email'] = ''
-    rec_by_id = {r['id']: r for r in records}
     line_by_id = {l['id']: l for l in lines if 'id' in l}
     client_followups = {}
     for opp in opps:
@@ -125,6 +134,7 @@ def state(prenom='', langue='fr'):
         'events':events,
         'matrice':matrix,
         'segments':list(SEGMENTS),
+        'sources_catalog':sources.SOURCES,
         'site_web':b2c.site_web_officiel(),
         'client_followups':client_followups,
         'daily_quota':daily_quota,
@@ -201,12 +211,21 @@ class Handler(BaseHTTPRequestHandler):
             if token and hmac.compare_digest(args.get('hub.verify_token', [''])[0], token) and args.get('hub.mode') == ['subscribe']:
                 return self.respond(args.get('hub.challenge', [''])[0].encode(), mime='text/plain')
             return self.respond({'error': 'Vérification invalide'}, 403)
+        if url.path in ('/services', '/services/'):
+            return self.respond(b2c.rendre_catalogue_services_html(), mime='text/html; charset=utf-8')
+        if url.path.startswith('/services/'):
+            case = b2c.trouver_case_b2c(url.path[len('/services/'):])
+            if not case:
+                return self.respond({'error': 'Page de service introuvable'}, 404)
+            return self.respond(b2c.rendre_page_service_html(case), mime='text/html; charset=utf-8')
         if url.path in ('/demande', '/candidature'):
             return self.respond((ROOT/'web'/'public.html').read_bytes(), mime='text/html; charset=utf-8')
         if url.path == '/public.js':
             return self.respond((ROOT/'web'/'public.js').read_bytes(), mime='text/javascript; charset=utf-8')
         if url.path == '/api/public/jobs':
             return self.respond(operations.public_jobs())
+        if url.path == '/api/public/b2c':
+            return self.respond(b2c.trouver_case_b2c(args.get('ref', [''])[0]) or {})
         if not self.authorized():
             return
         if url.path == '/api/operations':
@@ -354,9 +373,16 @@ class Handler(BaseHTTPRequestHandler):
                         channel = body.get('channel', 'interne')
                         if channel not in ('email', 'whatsapp', 'telephone', 'interne'):
                             raise ValueError('Canal invalide')
+                        suppressed = sources._suppressed_set(con)
+                        has_perm = bool(con.execute('SELECT 1 FROM permissions WHERE record_id=? AND active=1', (rid,)).fetchone())
+                        ok_consent, motif_consent = sources.contact_manuel_autorise(
+                            row['kind'], item, has_perm, bool(set(messages.cles_contact(item)) & suppressed)
+                        )
+                        if not ok_consent:
+                            raise ValueError(motif_consent)
                         out_cnt = con.execute("SELECT COUNT(*) FROM conversations WHERE record_id=? AND direction='sortant'", (rid,)).fetchone()[0]
-                        if out_cnt >= 2:
-                            raise ValueError('Limite atteinte : premier contact plus une relance maximum')
+                        if out_cnt >= sources.MAX_CONTACTS_MANUELS:
+                            raise ValueError('Limite atteinte : 1er contact + 3 relances (J+3, J+7, J+14) maximum')
                         today_iso = validation.today().isoformat()
                         already_today = con.execute("SELECT 1 FROM conversations WHERE record_id=? AND direction='sortant' AND substr(created,1,10)=?", (rid, today_iso)).fetchone()
                         if not already_today and operations.quota_journalier(con)['remaining'] <= 0:
@@ -398,25 +424,73 @@ def scheduled_backups():
 
 def server_lock():
     # Verrou de processus pour éviter deux workers et une restauration pendant le service.
+    DB.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = str(DB) + '.lock'
     try:
         import fcntl
+        handle = open(lock_path, 'a')
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            handle.close()
+            raise RuntimeError('Un serveur utilise déjà cette base. Arrêtez-le avant cette opération.')
+        return handle
     except ImportError:
-        raise RuntimeError('Ce mode serveur requiert un environnement POSIX pour le verrou de base')
-    DB.parent.mkdir(parents=True, exist_ok=True)
-    handle=open(str(DB)+'.lock','a')
+        pass
     try:
-        fcntl.flock(handle,fcntl.LOCK_EX|fcntl.LOCK_NB)
-    except BlockingIOError:
-        handle.close()
-        raise RuntimeError('Un serveur utilise déjà cette base. Arrêtez-le avant cette opération.')
-    return handle
+        import msvcrt
+        handle = open(lock_path, 'r+b' if Path(lock_path).exists() else 'w+b')
+        handle.write(b'1')
+        handle.flush()
+        handle.seek(0)
+        try:
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError:
+            handle.close()
+            raise RuntimeError('Un serveur utilise déjà cette base. Arrêtez-le avant cette opération.')
+        return handle
+    except ImportError:
+        raise RuntimeError('Ce mode serveur requiert fcntl (POSIX) ou msvcrt (Windows) pour le verrou de base')
+
+
+def _autofill_cloud_public_url():
+    """Renseigne YALLAH_PUBLIC_URL depuis les variables standard d'hébergeurs PaaS si absent."""
+    if os.getenv('YALLAH_PUBLIC_URL', '').strip():
+        return
+    if os.getenv('RENDER_EXTERNAL_URL', '').startswith('https://'):
+        os.environ['YALLAH_PUBLIC_URL'] = os.environ['RENDER_EXTERNAL_URL'].strip().rstrip('/')
+        return
+    for var in ('RAILWAY_PUBLIC_DOMAIN', 'KOYEB_PUBLIC_DOMAIN'):
+        dom = os.getenv(var, '').strip().strip('/')
+        if dom:
+            os.environ['YALLAH_PUBLIC_URL'] = f'https://{dom}'
+            return
+
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser(); parser.add_argument('--port',type=int,default=8000); args=parser.parse_args()
-    _lock=server_lock()
+    default_port = int(os.getenv('PORT', '8000'))
+    parser = argparse.ArgumentParser(description='Serveur unifié Yallah Services')
+    parser.add_argument('--port', type=int, default=default_port)
+    parser.add_argument('--open', action='store_true', help='ouvre automatiquement l’interface dans le navigateur local')
+    args = parser.parse_args()
+    local_url = f'http://127.0.0.1:{args.port}'
+    _autofill_cloud_public_url()
+    try:
+        _lock = server_lock()
+    except RuntimeError:
+        if args.open:
+            import webbrowser
+            print(f'Yallah Services est déjà actif — ouverture de {local_url}', flush=True)
+            webbrowser.open(local_url)
+            raise SystemExit(0)
+        raise
     initialize()
     campaigns.start_worker()
-    if os.getenv('YALLAH_AUTO_BACKUP','1')=='1':
-        threading.Thread(target=scheduled_backups,daemon=True,name='Yallah-backups').start()
-    print(f'Yallah Services : http://0.0.0.0:{args.port} — campagnes en simulation par défaut',flush=True)
-    ThreadingHTTPServer(('0.0.0.0',args.port),Handler).serve_forever()
+    if os.getenv('YALLAH_AUTO_BACKUP', '1') == '1':
+        threading.Thread(target=scheduled_backups, daemon=True, name='Yallah-backups').start()
+    server = ThreadingHTTPServer(('0.0.0.0', args.port), Handler)
+    print(f'Yallah Services : http://0.0.0.0:{args.port} ({local_url}) — campagnes en simulation par défaut', flush=True)
+    if args.open:
+        import webbrowser
+        threading.Timer(0.3, lambda: webbrowser.open(local_url)).start()
+    server.serve_forever()

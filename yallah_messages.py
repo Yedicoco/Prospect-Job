@@ -325,6 +325,8 @@ AFFICHAGE_BESOINS_B2B = {
     "GAR": "gardiennage",
     "MAI": "personnel de maison",
     "REN": "renfort journalier événementiel",
+    "AGE": "aide aux personnes âgées",
+    "NOU": "garde d'enfants",
 }
 
 
@@ -336,6 +338,8 @@ AFFICHAGE_BESOINS_B2B_DARIJA = {
     "GAR": "7arassa",
     "MAI": "khedma f dar",
     "REN": "renfort b nhar l lmounasabat",
+    "AGE": "m3awna l kbar",
+    "NOU": "nounou w 7adana",
 }
 
 AFFICHAGE_BESOINS_B2B_ARABE = {
@@ -346,6 +350,8 @@ AFFICHAGE_BESOINS_B2B_ARABE = {
     "GAR": "الحراسة",
     "MAI": "العمل في المنازل",
     "REN": "تعزيز يومي للمناسبات",
+    "AGE": "مساعدة كبار السن",
+    "NOU": "رعاية الأطفال",
 }
 
 AFFICHAGE_BESOINS_B2C = {
@@ -557,68 +563,103 @@ def message_client_suivi(
     return presenter_signataire(texte, prenom, langue) if prenom else texte
 
 
-def generer_relance_j7(
+RELANCES_DELAIS = (3, 7, 14)
+
+
+def generer_relance(
     p: dict,
     type_prospect: str,
     langue: str = "fr",
     prenom: str = "",
     canal_initial: str = "email",
+    etape_relance: int = 1,
 ) -> str:
-    """Génère le message de relance unique (J+7), courtois et sans insistance."""
+    """Génère un message de relance gradué (étape 1 = J+3, 2 = J+7, 3 = J+14, courtois et sans insistance)."""
+    etape = max(1, min(len(RELANCES_DELAIS), int(etape_relance or 1)))
     nom = p.get("nom", "")
     ville = p.get("ville", "")
     site = site_web_officiel()
     signataire = prenom or PLACEHOLDER_PRENOM
     canal_txt_fr = "mon précédent email" if canal_initial == "email" else "mon précédent message"
+    derniere = etape >= len(RELANCES_DELAIS)
 
     if langue == "darija":
+        intro = (
+            f"Kankteb likom akher marra b khoussous risalti s-sab9a 3la {nom} f {ville}."
+            if derniere
+            else f"Kanrj3 3ndkom b ikhtissar b3d risalti s-sab9a 3la {nom} f {ville}."
+        )
+        cloture = (
+            "Hadi akher relance dyali : ila ma kanch l-mawdo3 mnasbkom, goulha liya w ma n3awdch nkellemkom."
+            if derniere
+            else "Ila ma kanch l-mawdo3 mnasbkom, goulha liya bsouhoula w ma n3awdch nkellemkom."
+        )
         texte = (
             f"Salam,\n\n"
-            f"Ana {PLACEHOLDER_PRENOM} mn Yallah Services. Kankteb likom marra wa7da b khoussous "
-            f"risalti s-sab9a 3la {nom} f {ville}.\n\n"
+            f"Ana {PLACEHOLDER_PRENOM} mn Yallah Services. {intro}\n\n"
             f"Ila kan 3ndkom chi 7aja f l-personnel (permanent, temporaire aw renfort journalier), "
             f"n9dro nhdro 3liha mli ynasbkom. Khadamatna kaynin hna :\n{site}\n\n"
-            f"Hadi hiya l-mra l-wa7ida li kankteb fiha b3d risalti l-owla : ila ma kanch l-mawdo3 mnasbkom, "
-            f"goulha liya w ma n3awdch nkellemkom.\n\n"
+            f"{cloture}\n\n"
             f"Chokran,\n{signataire} — Yallah Services"
         )
         return presenter_signataire(texte, prenom, langue) if prenom else texte
 
     if langue == "arabe":
+        intro = (
+            f"أعود إليكم بمتابعة أخيرة بخصوص رسالتي السابقة حول {nom} في {ville}."
+            if derniere
+            else f"أعود إليكم باختصار بخصوص رسالتي السابقة حول {nom} في {ville}."
+        )
+        cloture = (
+            "هذه متابعتي الأخيرة: إن لم يكن الموضوع مناسباً لكم، أخبروني ببساطة ولن أتواصل معكم مرة أخرى."
+            if derniere
+            else "إن لم يكن الموضوع مناسباً لكم، أخبروني ببساطة ولن أتواصل معكم مرة أخرى."
+        )
         texte = (
             f"مرحبا،\n\n"
-            f"أنا {PLACEHOLDER_PRENOM} من Yallah Services. أعود إليكم بمتابعة وحيدة بخصوص رسالتي السابقة "
-            f"حول {nom} في {ville}.\n\n"
+            f"أنا {PLACEHOLDER_PRENOM} من Yallah Services. {intro}\n\n"
             f"إذا كانت لديكم حاجة حالية أو قريبة للموظفين (دائم أو مؤقت أو تعزيز يومي)، يسعدني التحدث معكم. "
             f"تجدون خدماتنا على:\n{site}\n\n"
-            f"هذه متابعتي الوحيدة: إن لم يكن الموضوع مناسباً لكم، أخبروني ببساطة ولن أتواصل معكم مرة أخرى.\n\n"
+            f"{cloture}\n\n"
             f"مع التحية،\n{signataire} — Yallah Services"
         )
         return presenter_signataire(texte, prenom, langue) if prenom else texte
 
+    intro_fr = (
+        f"Je me permets une dernière prise de contact à la suite de {canal_txt_fr} au sujet de {nom} ({ville})."
+        if derniere
+        else f"Je me permets un court suivi à la suite de {canal_txt_fr} au sujet de {nom} ({ville})."
+    )
+    cloture_fr = (
+        "C'est mon dernier message de suivi : si ce sujet ne vous concerne pas, dites-le-moi simplement "
+        "et je ne vous relancerai pas."
+        if derniere
+        else "Si ce sujet ne vous concerne pas, dites-le-moi simplement : je ne vous relancerai pas."
+    )
     texte = (
         f"Bonjour,\n\n"
-        f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services. Je me permets une unique relance à la suite de "
-        f"{canal_txt_fr} au sujet de {nom} ({ville}).\n\n"
+        f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services. {intro_fr}\n\n"
         f"Si vous envisagez un besoin en personnel — en permanent, temporaire ou renfort journalier — "
         f"seriez-vous disponible une dizaine de minutes pour faire le point ? Nos services sont détaillés sur :\n"
         f"{site}\n\n"
-        f"C'est mon seul message de suivi : si ce sujet ne vous concerne pas, dites-le-moi simplement "
-        f"et je ne vous relancerai pas.\n\n"
+        f"{cloture_fr}\n\n"
         f"Bien à vous,\n{PLACEHOLDER_PRENOM} — Yallah Services"
     )
     return presenter_signataire(texte, prenom, langue) if prenom else texte
 
 
-def liens_relance_j7(
+def liens_relance(
     p: dict,
     type_prospect: str,
     langue: str = "fr",
     prenom: str = "",
     canal_initial: str = "email",
+    etape_relance: int = 1,
 ) -> dict:
-    """Prépare la relance J+7 et recommande la bascule vers WhatsApp mobile si l'email initial est resté muet."""
-    texte = generer_relance_j7(p, type_prospect, langue, prenom, canal_initial)
+    """Prépare la relance (J+3, J+7 ou J+14) et recommande la bascule WhatsApp mobile si l'email initial est muet."""
+    etape = max(1, min(len(RELANCES_DELAIS), int(etape_relance or 1)))
+    delai = RELANCES_DELAIS[etape - 1]
+    texte = generer_relance(p, type_prospect, langue, prenom, canal_initial, etape)
     alertes = verifier_message(texte)
     mobile = tel_mobile_whatsapp(p)
     bascule_mobile = bool(canal_initial == "email" and mobile)
@@ -636,6 +677,9 @@ def liens_relance_j7(
         else ""
     )
     return {
+        "etape_relance": etape,
+        "delai_jours": delai,
+        "libelle_relance": f"J+{delai}",
         "message": texte,
         "alertes": alertes,
         "pret": pret,
@@ -644,6 +688,28 @@ def liens_relance_j7(
         "lien_whatsapp": lien_whatsapp(p, texte) if pret else "",
         "lien_email": lien_mail,
     }
+
+
+def generer_relance_j7(
+    p: dict,
+    type_prospect: str,
+    langue: str = "fr",
+    prenom: str = "",
+    canal_initial: str = "email",
+) -> str:
+    """Compatibilité ascendante : génère un message de relance à J+7 (étape 2)."""
+    return generer_relance(p, type_prospect, langue, prenom, canal_initial, etape_relance=2)
+
+
+def liens_relance_j7(
+    p: dict,
+    type_prospect: str,
+    langue: str = "fr",
+    prenom: str = "",
+    canal_initial: str = "email",
+) -> dict:
+    """Compatibilité ascendante : prépare les liens de relance à J+7 (étape 2)."""
+    return liens_relance(p, type_prospect, langue, prenom, canal_initial, etape_relance=2)
 
 
 def generer_reponse_qualification_b2c(

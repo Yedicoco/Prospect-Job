@@ -115,6 +115,36 @@ SEGMENTS = {
         "besoins": ["NET", "GAR"],
         "accroche": "la main-d'oeuvre pour vos travaux et la mise en service de vos locaux",
     },
+    "relocation_rh": {
+        "libelle": "relocation / RH / expats",
+        "poids": 3,
+        "besoins": ["MAI", "NOU", "PRP"],
+        "accroche": "l'accompagnement des familles en mobilite sur leurs besoins de maison",
+    },
+    "clinique_senior": {
+        "libelle": "clinique / geriatrie / soin a domicile",
+        "poids": 3,
+        "besoins": ["AGE", "MAI", "PRP"],
+        "accroche": "l'aide aux personnes agees a domicile et l'entretien",
+    },
+    "agence_immo": {
+        "libelle": "agence immobiliere / syndic",
+        "poids": 2,
+        "besoins": ["MAI", "PRP", "GAR"],
+        "accroche": "le personnel de maison des nouveaux residents et l'entretien des parties communes",
+    },
+    "conciergerie": {
+        "libelle": "conciergerie privee / residence",
+        "poids": 3,
+        "besoins": ["MAI", "PRP", "CUI"],
+        "accroche": "le personnel de maison, la cuisine et l'entretien",
+    },
+    "creche_ecole": {
+        "libelle": "creche / ecole maternelle privee",
+        "poids": 2,
+        "besoins": ["NOU", "PRP", "CUI"],
+        "accroche": "la garde d'enfants a domicile pour les parents et l'entretien des locaux",
+    },
 }
 
 BESOINS_B2B = {
@@ -125,6 +155,8 @@ BESOINS_B2B = {
     "GAR": "gardiennage",
     "MAI": "personnel de maison",
     "REN": "renfort journalier evenementiel",
+    "AGE": "aide aux personnes agees",
+    "NOU": "garde d'enfants",
 }
 
 # ---------------------------------------------------------------------------

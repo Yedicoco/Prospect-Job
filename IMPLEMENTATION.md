@@ -10,18 +10,20 @@ python3 webapp.py --port 8000
 
 Le serveur web/worker utilise un verrou POSIX pour empêcher deux processus d’utiliser la même base. Déploiement Linux/macOS ; un portage du verrou est nécessaire pour Windows natif.
 
-### 1. Acquisition et pipeline
+### 1. Acquisition, file quotidienne scorée et ROI réel par source
 
+- **Référentiel de sources A1–C (`yallah_sources.py`)** : `site_formulaire`, `whatsapp_entrant`, `gbp_entrant`, `avito_demande`, `fb_groupe_demande`, `partenaire_parrain`, `relocation_rh`, `clinique_senior`, `agence_immo`, `conciergerie`, `creche_ecole` et `liste_froide_b2b`. Les notes ordinales `intention` et `joignabilite` (1–5) sont des hypothèses initiales d’ordonnancement à confronter aux résultats réels.
+- **File du jour (`Tâches et rappels` et `yallah_sources.py --file`)** : sert les **relances graduées J+3, J+7 puis J+14** avant les premiers contacts, dans la limite partagée de **15 prises de contact par jour**, triée par `intention × 3 + joignabilité × 2 + fraîcheur + niveau`. Les fiches de plus de 7 jours non revérifiées et les particuliers B2C non sollicités sans consentement (verrou Loi 09-08 art. 10) sont exclus.
 - Depuis l’accueil : **Pipeline commercial → Nouvelle opportunité** ou depuis une fiche prospect : **Opportunité commerciale**.
 - Choisir un client réel, un objet, une étape, un responsable, une prochaine action et une date.
 - Les étapes couvrent prospect, qualification, conversation, rendez-vous, besoin confirmé, proposition, gagné et perdu. Un motif est exigé pour une perte.
-- **Tâches et rappels** permet de planifier et terminer les tâches, de voir les retards et les prochaines actions commerciales. Pas de notification externe ni de synchronisation d’agenda.
+- **Suivi du temps et ROI réel (`Résultats et coûts` et `yallah_sources.py --temps` / `--roi`)** : permet de noter les minutes opérateur par prospect (`1` à `600` min) et calcule par source les leads, contacts, réponses, besoins confirmés, contrats, heures passées, **MAD facturés/encaissés réels** et **MAD / heure réel** uniquement à partir des écritures réelles du grand livre (`0 MAD` tant qu’aucune facture ni encaissement réel n’est enregistré). Ce n’est ni un outil d’émission de factures légales ni une comptabilité.
 - Sur une opportunité confirmée : **Créer le besoin confirmé** conserve le lien au client et à l’opportunité ; il faut une source et une date de confirmation et une confirmation explicite.
-- **Résultats et coûts** permet de créer des propositions versionnées, puis de déclarer des coûts, montants facturés et encaissements. Ce n’est ni un outil d’émission de factures légales ni une comptabilité.
 
-### 2. Demandes entrantes
+### 2. Pages SEO locales A1 et demandes entrantes
 
-- `/demande` : formulaire public client.
+- `/services` et `/services/<slug>` (ex. `/services/femme-de-menage-californie-casablanca` ou `/services/CAS-CAL-MEN`) : **35 pages publiques Phase 1 (`quartier × besoin`)** conformes aux garde-fous éditoriaux (aucun prix, délai, garantie ni chiffre non vérifié ; mention explicite de gratuité candidat art. 480 du Code du travail), reliées au formulaire entrant (`site_formulaire` + `b2c_ref`) et à un lien WhatsApp précodé.
+- `/demande` : formulaire public client (accepte aussi `?ref=CAS-CAL-MEN` pour préremplir le besoin localisé).
 - `/candidature` : formulaire public affichant uniquement les besoins réels publiables ; aucune candidature ouverte si aucun besoin réel n’existe.
 - Les formulaires recueillent les données minimales et l’accord de traitement de la demande, **pas une autorisation marketing**. Ils comprennent un honeypot et une limite de dix requêtes par heure et IP vue par le serveur ; derrière un proxy, compléter cette limitation en amont. Ne pas faire confiance à des en-têtes IP fournis par le client.
 - **Conversations → demandes entrantes** : examiner, traiter ou rejeter. Les déclarations reçues ne créent pas automatiquement des candidats vérifiés ni des contacts autorisés.

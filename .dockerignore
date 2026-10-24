@@ -1,0 +1,10 @@
+.git
+.github
+.env
+data/
+node_modules/
+__pycache__/
+*.py[cod]
+*.csv
+file_envoi.md
+file_envoi.csv

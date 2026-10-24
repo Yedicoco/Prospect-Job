@@ -10,7 +10,21 @@ Python 3.11+ recommandé, aucune dépendance externe :
 python3 webapp.py --port 8000
 ```
 
-Ouvrir `http://localhost:8000`, ou l’aperçu Arena. Le serveur écoute sur `0.0.0.0`.
+Ouvrir `http://localhost:8000`, ou l’aperçu Arena. Le serveur écoute sur `0.0.0.0` (et lit automatiquement la variable `PORT` si définie).
+
+### Démarrage sans terminal (poste local ou Cloud 1-clic)
+
+1. **Poste local (double-clic)** :
+   - **macOS / Linux** : double-cliquer sur `Lancer_Yallah.command` (exécutable `python3 webapp.py --open`).
+   - **Windows** : double-cliquer sur `Lancer_Yallah.bat` (verrou de base compatible `msvcrt`).
+   - Si le serveur tourne déjà en arrière-plan, relancer le fichier rouvre simplement `http://127.0.0.1:8000` sans erreur de verrou.
+
+2. **Cloud 1-clic via Render (`render.yaml`)** :
+   - Dans l’interface Render : **New → Blueprint**, sélectionner ce dépôt GitHub.
+   - Le Blueprint configure automatiquement : `YALLAH_ENV=production`, un disque persistant SQLite monté sur `/var/data` (`YALLAH_DB=/var/data/yallah.sqlite3`), `YALLAH_ADMIN_PASSWORD` généré aléatoirement (consulter **Environment** sur Render ; identifiant HTTP Basic : `admin`), `YALLAH_PUBLIC_URL` déduit de `RENDER_EXTERNAL_URL`, et la sonde publique `healthCheckPath: /services`.
+
+3. **Conteneur Docker (`Dockerfile` — Railway, Koyeb, Coolify, VPS)** :
+   - Monte le volume persistant sur `/data` (`YALLAH_DB=/data/yallah.sqlite3`), exécute un utilisateur non-root (`uid=1000`) et vérifie la santé via `/services`.
 
 **Par défaut, aucune campagne n’envoie quoi que ce soit.** Les scripts CLI historiques restent manuels ; l’automatisation est une nouvelle fonction web distincte.
 

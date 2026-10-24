@@ -1,0 +1,31 @@
+# Déploiement Cloud 1-clic sur Render (New -> Blueprint -> connecter ce dépôt GitHub)
+# Documentation : WEB_APP.md
+# Note : le plan "starter" est requis sur Render pour attacher un disque persistant SQLite (/var/data).
+services:
+  - type: web
+    name: yallah-services
+    runtime: python
+    plan: starter
+    buildCommand: python3 -m py_compile webapp.py operations.py campaigns.py access.py validation.py webhooks.py yallah_sources.py yallah_b2c.py yallah_messages.py yallah_prospection.py yallah_emploi.py
+    startCommand: python3 webapp.py --port $PORT
+    healthCheckPath: /services
+    disk:
+      name: yallah-sqlite
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: YALLAH_ENV
+        value: production
+      - key: YALLAH_DB
+        value: /var/data/yallah.sqlite3
+      - key: YALLAH_ENABLE_LIVE
+        value: "0"
+      - key: YALLAH_AUTO_BACKUP
+        value: "1"
+      - key: YALLAH_SITE_WEB
+        value: https://yallahservices-one.vercel.app
+      # Identifiant : admin | Mot de passe fort généré automatiquement (visible dans Render -> Environment)
+      - key: YALLAH_ADMIN_PASSWORD
+        generateValue: true

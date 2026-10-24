@@ -86,14 +86,18 @@ def record(kind, item):
         elif key in ('besoins_probables',):
             if not isinstance(value, list) or any(not isinstance(v, str) for v in value):
                 raise ValueError(key + ' : liste de codes attendue')
-        elif key == 'exemple':
+        elif key in ('exemple', 'consentement_declare'):
             if not isinstance(value, bool):
-                raise ValueError('exemple : booléen attendu')
+                raise ValueError(key + ' : booléen attendu')
         elif key in ('phase', 'client_id', 'opportunity_id'):
             if not isinstance(value, int) or isinstance(value, bool):
                 raise ValueError(key + ' : entier attendu')
         else:
             text(value, key, limit=6000)
+            if key == 'source' and value:
+                import yallah_sources
+                if value not in yallah_sources.SOURCES:
+                    raise ValueError('Source inconnue : ' + value)
     if kind == 'emploi':
         if item.get('statut') not in ('ouvert', 'ferme', 'pourvu', 'annule'):
             raise ValueError('Statut du besoin invalide')
