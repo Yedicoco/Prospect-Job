@@ -107,64 +107,73 @@ python3 yallah_messages.py --prenom "VotrePrenom" --langue fr --markdown file_en
 
 Puisque la recherche d'annonces publiques B2C ne donne aucun numéro direct exploitable (voir `MESSAGES_PROSPECTION.md` §7), **la priorité B2C consiste à faire venir les familles à vous** via des publications locales associées aux liens WhatsApp préremplis de la matrice (`yallah_b2c.py`).
 
-Tous les textes ci-dessous ont été passés au garde-fou automatique `verifier_contenu()` : **0 alerte** (aucun prix, délai, garantie, vérification annoncée ni numéro dans le corps du texte). Ajoutez le lien `wa.me` correspondant en bouton / bio / premier commentaire.
+Tous les textes ci-dessous ont été passés au garde-fou automatique `verifier_contenu()` : **0 alerte** (aucun prix, délai, garantie, vérification annoncée ni numéro dans le corps du texte ; seul le site officiel `https://yallahservices-one.vercel.app` est autorisé). Ajoutez le lien `wa.me` correspondant et/ou le site officiel `https://yallahservices-one.vercel.app` en bouton / bio / premier commentaire.
 
 ### 1. Casablanca — Anfa · Femme de ménage (`CAS-ANF-MEN` · Instagram / Facebook · Français)
 > Vous habitez du côté d'Anfa à Casablanca et vous cherchez une femme de ménage selon le rythme de votre foyer (permanent, temporaire ou renfort ponctuel) ?
 > Yallah Services vous accompagne dans la recherche et la mise en relation de personnel de maison adapté à votre demande.
-> Votre besoin en personnel, notre priorité. Écrivez-nous directement via notre lien WhatsApp pour nous décrire votre besoin !
+> Découvrez nos services sur https://yallahservices-one.vercel.app ou écrivez-nous directement via notre lien WhatsApp !
 > `#Casablanca` `#Anfa` `#MaisonCasablanca` `#YallahServices`
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp traçable :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20femme%20de%20m%C3%A9nage%20%28Anfa%2C%20Casablanca%29.%20R%C3%A9f.%20CAS-ANF-MEN`
 
 ### 2. Casablanca — CFC & Californie · Nounou / Garde d'enfants (`CAS-CFC-NOU` · Instagram / Groupes quartier · Français)
 > Familles de Casa Finance City et Californie : vous recherchez une nounou pour la garde de vos enfants, en besoin permanent, temporaire ou ponctuel ?
 > Yallah Services organise la recherche et la mise en relation de personnel familial selon vos critères et vos horaires.
-> Votre besoin en personnel, notre priorité. Cliquez sur notre lien WhatsApp pour nous partager votre recherche !
+> Consultez https://yallahservices-one.vercel.app ou cliquez sur notre lien WhatsApp pour nous partager votre recherche !
 > `#Casablanca` `#CasaFinanceCity` `#CalifornieCasablanca` `#GardeEnfants` `#YallahServices`
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp CFC :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20nounou%20/%20garde%20d%27enfants%20%28CFC%2C%20Casablanca%29.%20R%C3%A9f.%20CAS-CFC-NOU`
 - **Lien WhatsApp Californie :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20nounou%20/%20garde%20d%27enfants%20%28Californie%2C%20Casablanca%29.%20R%C3%A9f.%20CAS-CAL-NOU`
 
 ### 3. Casablanca — Gauthier · Femme de ménage (`CAS-GAU-MEN` · TikTok / Reels · Darija)
 > Saken f Gauthier f Casa w katqelleb 3la mra dyal chghol l dar, b chkel da2im wla مؤقت wla nhar b nhar ?
 > Yallah Services kat3awnek f lba7t w rabt m3a nass li ynasbo talab dyalek b kol bassata.
-> Cliquez 3la lien WhatsApp f bio bach tchre7 lina chno khassek !
+> Chouf khadamatna 3la https://yallahservices-one.vercel.app wla cliquez 3la lien WhatsApp f bio !
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp traçable :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20femme%20de%20m%C3%A9nage%20%28Gauthier%2C%20Casablanca%29.%20R%C3%A9f.%20CAS-GAU-MEN`
 
 ### 4. Bouskoura — Ville Verte · Ménage & Nounou (`BSK-VVE-MEN` / `BSK-VVE-NOU` · Facebook / WhatsApp · Français)
 > Résidents de Bouskoura Ville Verte : besoin d'une femme de ménage, d'une nounou ou d'une cuisinière à domicile, en format permanent ou ponctuel ?
 > Yallah Services écoute votre demande et assure la recherche ainsi que la mise en relation de personnel pour votre foyer.
-> Votre besoin en personnel, notre priorité. Contactez-nous via le lien WhatsApp ci-dessous pour échanger !
+> Découvrez nos services sur https://yallahservices-one.vercel.app ou contactez-nous via le lien WhatsApp ci-dessous !
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp Ménage :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20femme%20de%20m%C3%A9nage%20%28Ville%20Verte%2C%20Bouskoura%29.%20R%C3%A9f.%20BSK-VVE-MEN`
 - **Lien WhatsApp Nounou :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20nounou%20/%20garde%20d%27enfants%20%28Ville%20Verte%2C%20Bouskoura%29.%20R%C3%A9f.%20BSK-VVE-NOU`
 
 ### 5. Rabat — Hay Riad · Nounou / Garde d'enfants (`RAB-HRI-NOU` · Instagram · Français)
 > Parents à Hay Riad (Rabat) : vous cherchez une nounou pour accompagner le quotidien de votre famille ?
 > En format permanent, temporaire ou renfort ponctuel, Yallah Services vous accompagne dans la recherche et la mise en relation.
-> Votre besoin en personnel, notre priorité. Écrivez-nous sur WhatsApp via le lien dédié !
+> Plus d'informations sur https://yallahservices-one.vercel.app ou écrivez-nous sur WhatsApp via le lien dédié !
 > `#Rabat` `#HayRiad` `#FamilleRabat` `#YallahServices`
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp traçable :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20nounou%20/%20garde%20d%27enfants%20%28Hay%20Riad%2C%20Rabat%29.%20R%C3%A9f.%20RAB-HRI-NOU`
 
 ### 6. Rabat — Souissi · Chauffeur (`RAB-SOU-CHA` · LinkedIn / Facebook · Français)
 > À Rabat Souissi et Les Ambassadeurs, vous souhaitez recruter un chauffeur privé en besoin permanent, temporaire ou journalier ?
 > Yallah Services structure votre recherche et vous met en relation selon vos besoins réels.
-> Votre besoin en personnel, notre priorité. Prenez contact via notre lien WhatsApp !
+> Présentation sur https://yallahservices-one.vercel.app et prise de contact directe via notre lien WhatsApp !
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp traçable :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20chauffeur%20%28Souissi%2C%20Rabat%29.%20R%C3%A9f.%20RAB-SOU-CHA`
 
 ### 7. Rabat — Agdal · Aide aux personnes âgées (`RAB-AGD-AGE` · Facebook / Arabe)
 > للعائلات في أكدال بالرباط: هل تبحثون عن مساعدة لكبار السن بشكل دائم أو مؤقت حسب احتياج أسرتكم؟
 > تواكبكم Yallah Services في البحث والربط مع المستخدمين وفق طلبكم بكل عناية ووضوح.
-> احتياجكم من المستخدمين أولويتنا. تواصلوا معنا مباشرة عبر رابط واتساب المرفق!
+> اطلعوا على خدماتنا عبر https://yallahservices-one.vercel.app أو تواصلوا معنا مباشرة عبر رابط واتساب المرفق!
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp traçable :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20aide%20aux%20personnes%20%C3%A2g%C3%A9es%20%28Agdal%2C%20Rabat%29.%20R%C3%A9f.%20RAB-AGD-AGE`
 
 ### 8. Marrakech — Palmeraie · Cuisinière à domicile (`MAR-PAL-CUI` · Instagram · Français)
 > Résidences et villas du secteur Palmeraie à Marrakech : vous cherchez une cuisinière à domicile, à l'année ou pour un besoin temporaire ?
 > Yallah Services assure la recherche et la mise en relation de personnel de maison selon vos attentes.
-> Votre besoin en personnel, notre priorité. Envoyez-nous votre demande via notre lien WhatsApp !
+> Consultez https://yallahservices-one.vercel.app ou envoyez-nous votre demande via notre lien WhatsApp !
 > `#Marrakech` `#Palmeraie` `#MaisonMarrakech` `#YallahServices`
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp traçable :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20cuisini%C3%A8re%20%C3%A0%20domicile%20%28Palmeraie%2C%20Marrakech%29.%20R%C3%A9f.%20MAR-PAL-CUI`
 
 ### 9. Marrakech — Hivernage · Ménage & Nettoyage ponctuel (`MAR-HIV-MEN` · TikTok / Instagram · Darija)
 > F Marrakech جهة l'Hivernage w bghiti mra dyal chghol wla tnadif mawqati l dar ?
 > Yallah Services katwakbek f lba7t w rabt 3la 7ssab talab dyalek, b chkel da2im wla mawqati.
-> Dkhel l lien WhatsApp w 9ol lina chno katqelleb 3lih !
+> Chouf https://yallahservices-one.vercel.app wla dkhel l lien WhatsApp w 9ol lina chno katqelleb 3lih !
+- **Site officiel :** `https://yallahservices-one.vercel.app`
 - **Lien WhatsApp traçable :** `https://wa.me/212691733585?text=Bonjour%2C%20je%20cherche%20%3A%20femme%20de%20m%C3%A9nage%20%28Hivernage%2C%20Marrakech%29.%20R%C3%A9f.%20MAR-HIV-MEN`

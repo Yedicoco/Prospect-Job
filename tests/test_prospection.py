@@ -131,6 +131,25 @@ class TestJeuDeDonnees(unittest.TestCase):
             texte = yp.message_commercial(p, "fr")
             self.assertNotIn("212691733585", texte)
 
+    def test_site_web_officiel_inclus_dans_messages_et_lien(self):
+        for p in self.prospects:
+            for langue in ("fr", "darija", "arabe"):
+                texte = yp.message_commercial(p, langue)
+                self.assertIn("https://yallahservices-one.vercel.app", texte)
+            self.assertIn("yallahservices-one.vercel.app", yp.lien_whatsapp(p))
+
+    def test_garde_fou_bloque_url_inventee_mais_autorise_site_officiel(self):
+        self.assertEqual(
+            yp.verifier_message("Decouvrez nos services sur https://yallahservices-one.vercel.app"),
+            [],
+        )
+        self.assertEqual(
+            yp.verifier_message("Site : https://yallahservices-one.vercel.app/index.html"),
+            [],
+        )
+        alertes = yp.verifier_message("Visitez https://faux-site-yallah.ma pour en savoir plus.")
+        self.assertTrue(any("url non officielle" in a for a in alertes), alertes)
+
 
 if __name__ == "__main__":
     unittest.main()

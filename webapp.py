@@ -75,6 +75,7 @@ def state(prenom='', langue='fr'):
         metas = {r['key']:json.loads(r['value']) for r in con.execute("SELECT * FROM settings WHERE key LIKE 'meta_%'")}
         events = [dict(r) for r in con.execute('SELECT * FROM events ORDER BY id DESC LIMIT 200')]
         suppressed_contacts = [r['contact_key'].split(':', 1)[1] for r in con.execute('SELECT contact_key FROM suppressions')]
+        opps = [dict(r) for r in con.execute('SELECT * FROM opportunities ORDER BY id DESC')]
         for kind in ('b2b', 'b2c'):
             metas.setdefault('meta_' + kind, {}).setdefault('refus', []).extend(suppressed_contacts)
     groups = {k:[] for k in ['b2b','b2c','emploi']}
@@ -90,11 +91,43 @@ def state(prenom='', langue='fr'):
                 line['id'] = ids[int(line['ref'].removeprefix(prefix+'-'))-1]
                 if line['statut'] != 'PRET - envoi manuel':
                     line['lien_whatsapp'] = line['lien_email'] = ''
+    rec_by_id = {r['id']: r for r in records}
+    line_by_id = {l['id']: l for l in lines if 'id' in l}
+    client_followups = {}
+    for opp in opps:
+        rec = rec_by_id.get(opp['record_id'])
+        if not rec or rec['kind'] not in ('b2b', 'b2c'):
+            continue
+        line = line_by_id.get(rec['id'], {})
+        refuse = 'refus' in line.get('motifs_non_qualification', '')
+        texte = messages.message_client_suivi(
+            rec['data'], rec['kind'], langue, prenom, opp['title'], opp['next_action']
+        )
+        alertes = messages.verifier_message(texte)
+        pret = bool(prenom and not refuse and not alertes and opp['stage'] != 'perdu')
+        client_followups[str(opp['id'])] = {
+            'message': texte,
+            'alertes': ' | '.join(alertes),
+            'refuse': refuse,
+            'pret': pret,
+            'lien_whatsapp': messages.lien_whatsapp(rec['data'], texte) if pret else '',
+            'lien_email': messages.lien_email(rec['data'], texte, rec['kind']) if pret else '',
+        }
     ads = emploi.construire_lignes(groups['emploi'],langue,True)
     matrix = b2c.construire_matrice()
     for row in matrix:
         row['lien'] = b2c.lien_whatsapp(row)
-    return {'records':records,'messages':lines,'annonces':ads,'events':events,'matrice':matrix,'segments':list(SEGMENTS),'today':validation.today().isoformat()}
+    return {
+        'records':records,
+        'messages':lines,
+        'annonces':ads,
+        'events':events,
+        'matrice':matrix,
+        'segments':list(SEGMENTS),
+        'site_web':b2c.site_web_officiel(),
+        'client_followups':client_followups,
+        'today':validation.today().isoformat(),
+    }
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):

@@ -103,7 +103,9 @@ remplacement ; disponibilité immédiate de candidats ; qualifications,
 expériences ou références de candidats ; vérifications d'identité ou contrôles
 d'antécédents ; conditions contractuelles et modalités de paiement ; quartiers
 déservis pour une mission précise ; certifications ou agréments ; coordonnées
-autres que celles fournies.
+autres que celles fournies (WhatsApp officiel et site vitrine officiel
+`https://yallahservices-one.vercel.app`, configurable via `YALLAH_SITE_WEB`,
+inclus automatiquement dans les messages clients et prospects B2B / B2C).
 
 Chaque texte généré par IA est contrôlé automatiquement : en cas d'alerte, le
 statut passe à "BLOQUÉ - à corriger" dans le CSV.
