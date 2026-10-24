@@ -235,10 +235,15 @@ class TestAucunEnvoi(unittest.TestCase):
 
     def test_generation_ecrit_csv_et_markdown(self):
         with tempfile.TemporaryDirectory() as dossier:
+            src_path = os.path.join(dossier, "b2c.json")
             csv_path = os.path.join(dossier, "file.csv")
             md_path = os.path.join(dossier, "file.md")
+            pathlib.Path(src_path).write_text(
+                json.dumps(jeu([fiche(date_consultation=date.today().isoformat())]),
+                           ensure_ascii=False), encoding="utf-8")
             resultat = subprocess.run(
-                [sys.executable, "yallah_messages.py", "--prenom", "Youssef",
+                [sys.executable, "yallah_messages.py", "--type", "b2c",
+                 "--source-b2c", src_path, "--prenom", "Youssef",
                  "--sortie", csv_path, "--markdown", md_path],
                 cwd=str(RACINE), capture_output=True, text=True)
             self.assertEqual(resultat.returncode, 0, resultat.stderr)
@@ -288,6 +293,30 @@ class TestActualisationQuotidienne(unittest.TestCase):
                                             encoding="utf-8")
             self.assertEqual(ym.marquer_verifie({"b2c": chemin}, ["BC-999"], AUJOURDHUI), [])
 
+    def test_fiches_non_qualifiees_restent_non_qualifiees_apres_changement_de_jour(self):
+        lendemain = date(2026, 10, 25)
+        donnees = jeu(
+            [
+                fiche(nom="Contact en refus", tel="+212 611 11 11 11", date_consultation="2026-10-21"),
+                fiche(nom="Fiche exemple", tel="+212 622 22 22 22", exemple=True, date_consultation="2026-10-21"),
+                fiche(nom="Formulaire seul", tel="", email="", niveau="C", date_consultation="2026-10-21"),
+                fiche(nom="Prospect valide ancien", tel="+212 633 33 33 33", date_consultation="2026-10-21"),
+            ],
+            refus=["+212 611 11 11 11"],
+        )
+        lignes = ym.construire_lignes([("b2c", donnees)], "fr", "Youssef", lendemain)
+        par_nom = {l["nom"]: l["statut"] for l in lignes}
+        self.assertEqual(par_nom["Contact en refus"], "NON QUALIFIE")
+        self.assertEqual(par_nom["Fiche exemple"], "NON QUALIFIE")
+        self.assertEqual(par_nom["Formulaire seul"], "NON QUALIFIE")
+        self.assertEqual(par_nom["Prospect valide ancien"], "A ACTUALISER")
+        with tempfile.TemporaryDirectory() as dossier:
+            md = os.path.join(dossier, "actu.md")
+            self.assertEqual(ym.ecrire_actualisation(md, lignes, lendemain), 1)
+            texte = pathlib.Path(md).read_text(encoding="utf-8")
+            self.assertNotIn("Contact en refus", texte)
+            self.assertIn("Prospect valide ancien", texte)
+
 
 class TestJeuB2C(unittest.TestCase):
     def test_une_fiche_b2c_valide_produit_un_message_pret(self):
@@ -306,6 +335,44 @@ class TestJeuB2C(unittest.TestCase):
         dedans = ym.score_prospect(fiche(zone="Anfa", ville="Casablanca"), "b2c")[0]
         dehors = ym.score_prospect(fiche(zone="Hay Hassani", ville="Casablanca"), "b2c")[0]
         self.assertGreater(dedans, dehors)
+
+    def test_site_web_officiel_inclus_dans_messages_b2b_b2c_et_suivi_client(self):
+        site = "https://yallahservices-one.vercel.app"
+        prospect_b2b = {
+            "nom": "Hotel Test",
+            "segment": "hotel",
+            "phase": 1,
+            "ville": "Casablanca",
+            "zone": "Anfa",
+            "tel": "+212 522 00 11 22",
+            "email": "contact@hoteltest.ma",
+            "source_url": "https://hoteltest.ma/contact",
+            "date_consultation": AUJOURDHUI.isoformat(),
+            "niveau": "A",
+        }
+        prospect_b2c_entrant = fiche(source_type="entrant", source_url="", source_reference="ENT-1")
+        for langue in ("fr", "darija", "arabe"):
+            msg_b2b = ym.generer_message(prospect_b2b, "b2b", langue, "Youssef")
+            msg_b2c = ym.generer_message(fiche(), "b2c", langue, "Youssef")
+            msg_entrant = ym.generer_message(prospect_b2c_entrant, "b2c", langue, "Youssef")
+            msg_suivi_b2b = ym.message_client_suivi(
+                prospect_b2b, "b2b", langue, "Youssef", "Renfort salle", "Point telephonique"
+            )
+            msg_suivi_b2c = ym.message_client_suivi(
+                fiche(), "b2c", langue, "Youssef", "Nounou Anfa", "Confirmer horaires"
+            )
+            for texte in (msg_b2b, msg_b2c, msg_entrant, msg_suivi_b2b, msg_suivi_b2c):
+                self.assertIn(site, texte, langue)
+                self.assertEqual(ym.verifier_message(texte), [], langue)
+            self.assertIn("yallahservices-one.vercel.app", ym.lien_whatsapp(fiche(), msg_b2c))
+            self.assertIn("yallahservices-one.vercel.app", ym.lien_email(prospect_b2b, msg_b2b, "b2b"))
+
+    def test_url_non_officielle_bloquee_par_garde_fou(self):
+        texte = ym.generer_message(fiche(), "b2c", "fr", "Youssef").replace(
+            "https://yallahservices-one.vercel.app", "https://site-invente.example.com"
+        )
+        alertes = ym.verifier_message(texte)
+        self.assertTrue(any("url non officielle" in a for a in alertes), alertes)
 
 
 if __name__ == "__main__":

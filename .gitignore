@@ -14,3 +14,6 @@ file_envoi.csv
 
 # Données privées de l'application web
 data/
+
+# Dépendances des tests DOM
+node_modules/

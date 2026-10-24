@@ -31,6 +31,18 @@ from urllib.parse import quote
 # Coordonnées officielles (fiche de présentation, section 7) - ne pas modifier
 # ---------------------------------------------------------------------------
 WHATSAPP_NUMBER = "212691733585"  # +212 691733585
+SITE_WEB_DEFAUT = "https://yallahservices-one.vercel.app"
+
+
+def site_web_officiel() -> str:
+    """URL canonique du site web officiel Yallah Services (sans slash final)."""
+    valeur = os.getenv("YALLAH_SITE_WEB", SITE_WEB_DEFAUT).strip().rstrip("/")
+    if valeur.endswith("/index.html"):
+        valeur = valeur[: -len("/index.html")]
+    return valeur or SITE_WEB_DEFAUT
+
+
+SITE_WEB = site_web_officiel()
 
 # ---------------------------------------------------------------------------
 # Besoins B2C (fiche, section 2.A)
@@ -118,7 +130,8 @@ Marrakech (Palmeraie, Hivernage, Agdal, Targa, Amelkis).
 Villes phase 2 : Tanger, Agadir, Mohammedia, Kénitra.
 Villes phase 3 : Fès, El Jadida, Témara/Harhoura.
 Besoins : personnel permanent, temporaire ou renfort journalier, selon la demande du client.
-Contact prioritaire : WhatsApp. Signature : « Votre besoin en personnel, notre priorité. »
+Contact prioritaire : WhatsApp. Site web officiel : https://yallahservices-one.vercel.app
+Signature : « Votre besoin en personnel, notre priorité. »
 Ton : professionnel, chaleureux, rassurant, simple, dynamique, local, orienté action.
 """
 
@@ -127,9 +140,9 @@ INTERDIT d'inventer ou d'affirmer : prix, salaires, commissions, frais ; délais
 relation ; garanties de résultat, de fiabilité ou de remplacement ; disponibilité immédiate de candidats ;
 qualifications, expériences ou références de candidats ; vérifications d'identité ou contrôles d'antécédents ;
 conditions contractuelles et modalités de paiement ; quartiers desservis pour une mission précise ;
-certifications ou agréments ; coordonnées autres que celles fournies.
+certifications ou agréments ; coordonnées autres que celles fournies (seul le site officiel fourni est autorisé).
 Ne jamais promettre un recrutement. Utiliser uniquement les faits fournis.
-Terminer par un appel à l'action vers WhatsApp (sans écrire de numéro dans le texte : le lien est ajouté à part).
+Terminer par un appel à l'action vers WhatsApp (sans écrire de numéro dans le texte : le lien WhatsApp est ajouté à part ; le lien du site officiel https://yallahservices-one.vercel.app peut être mentionné tel quel).
 """
 
 # ---------------------------------------------------------------------------
@@ -148,6 +161,18 @@ PATTERNS_INTERDITS = [
 ]
 
 
+def urls_non_officielles(texte: str) -> list:
+    """Signale toute URL présente dans le texte qui n'est pas le site officiel Yallah Services."""
+    officiel = site_web_officiel().lower()
+    autorisees = {officiel, officiel + "/index.html"}
+    alertes = []
+    for brut in re.findall(r"https?://\S+", texte or "", flags=re.IGNORECASE):
+        propre = brut.rstrip(".,;:!?)\"'>/").lower()
+        if propre not in autorisees:
+            alertes.append(f"url non officielle : « {brut} »")
+    return alertes
+
+
 def verifier_contenu(texte: str) -> list:
     """Retourne la liste des alertes ; vide = aucune alerte détectée."""
     alertes = []
@@ -156,6 +181,7 @@ def verifier_contenu(texte: str) -> list:
         trouve = re.search(motif, bas, flags=re.IGNORECASE)
         if trouve:
             alertes.append(f"{libelle} : « {trouve.group(0).strip()} »")
+    alertes.extend(urls_non_officielles(texte))
     return alertes
 
 
@@ -179,6 +205,7 @@ def construire_matrice(ville=None, besoin=None):
                             "zone": nom_zone,
                             "code_besoin": code_besoin,
                             "besoin": BESOINS[code_besoin],
+                            "site_web": site_web_officiel(),
                         }
                     )
     return lignes

@@ -2,6 +2,8 @@
 
 ## Application web
 
+**Nouveau :** pipeline commercial, tâches, relances manuelles J+7, conversations et import d’emails entrants, demandes publiques, recrutement, missions, coûts et supervision. Guide du parcours : [IMPLEMENTATION.md](IMPLEMENTATION.md) · Kit pilote terrain B2B/B2C : [PILOTE_LANCEMENT.md](PILOTE_LANCEMENT.md).
+
 Une interface web en français est maintenant disponible : tableau de bord, gestion des prospects, préparation des messages, suivi manuel, refus et besoins d’emploi. Les **campagnes automatiques email et WhatsApp Business** sont disponibles, en simulation par défaut ; les envois réels exigent qualification des contacts, configuration des fournisseurs et activation explicite.
 
 ```bash
@@ -101,7 +103,9 @@ remplacement ; disponibilité immédiate de candidats ; qualifications,
 expériences ou références de candidats ; vérifications d'identité ou contrôles
 d'antécédents ; conditions contractuelles et modalités de paiement ; quartiers
 déservis pour une mission précise ; certifications ou agréments ; coordonnées
-autres que celles fournies.
+autres que celles fournies (WhatsApp officiel et site vitrine officiel
+`https://yallahservices-one.vercel.app`, configurable via `YALLAH_SITE_WEB`,
+inclus automatiquement dans les messages clients et prospects B2B / B2C).
 
 Chaque texte généré par IA est contrôlé automatiquement : en cas d'alerte, le
 statut passe à "BLOQUÉ - à corriger" dans le CSV.

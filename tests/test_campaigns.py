@@ -206,3 +206,26 @@ class CampaignTests(unittest.TestCase):
             campaigns.tick()
             send.assert_called_once()
         self.assertEqual(self.delivery(second)['status'], 'blocked')
+
+
+    def test_manual_conversation_blocks_automatic_duplicate(self):
+        import operations
+        self.permission()
+        cid=self.create();self.activate(cid)
+        operations.execute('conversation',{'record_id':1,'channel':'telephone','direction':'sortant','body':'Échange manuel déjà effectué','outcome':'note'},'test')
+        with patch('campaigns.transport') as send:
+            campaigns.tick()
+            send.assert_not_called()
+        self.assertEqual(self.delivery(cid)['status'],'blocked')
+
+    def test_callback_before_http_response_is_reconciled(self):
+        import webhooks
+        self.permission()
+        cid=self.create();self.activate(cid)
+        def transport(delivery,campaign):
+            with webapp.connect() as con:
+                webhooks.status_event(con,'resend','early-event','email.delivered','early-provider-id','delivered')
+            return 'early-provider-id'
+        with patch('campaigns.transport',side_effect=transport):
+            campaigns.tick()
+        self.assertEqual(self.delivery(cid)['status'],'delivered')

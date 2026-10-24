@@ -36,7 +36,7 @@ import sys
 from datetime import date
 from urllib.parse import quote
 
-from yallah_b2c import BESOINS as BESOINS_B2C
+from yallah_b2c import BESOINS as BESOINS_B2C, SITE_WEB, site_web_officiel
 from yallah_prospection import (
     BESOINS_B2B, SEGMENTS, verifier_message as verifier_message_b2b,
 )
@@ -153,6 +153,8 @@ def valider_fiche(p: dict, type_prospect: str) -> list:
     """Anomalies bloquantes d'une fiche, avant meme de parler de message."""
     anomalies = []
     for champ in TYPES[type_prospect]["champs_requis"]:
+        if champ == "source_url" and p.get("source_type") == "entrant" and re.fullmatch(r"ENT-\d{6,}", str(p.get("source_reference", ""))):
+            continue  # provenance de première partie, vérifiée par l'API web
         if not str(p.get(champ, "")).strip():
             anomalies.append(f"champ manquant : {champ}")
 
@@ -308,6 +310,7 @@ def message_b2b(p: dict, langue: str) -> str:
     zone = p.get("zone", "")
     ou = f", {zone}" if zone else ""
     besoins = besoins_libelles(p, "b2b", langue)
+    site = site_web_officiel()
 
     if langue == "darija":
         return (
@@ -316,7 +319,8 @@ def message_b2b(p: dict, langue: str) -> str:
             f"f {ville} bach nwefro lihom personnel : {besoins}.\n\n"
             f"Kantawessal m3akom 3la {nom}{ou}. Kayn tlata formats : permanent, temporaire, "
             f"w renfort b nhar, 3la 7sab lkhedma dyalek.\n\n"
-            f"Wach 3ndkom 10 daqiqat bach nfahmo l7aja li m7tajin biha?\n\n"
+            f"Wach 3ndkom 10 daqiqat bach nfahmo l7aja li m7tajin biha? "
+            f"T9dro tchoufo khadamatna 3la :\n{site}\n\n"
             f"Ila had lmawdo3 ma 3ndkomch bih, goulha liya bsouhoula w ma n3awdch nkellemkom.\n\n"
             f"Chokran,\n{PLACEHOLDER_PRENOM} — Yallah Services"
         )
@@ -326,7 +330,7 @@ def message_b2b(p: dict, langue: str) -> str:
             f"أنا {PLACEHOLDER_PRENOM} من Yallah Services. نعمل مع المؤسسات في {ville} "
             f"لتوفير الموظفين من أجل: {besoins}.\n\n"
             f"أتواصل معكم بخصوص {nom}{ou}. لدينا ثلاث صيغ: دائم، مؤقت، وتعزيز يومي، حسب حاجتكم.\n\n"
-            f"هل لديكم عشر دقائق لنفهم حاجتكم بدقة؟\n\n"
+            f"هل لديكم عشر دقائق لنفهم حاجتكم بدقة؟ ويمكنكم الاطلاع على خدماتنا عبر موقعنا:\n{site}\n\n"
             f"إن لم يكن هذا الموضوع يهمكم، أخبروني ببساطة ولن أتواصل معكم مرة أخرى.\n\n"
             f"مع التحية،\n{PLACEHOLDER_PRENOM} — Yallah Services"
         )
@@ -336,7 +340,8 @@ def message_b2b(p: dict, langue: str) -> str:
         f"de {ville} sur leurs besoins en personnel : {besoins}.\n\n"
         f"Je vous contacte au sujet de {nom}{ou}. Selon votre organisation, nous travaillons sur "
         f"trois formats : permanent, temporaire et renfort journalier.\n\n"
-        f"Auriez-vous dix minutes pour un échange afin que nous comprenions votre besoin réel ?\n\n"
+        f"Auriez-vous dix minutes pour un échange afin que nous comprenions votre besoin réel ? "
+        f"Vous pouvez aussi découvrir nos services sur :\n{site}\n\n"
         f"Si ce sujet ne vous concerne pas, dites-le-moi simplement : je ne vous relancerai pas.\n\n"
         f"Bien à vous,\n{PLACEHOLDER_PRENOM} — Yallah Services"
     )
@@ -346,6 +351,7 @@ def message_b2c(p: dict, langue: str) -> str:
     besoin = besoins_libelles(p, "b2c", langue)
     zone = p.get("zone", "")
     ville = p.get("ville", "")
+    site = site_web_officiel()
 
     if langue == "darija":
         return (
@@ -354,7 +360,8 @@ def message_b2c(p: dict, langue: str) -> str:
             f"f {zone}, {ville}.\n\n"
             f"Kankhdmo m3a l3a2ilat bach nl9aw lihom personnel: mnada, nounou, tbakh, "
             f"m3awna l kbar, chauffeur. Kayn permanent, temporaire, w renfort b nhar.\n\n"
-            f"Wach n9dro ndiro wahed mokala d 10 daqiqat bach nfahmo chno m7tajin?\n\n"
+            f"Wach n9dro ndiro wahed mokala d 10 daqiqat bach nfahmo chno m7tajin? "
+            f"T9dro tchoufo khadamatna 3la :\n{site}\n\n"
             f"Ila ma bghitich, goulha liya w ma n3awdch nkellemek.\n\n"
             f"Chokran,\n{PLACEHOLDER_PRENOM} — Yallah Services"
         )
@@ -365,7 +372,7 @@ def message_b2c(p: dict, langue: str) -> str:
             f"في {zone}، {ville}.\n\n"
             f"نعمل مع الأسر لتوفير الموظفين: عاملة منزل، جليسة أطفال، طباخة، مساعدة لكبار السن، سائق. "
             f"ونعمل بصيغة دائمة أو مؤقتة أو تعزيز ليوم واحد.\n\n"
-            f"هل يمكننا التحدث عشر دقائق لفهم حاجتكم؟\n\n"
+            f"هل يمكننا التحدث عشر دقائق لفهم حاجتكم؟ ويمكنكم الاطلاع على خدماتنا عبر موقعنا:\n{site}\n\n"
             f"إن لم يكن هذا الأمر يهمكم، أخبروني بذلك ولن أتواصل معكم مرة أخرى.\n\n"
             f"مع التحية،\n{PLACEHOLDER_PRENOM} — Yallah Services"
         )
@@ -376,7 +383,8 @@ def message_b2c(p: dict, langue: str) -> str:
         f"Nous travaillons avec les familles pour ce type de besoin : femme de ménage, nounou, "
         f"cuisinière, aide aux personnes âgées, chauffeur. Selon ce que vous cherchez, nous "
         f"proposons du permanent, du temporaire ou un renfort ponctuel.\n\n"
-        f"Auriez-vous dix minutes pour un échange afin de comprendre votre besoin ?\n\n"
+        f"Auriez-vous dix minutes pour un échange afin de comprendre votre besoin ? "
+        f"Vous pouvez aussi consulter nos services sur :\n{site}\n\n"
         f"Si ce message ne vous intéresse pas, dites-le-moi simplement : je ne vous recontacte pas.\n\n"
         f"Bien à vous,\n{PLACEHOLDER_PRENOM} — Yallah Services"
     )
@@ -384,9 +392,63 @@ def message_b2c(p: dict, langue: str) -> str:
 
 def generer_message(p: dict, type_prospect: str, langue: str, prenom: str = "") -> str:
     texte = message_b2b(p, langue) if type_prospect == "b2b" else message_b2c(p, langue)
+    if p.get("source_type") == "entrant" and type_prospect == "b2c":
+        texte = texte.replace("J'ai vu votre annonce :", "Nous avons reçu votre demande :")
+        texte = texte.replace("Chaft l'annonce dyalek:", "Twesselna b talab dyalek:")
+        texte = texte.replace("رأيت إعلانكم بخصوص", "توصلنا بطلبكم بخصوص")
     if prenom:
         texte = texte.replace(PLACEHOLDER_PRENOM, prenom)
     return texte
+
+
+def message_client_suivi(
+    client: dict,
+    type_client: str,
+    langue: str = "fr",
+    prenom: str = "",
+    objet: str = "",
+    suite: str = "",
+) -> str:
+    """Message de suivi / présentation destiné à un client actif (B2B ou B2C)."""
+    nom = client.get("nom", "")
+    ville = client.get("ville", "")
+    site = site_web_officiel()
+    signataire = prenom or PLACEHOLDER_PRENOM
+    sujet = (objet or "").strip() or (
+        f"vos besoins en personnel ({ville})" if type_client == "b2b" else f"votre besoin à {ville}"
+    )
+    prochaine = (suite or "").strip()
+
+    if langue == "darija":
+        bloc_suite = f"Mar7la jaya : {prochaine}\n\n" if prochaine else ""
+        return (
+            f"Salam,\n\n"
+            f"Ana {signataire} mn Yallah Services, tab3an l hadra dyalna 3la {nom} ({sujet}).\n\n"
+            f"{bloc_suite}"
+            f"T9dro tchoufo jami3 khadamatna f ay wa9t 3la :\n{site}\n\n"
+            f"Ila had lmawdo3 ma b9ach m7tajino, goulha liya w ma n3awdch nkellemkom.\n\n"
+            f"Chokran,\n{signataire} — Yallah Services"
+        )
+    if langue == "arabe":
+        bloc_suite = f"الخطوة القادمة: {prochaine}\n\n" if prochaine else ""
+        return (
+            f"مرحبا،\n\n"
+            f"أنا {signataire} من Yallah Services، متابعةً لتواصلنا بخصوص {nom} ({sujet}).\n\n"
+            f"{bloc_suite}"
+            f"يمكنكم الاطلاع في أي وقت على خدماتنا عبر موقعنا:\n{site}\n\n"
+            f"إن لم يعد هذا الموضوع قائماً لديكم، أخبروني ببساطة ولن أتواصل معكم مرة أخرى.\n\n"
+            f"مع التحية،\n{signataire} — Yallah Services"
+        )
+    bloc_suite = f"Prochaine étape prévue : {prochaine}\n\n" if prochaine else ""
+    return (
+        f"Bonjour,\n\n"
+        f"Je suis {signataire} de Yallah Services. Je fais suite à notre échange concernant "
+        f"{nom} ({sujet}).\n\n"
+        f"{bloc_suite}"
+        f"Vous retrouvez à tout moment la présentation de nos services sur :\n{site}\n\n"
+        f"Si ce besoin n'est plus d'actualité, dites-le-moi simplement : je ne vous relancerai pas.\n\n"
+        f"Bien à vous,\n{signataire} — Yallah Services"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -458,7 +520,8 @@ def construire_lignes(jeux: list, langue: str, prenom: str, date_reference: date
             mail = lien_email(p, message, type_prospect) if message else ""
 
             if not verdict["qualifie"]:
-                statut = ("A ACTUALISER" if any(m.startswith("actualisation") for m in verdict["motifs"])
+                statut = ("A ACTUALISER"
+                          if verdict["motifs"] and all(m.startswith("actualisation") for m in verdict["motifs"])
                           else "NON QUALIFIE")
             elif PLACEHOLDER_PRENOM in message:
                 statut = "A COMPLETER - prenom manquant"

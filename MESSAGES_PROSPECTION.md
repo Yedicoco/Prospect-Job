@@ -118,6 +118,7 @@ trois contrôles :
 | certification, agrément, superlatif | « agréé », « n°1 au Maroc » |
 | **formule de retrait absente** | message sans « je ne vous relancerai pas » |
 | **message trop long** | plus de 900 caractères |
+| **URL non officielle** | toute URL autre que `https://yallahservices-one.vercel.app` |
 | pression commerciale | « dernière chance », « remise de 20 % » |
 
 Un message qui déclenche un contrôle n'est pas supprimé en silence : il sort en

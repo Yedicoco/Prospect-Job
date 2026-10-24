@@ -1,0 +1,6 @@
+{
+  "name": "yallah-interface-tests",
+  "private": true,
+  "scripts": { "test": "node --test tests/test_buttons.cjs" },
+  "devDependencies": { "jsdom": "^26.1.0" }
+}

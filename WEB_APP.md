@@ -1,5 +1,7 @@
 # Application web et campagnes Yallah Services
 
+> **Évolution métier :** voir [IMPLEMENTATION.md](IMPLEMENTATION.md) pour le CRM, les candidatures, les missions, les comptes, sauvegardes et webhooks ajoutés. Cette page décrit principalement le moteur de campagnes. Les mises à jour ci-dessous remplacent ses anciennes limites.
+
 ## Démarrage
 
 Python 3.11+ recommandé, aucune dépendance externe :
@@ -81,9 +83,9 @@ Avant chaque tentative :
 
 Si un contrôle échoue, le contact est bloqué. Requalifier puis préparer une nouvelle simulation. Les paramètres d’une campagne ne sont pas modifiés après création. Pour changer de canal ou de texte, créer une nouvelle campagne.
 
-**15 tentatives réelles maximum par jour au total**, tous canaux et campagnes confondus, et **60 secondes minimum** entre deux tentatives. Le jour est celui du serveur. Les tentatives échouées/incertaines comptent aussi. Une coordonnée ayant déjà fait l’objet d’une tentative automatique n’est pas ressollicitée automatiquement, même depuis une nouvelle campagne. Les relances commerciales répétées ne sont pas implémentées.
+**15 tentatives réelles maximum par jour au total**, tous canaux et campagnes confondus, et **60 secondes minimum** entre deux tentatives. Le jour est celui du fuseau `Africa/Casablanca`. Les tentatives échouées/incertaines comptent aussi. Une coordonnée ayant déjà fait l’objet d’une tentative automatique n’est pas ressollicitée automatiquement, même depuis une nouvelle campagne. Les relances commerciales répétées ne sont pas implémentées.
 
-Le suivi manuel historique reste déclaratif et distinct : le plafond automatique ne compte pas les contacts envoyés hors du worker. L’opérateur doit éviter les doublons entre ses propres envois et les campagnes.
+Le suivi manuel est maintenant intégré à la chronologie : une conversation enregistrée impose une revue humaine avant un contact automatique. Le plafond automatique ne compte toujours pas les contacts envoyés hors du worker.
 
 Une pause ou annulation empêche les prochaines réservations ; **elle ne peut pas retirer un appel déjà en cours chez le fournisseur**. Annuler est définitif. Reprendre exige une nouvelle confirmation et revalidation.
 
@@ -91,7 +93,7 @@ Une pause ou annulation empêche les prochaines réservations ; **elle ne peut p
 
 Un lien signé par destinataire est ajouté au départ. Un GET affiche une confirmation sans modifier les données (protection contre les scanners de liens) ; le POST confirme la désinscription. Les coordonnées connues du prospect sont inscrites aux refus pour les deux canaux et les autorisations sont retirées. Le secret de signature est conservé dans la base ; les URL de désinscription ne sont pas journalisées par le serveur applicatif. Configurer également le proxy pour ne pas les enregistrer.
 
-Une réponse par email ou WhatsApp demandant l’arrêt doit être enregistrée manuellement via **Ne plus contacter**. L’application ne lit pas vos boîtes de réception.
+Une réponse par email ou WhatsApp demandant l’arrêt doit être enregistrée manuellement via **Ne plus contacter**. Les demandes d’arrêt reçues par email restent à enregistrer manuellement ; les STOP WhatsApp explicites reçus par le webhook sont traités automatiquement.
 
 | État | Sens |
 |---|---|
@@ -104,7 +106,7 @@ Une réponse par email ou WhatsApp demandant l’arrêt doit être enregistrée 
 | Issue incertaine | Timeout, réponse ambiguë ou interruption du processus ; vérifier chez le fournisseur |
 | Annulé | Retiré de la file par l’opérateur |
 
-Il n’y a **ni suivi des livraisons par webhook, ni suivi des lectures, ni ingestion des réponses entrantes**. Les erreurs réseau ambiguës ne sont jamais réessayées automatiquement pour éviter les doublons. Les appels qui étaient en cours à l’arrêt deviennent « Issue incertaine » au prochain démarrage.
+Les webhooks signés Resend/Meta et les messages texte WhatsApp entrants sont maintenant intégrés ; voir `IMPLEMENTATION.md`. Les réponses email entrantes restent manuelles. Les erreurs réseau ambiguës ne sont jamais réessayées automatiquement pour éviter les doublons. Les appels qui étaient en cours à l’arrêt deviennent « Issue incertaine » au prochain démarrage.
 
 ## Données et sauvegarde
 
@@ -116,11 +118,11 @@ La base contient des coordonnées, preuves, textes et historique ; elle est igno
 
 Sans `YALLAH_ADMIN_PASSWORD`, le mode privé/de confiance permet de tester la simulation, mais toute personne ayant accès au serveur peut consulter et modifier les données. **Ne pas exposer ce mode publiquement.**
 
-Pour une utilisation réelle : serveur HTTPS avec contrôle d’accès, mot de passe fort, proxy correctement configuré, sauvegardes et validation juridique. L’authentification est mono-administrateur : pas de rôles, de gestion multiutilisateur, de récupération de mot de passe ou de limite de tentatives intégrés. Prévoir ces protections au niveau du proxy. Un seul processus serveur/worker est recommandé.
+Pour une utilisation réelle : serveur HTTPS avec contrôle d’accès, mot de passe fort, proxy correctement configuré, sauvegardes et validation juridique. Des comptes locaux et rôles mono-équipe sont disponibles via `manage.py` ; il n’y a toujours pas de récupération autonome de mot de passe ni de limite de tentatives intégrées. Prévoir ces protections au niveau du proxy. Un seul processus serveur/worker est recommandé.
 
 Le jeton de session protège les écritures intersites ; ce n’est pas un remplacement de l’authentification. Ne pas distribuer de secrets dans l’interface. Arrêter le worker/serveur constitue un arrêt d’urgence des nouvelles tentatives. Pour basculer globalement hors production, redémarrer avec `YALLAH_ENABLE_LIVE=0`.
 
-Dans le bac à sable Arena de cette session, les domaines des API Resend et Meta ne font pas partie des hôtes réseau autorisés : **aucun envoi réel n’a été testé ici**. Les adaptateurs sont couverts par tests simulés. L’accès réseau et un test contrôlé sur vos propres coordonnées autorisées sont nécessaires dans votre environnement de déploiement.
+Dans le bac à sable Arena de cette session, les domaines des API Resend et Meta ne font pas partie des hôtes réseau autorisés : **aucun envoi réel n’a été testé ici**. Les adaptateurs et callbacks sont couverts par tests simulés. L’accès réseau et un test contrôlé sur vos propres coordonnées autorisées sont nécessaires dans votre environnement de déploiement.
 
 ## Tests
 
@@ -130,3 +132,24 @@ node --check web/app.js  # si Node est installé
 ```
 
 Les tests utilisent des bases temporaires et des appels fournisseurs simulés. Ils couvrent notamment les refus, les autorisations liées aux destinations, les gardes d’activation, la simulation sans réseau, la file, la pause, les limites, la revalidation, les issues incertaines, la désinscription signée et les formats de requêtes.
+
+## Boutons d’accès rapide
+
+La page d’accueil propose un panneau **« Que souhaitez-vous faire ? »** : ajout
+B2B/B2C, fiches à vérifier, messages, simulations email et WhatsApp, besoin
+confirmé, publications B2C et historique. L’export CSV et l’actualisation sont
+également accessibles directement. Chaque rubrique dispose d’une barre de
+boutons contextuels ; les listes disposent d’un bouton de réinitialisation des
+filtres. **État des fournisseurs** affiche le diagnostic de configuration sans
+exposer ni demander de secret. Les raccourcis de campagne ouvrent une simulation
+avec le canal présélectionné : ils n’activent jamais un envoi réel.
+
+Tests des boutons dans un DOM simulé (Node.js 18+ et Python disponibles) :
+
+```bash
+npm ci
+npm test
+```
+
+Ces dépendances servent uniquement aux tests de l’interface : le lancement de
+l’application Python ne nécessite toujours aucune installation npm.

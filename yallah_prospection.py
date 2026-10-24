@@ -31,7 +31,12 @@ import re
 import sys
 from urllib.parse import quote
 
-from yallah_b2c import PATTERNS_INTERDITS as PATTERNS_B2C
+from yallah_b2c import (
+    PATTERNS_INTERDITS as PATTERNS_B2C,
+    SITE_WEB,
+    site_web_officiel,
+    urls_non_officielles,
+)
 
 # ---------------------------------------------------------------------------
 # Coordonnees officielles Yallah Services (identiques au module B2C)
@@ -146,6 +151,7 @@ def verifier_message(texte: str) -> list:
         trouve = re.search(motif, bas, flags=re.IGNORECASE)
         if trouve:
             alertes.append(f"{libelle} : « {trouve.group(0).strip()} »")
+    alertes.extend(urls_non_officielles(texte or ""))
     return alertes
 
 
@@ -230,6 +236,7 @@ def message_commercial(p: dict, langue: str) -> str:
     accroche = segment.get("accroche", "vos besoins en personnel")
     besoins = ", ".join(BESOINS_B2B[c] for c in segment.get("besoins", [])[:3])
     etab = p["nom"]
+    site = site_web_officiel()
 
     if langue == "fr":
         return (
@@ -239,7 +246,8 @@ def message_commercial(p: dict, langue: str) -> str:
             f"Nous travaillons sur trois formats : permanent, temporaire et renfort journalier, "
             f"selon ce dont vous avez besoin.\n\n"
             f"Seriez-vous disponible pour un echange de dix minutes afin que nous comprenions "
-            f"votre organisation et verifiions si nous pouvons y repondre ?\n\n"
+            f"votre organisation et verifiions si nous pouvons y repondre ? Vous pouvez aussi "
+            f"decouvrir nos services sur :\n{site}\n\n"
             f"Bien a vous,\n[signature]\nVotre besoin en personnel, notre priorite."
         )
 
@@ -250,7 +258,7 @@ def message_commercial(p: dict, langue: str) -> str:
             f"bach nwefro lihom personnel l {accroche} : {besoins}.\n\n"
             f"Khanghdmo b tlata formats : permanent, temporaire, w renfort b nhar.\n\n"
             f"Ila 3ndkom chi haja f had lmajal, n9dro ndiro m3a b3dna wahed mokala "
-            f"d 10 daqiqat bach nfahmo lkhedma dyalkom.\n\n"
+            f"d 10 daqiqat bach nfahmo lkhedma dyalkom, w t9dro tchoufo khadamatna 3la :\n{site}\n\n"
             f"Chokran, [signature]\nVotre besoin en personnel, notre priorite."
         )
 
@@ -259,13 +267,18 @@ def message_commercial(p: dict, langue: str) -> str:
         f"أنا [الاسم] من Yallah Services. نعمل مع المؤسسات في {p['ville']} "
         f"لتوفير الموظفين من أجل {accroche}: {besoins}.\n\n"
         f"نعمل بثلاث صيغ: دائم، مؤقت، وتعزيز يومي، حسب حاجتكم.\n\n"
-        f"هل يمكننا التحدث عشر دقائق لفهم طريقة عملكم ومعرفة إن كان بإمكاننا تلبية حاجتكم؟\n\n"
+        f"هل يمكننا التحدث عشر دقائق لفهم طريقة عملكم ومعرفة إن كان بإمكاننا تلبية حاجتكم؟ "
+        f"ويمكنكم الاطلاع على خدماتنا عبر موقعنا:\n{site}\n\n"
         f"مع التحية، [التوقيع]\nVotre besoin en personnel, notre priorite."
     )
 
 
 def lien_whatsapp(p: dict) -> str:
-    message = f"Bonjour, je vous contacte de la part de Yallah Services au sujet de {p['nom']}."
+    site = site_web_officiel()
+    message = (
+        f"Bonjour, je vous contacte de la part de Yallah Services au sujet de {p['nom']} "
+        f"({site})."
+    )
     return f"https://wa.me/{WHATSAPP_NUMBER}?text={quote(message)}"
 
 

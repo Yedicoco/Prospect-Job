@@ -112,3 +112,30 @@ class WebTests(unittest.TestCase):
         with self.assertRaises(HTTPError) as ctx:
             self.request('/prospects_b2b.json')
         self.assertEqual(ctx.exception.code, 404)
+
+    def test_site_web_and_client_followup_messages(self):
+        self.request('/api/action', {'id': 2, 'action': 'Vérifié aujourd’hui'})
+        opp = self.request('/api/operations', {
+            'action': 'opportunity',
+            'record_id': 2,
+            'title': 'Renfort banquet',
+            'stage': 'conversation',
+            'owner': 'Youssef',
+            'next_action': 'Point telephonique',
+            'due': webapp.validation.today().isoformat(),
+        })
+        data = self.request('/api/state?prenom=Youssef&langue=fr')
+        self.assertEqual(data['site_web'], 'https://yallahservices-one.vercel.app')
+        row = next(m for m in data['messages'] if m['id'] == 2)
+        self.assertIn('https://yallahservices-one.vercel.app', row['_brut'])
+        fu = data['client_followups'][str(opp['id'])]
+        self.assertTrue(fu['pret'])
+        self.assertIn('https://yallahservices-one.vercel.app', fu['message'])
+        self.assertTrue(fu['lien_whatsapp'] or fu['lien_email'])
+
+        self.request('/api/action', {'id': 2, 'action': 'Ne plus contacter'})
+        after_refusal = self.request('/api/state?prenom=Youssef&langue=fr')['client_followups'][str(opp['id'])]
+        self.assertTrue(after_refusal['refuse'])
+        self.assertFalse(after_refusal['pret'])
+        self.assertEqual(after_refusal['lien_whatsapp'], '')
+        self.assertEqual(after_refusal['lien_email'], '')
