@@ -220,6 +220,34 @@ def lien_whatsapp(ligne: dict) -> str:
     return f"https://wa.me/{WHATSAPP_NUMBER}?text={quote(message)}"
 
 
+def decoder_reference_b2c(texte: str):
+    """Extrait une référence B2C (ex. CAS-ANF-MEN) d'un texte entrant et retourne ville/zone/besoin."""
+    if not texte:
+        return None
+    par_ref = {ligne["ref"]: dict(ligne) for ligne in construire_matrice()}
+    villes_zones = {}
+    for nom_ville, bloc in PHASE_1.items():
+        for code_ville, zones in bloc.items():
+            for nom_zone, (code_zone, _) in zones.items():
+                villes_zones[(code_ville, code_zone)] = (nom_ville, nom_zone)
+    for candidat in re.findall(r"\b([A-Z]{3})-([A-Z]{3})-([A-Z]{3})\b", texte.upper()):
+        complet = "-".join(candidat)
+        if complet in par_ref:
+            return par_ref[complet]
+        code_ville, code_zone, code_besoin = candidat
+        if (code_ville, code_zone) in villes_zones and code_besoin in BESOINS:
+            nom_ville, nom_zone = villes_zones[(code_ville, code_zone)]
+            return {
+                "ref": complet,
+                "ville": nom_ville,
+                "zone": nom_zone,
+                "code_besoin": code_besoin,
+                "besoin": BESOINS[code_besoin],
+                "site_web": site_web_officiel(),
+            }
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Génération de texte
 # ---------------------------------------------------------------------------

@@ -135,19 +135,50 @@ def tel_mobile_whatsapp(p: dict) -> str:
     return ""
 
 
+DOMAINES_EMAIL_TECHNIQUES = (
+    "wpcomstaging.com",
+    "wixpress.com",
+    "sentry.io",
+    "preview-domain.com",
+)
+
+PREFIXES_EMAIL_TECHNIQUES = (
+    "noreply",
+    "no-reply",
+    "donotreply",
+    "do-not-reply",
+    "mailer-daemon",
+    "postmaster",
+    "bounce",
+)
+
+
+def email_normalise(email: str) -> str:
+    return (email or "").strip().lower()
+
+
+def est_email_exploitable(email: str) -> bool:
+    """Vrai si l'adresse email est routable et n'est ni un noreply ni un domaine technique de staging."""
+    mail = email_normalise(email)
+    if not mail or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", mail):
+        return False
+    local, domaine = mail.split("@", 1)
+    if any(local == p or local.startswith(p + "+") or local.startswith(p + ".") for p in PREFIXES_EMAIL_TECHNIQUES):
+        return False
+    if any(domaine == d or domaine.endswith("." + d) for d in DOMAINES_EMAIL_TECHNIQUES):
+        return False
+    return True
+
+
 def canal_recommande(p: dict) -> str:
-    """Règle d'acheminement : email en priorité ; en l'absence d'email, repli WhatsApp si mobile disponible."""
-    if "@" in email_normalise(p.get("email", "")):
+    """Règle d'acheminement : email exploitable en priorité ; sinon repli WhatsApp si mobile disponible."""
+    if est_email_exploitable(p.get("email", "")):
         return "email"
     if tel_mobile_whatsapp(p):
         return "whatsapp"
     if len(tel_normalise(p.get("tel", ""))) >= 9:
         return "telephone"
     return ""
-
-
-def email_normalise(email: str) -> str:
-    return (email or "").strip().lower()
 
 
 def cles_contact(p: dict) -> list:
@@ -159,7 +190,7 @@ def cles_contact(p: dict) -> list:
             vus.add(tel)
             cles.append("tel:" + tel)
     mail = email_normalise(p.get("email", ""))
-    if "@" in mail:
+    if est_email_exploitable(mail):
         cles.append("mail:" + mail)
     return cles
 
@@ -526,6 +557,159 @@ def message_client_suivi(
     return presenter_signataire(texte, prenom, langue) if prenom else texte
 
 
+def generer_relance_j7(
+    p: dict,
+    type_prospect: str,
+    langue: str = "fr",
+    prenom: str = "",
+    canal_initial: str = "email",
+) -> str:
+    """Génère le message de relance unique (J+7), courtois et sans insistance."""
+    nom = p.get("nom", "")
+    ville = p.get("ville", "")
+    site = site_web_officiel()
+    signataire = prenom or PLACEHOLDER_PRENOM
+    canal_txt_fr = "mon précédent email" if canal_initial == "email" else "mon précédent message"
+
+    if langue == "darija":
+        texte = (
+            f"Salam,\n\n"
+            f"Ana {PLACEHOLDER_PRENOM} mn Yallah Services. Kankteb likom marra wa7da b khoussous "
+            f"risalti s-sab9a 3la {nom} f {ville}.\n\n"
+            f"Ila kan 3ndkom chi 7aja f l-personnel (permanent, temporaire aw renfort journalier), "
+            f"n9dro nhdro 3liha mli ynasbkom. Khadamatna kaynin hna :\n{site}\n\n"
+            f"Hadi hiya l-mra l-wa7ida li kankteb fiha b3d risalti l-owla : ila ma kanch l-mawdo3 mnasbkom, "
+            f"goulha liya w ma n3awdch nkellemkom.\n\n"
+            f"Chokran,\n{signataire} — Yallah Services"
+        )
+        return presenter_signataire(texte, prenom, langue) if prenom else texte
+
+    if langue == "arabe":
+        texte = (
+            f"مرحبا،\n\n"
+            f"أنا {PLACEHOLDER_PRENOM} من Yallah Services. أعود إليكم بمتابعة وحيدة بخصوص رسالتي السابقة "
+            f"حول {nom} في {ville}.\n\n"
+            f"إذا كانت لديكم حاجة حالية أو قريبة للموظفين (دائم أو مؤقت أو تعزيز يومي)، يسعدني التحدث معكم. "
+            f"تجدون خدماتنا على:\n{site}\n\n"
+            f"هذه متابعتي الوحيدة: إن لم يكن الموضوع مناسباً لكم، أخبروني ببساطة ولن أتواصل معكم مرة أخرى.\n\n"
+            f"مع التحية،\n{signataire} — Yallah Services"
+        )
+        return presenter_signataire(texte, prenom, langue) if prenom else texte
+
+    texte = (
+        f"Bonjour,\n\n"
+        f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services. Je me permets une unique relance à la suite de "
+        f"{canal_txt_fr} au sujet de {nom} ({ville}).\n\n"
+        f"Si vous envisagez un besoin en personnel — en permanent, temporaire ou renfort journalier — "
+        f"seriez-vous disponible une dizaine de minutes pour faire le point ? Nos services sont détaillés sur :\n"
+        f"{site}\n\n"
+        f"C'est mon seul message de suivi : si ce sujet ne vous concerne pas, dites-le-moi simplement "
+        f"et je ne vous relancerai pas.\n\n"
+        f"Bien à vous,\n{PLACEHOLDER_PRENOM} — Yallah Services"
+    )
+    return presenter_signataire(texte, prenom, langue) if prenom else texte
+
+
+def liens_relance_j7(
+    p: dict,
+    type_prospect: str,
+    langue: str = "fr",
+    prenom: str = "",
+    canal_initial: str = "email",
+) -> dict:
+    """Prépare la relance J+7 et recommande la bascule vers WhatsApp mobile si l'email initial est resté muet."""
+    texte = generer_relance_j7(p, type_prospect, langue, prenom, canal_initial)
+    alertes = verifier_message(texte)
+    mobile = tel_mobile_whatsapp(p)
+    bascule_mobile = bool(canal_initial == "email" and mobile)
+    canal_cible = "whatsapp" if bascule_mobile else canal_recommande(p)
+    pret = bool(prenom and PLACEHOLDER_PRENOM not in texte and not alertes)
+    objet = (
+        "Suivi - Yallah Services (personnel de maison)"
+        if type_prospect == "b2c"
+        else f"Suivi - Yallah Services ({p.get('nom', 'votre etablissement')})"
+    )
+    mail = email_normalise(p.get("email", ""))
+    lien_mail = (
+        f"mailto:{mail}?subject={quote(objet)}&body={quote(texte)}"
+        if pret and est_email_exploitable(mail)
+        else ""
+    )
+    return {
+        "message": texte,
+        "alertes": alertes,
+        "pret": pret,
+        "canal_recommande": canal_cible,
+        "bascule_mobile": bascule_mobile,
+        "lien_whatsapp": lien_whatsapp(p, texte) if pret else "",
+        "lien_email": lien_mail,
+    }
+
+
+def generer_reponse_qualification_b2c(
+    demande: dict,
+    langue: str = "fr",
+    prenom: str = "",
+) -> str:
+    """Réponse immédiate structurée pour qualifier une demande entrante de particulier (B2C)."""
+    nom = (demande.get("name") or demande.get("nom") or "").strip()
+    ville = (demande.get("city") or demande.get("ville") or "votre ville").strip()
+    zone = (demande.get("zone") or "").strip()
+    code_besoin = (demande.get("besoin") or demande.get("code_besoin") or "").strip().upper()
+    libelle_besoin = BESOINS_B2C.get(code_besoin) or (demande.get("besoin_libelle") or "personnel de maison")
+    lieu = f"{zone}, {ville}" if zone and zone not in ZONES_TECHNIQUES else ville
+    site = site_web_officiel()
+    signataire = prenom or PLACEHOLDER_PRENOM
+    salutation_fr = f"Bonjour {nom}," if nom and nom.lower() not in ("contact whatsapp à qualifier", "client") else "Bonjour,"
+
+    if langue == "darija":
+        texte = (
+            f"Salam,\n\n"
+            f"Chokran 3la tawassoul dyalkom m3a Yallah Services. Ana {PLACEHOLDER_PRENOM}, "
+            f"twsselna b talab dyalkom b khoussous {libelle_besoin} ({lieu}).\n\n"
+            f"Bach nfahmo mzyan l7aja dyalkom, wach t9dro t2kkdo lina :\n"
+            f"- L-quartier b d-debt\n"
+            f"- S-sifa li bghitou (permanent, temporaire aw renfort journalier) w l-wa9t\n"
+            f"- L-maham l-assassiya\n"
+            f"- Imta bghitou tbda l-khdma\n\n"
+            f"M3loumat 3la khadamatna : {site}\n\n"
+            f"Ila bghitou n7bsso had t-tawassoul f ay wa9t, goulha liya w ma n3awdch nkellemkom.\n\n"
+            f"Chokran,\n{signataire} — Yallah Services"
+        )
+        return presenter_signataire(texte, prenom, langue) if prenom else texte
+
+    if langue == "arabe":
+        texte = (
+            f"مرحبا،\n\n"
+            f"شكراً لتواصلكم مع Yallah Services. أنا {PLACEHOLDER_PRENOM}، وقد توصلنا بطلبكم بخصوص "
+            f"{libelle_besoin} ({lieu}).\n\n"
+            f"لفهم احتياجكم بدقة، هل يمكنكم تأكيد النقاط التالية:\n"
+            f"- الحي بدقة\n"
+            f"- الصيغة المطلوبة (دائم أو مؤقت أو تعزيز يومي) والأوقات\n"
+            f"- المهام الأساسية المطلوبة\n"
+            f"- الموعد المفضل للبدء\n\n"
+            f"تفاصيل خدماتنا متوفرة على: {site}\n\n"
+            f"إذا رغبتم في إيقاف التواصل في أي وقت، أخبروني ببساطة ولن أتواصل معكم مرة أخرى.\n\n"
+            f"مع التحية،\n{signataire} — Yallah Services"
+        )
+        return presenter_signataire(texte, prenom, langue) if prenom else texte
+
+    texte = (
+        f"{salutation_fr}\n\n"
+        f"Merci d'avoir contacté Yallah Services. Je suis {PLACEHOLDER_PRENOM} et je prends en charge "
+        f"votre demande concernant {libelle_besoin} ({lieu}).\n\n"
+        f"Pour étudier votre besoin réel, pourriez-vous me préciser :\n"
+        f"- Votre quartier exact\n"
+        f"- Le format souhaité (permanent, temporaire ou renfort journalier) et les horaires\n"
+        f"- Les tâches principales attendues\n"
+        f"- La période souhaitée de démarrage\n\n"
+        f"Vous retrouvez nos engagements sur :\n{site}\n\n"
+        f"Si votre demande n'est plus d'actualité, dites-le-moi simplement : je ne vous relancerai pas.\n\n"
+        f"Bien à vous,\n{PLACEHOLDER_PRENOM} — Yallah Services"
+    )
+    return presenter_signataire(texte, prenom, langue) if prenom else texte
+
+
 # ---------------------------------------------------------------------------
 # Liens preremplis (jamais envoyes par le script)
 # ---------------------------------------------------------------------------
@@ -538,7 +722,7 @@ def lien_whatsapp(p: dict, message: str) -> str:
 
 def lien_email(p: dict, message: str, type_prospect: str) -> str:
     mail = email_normalise(p.get("email", ""))
-    if "@" not in mail or PLACEHOLDER_PRENOM in message:
+    if not est_email_exploitable(mail) or PLACEHOLDER_PRENOM in message:
         return ""
     objet = "Yallah Services - personnel de maison" if type_prospect == "b2c" else "Yallah Services - personnel pour votre etablissement"
     return f"mailto:{mail}?subject={quote(objet)}&body={quote(message)}"

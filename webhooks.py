@@ -7,6 +7,7 @@ import os
 import time
 
 import operations
+import yallah_b2c as b2c
 import yallah_messages as messages
 import validation
 
@@ -112,6 +113,8 @@ def receive(provider, raw, headers):
                             if refusal:
                                 operations.suppress(con, row['id'], 'webhook:meta')
                             con.execute("INSERT INTO conversations(record_id,channel,direction,body,outcome,provider_id,created) VALUES (?,'whatsapp','entrant',?,?,?,?)", (row['id'], text, 'refus' if refusal else 'reponse', eid, operations.now()))
+                            if not refusal:
+                                operations.traiter_reponse_entrante(con, row['id'], 'whatsapp', text, 'webhook:meta')
                             operations.audit(con, 'webhook:meta', 'message_entrant', 'records', row['id'])
                             processed += 1
                         if not matched:
@@ -124,8 +127,16 @@ def receive(provider, raw, headers):
                                     if isinstance(contact,dict) and messages.tel_normalise(str(contact.get('wa_id','')))==sender:
                                         profile=contact.get('profile',{})
                                         if isinstance(profile,dict) and isinstance(profile.get('name'),str): profile_name=profile['name'][:150]
-                                payload={'name':profile_name,'email':'','tel':sender,'city':'','message':text,'acknowledge':False,'notice_version':'','origin':'whatsapp_entrant'}
-                                con.execute("INSERT INTO intake(kind,payload,source,created) VALUES ('a_qualifier',?,'whatsapp_entrant',?)",(json.dumps(payload),operations.now()))
+                                decoded = b2c.decoder_reference_b2c(text)
+                                intake_kind = 'demande' if decoded else 'a_qualifier'
+                                payload={
+                                    'name':profile_name,'email':'','tel':sender,
+                                    'city':decoded['ville'] if decoded else '',
+                                    'message':text,'acknowledge':False,'notice_version':'','origin':'whatsapp_entrant',
+                                }
+                                if decoded:
+                                    payload.update(zone=decoded['zone'], besoin=decoded['code_besoin'], b2c_ref=decoded['ref'])
+                                con.execute("INSERT INTO intake(kind,payload,source,created) VALUES (?,?,?,?)",(intake_kind,json.dumps(payload),'whatsapp_entrant',operations.now()))
                                 operations.audit(con,'webhook:meta','demande_inconnue_a_qualifier','intake')
                             processed+=1
     return {'ok': True, 'processed': processed}
