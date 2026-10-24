@@ -122,8 +122,9 @@
         "SRV"
       ],
       "angle": "Restaurant de quartier a forte frequentation : plonge et service en renfort.",
-      "anomalies": "Pas de site officiel identifie ; fiche a verifier sur place.",
-      "phase": 1
+      "anomalies": "Pas de site officiel identifie ; mobile et email reconfirmes sur les pages Facebook/Instagram officielles au 2026-10-24.",
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "I-Klean",
@@ -961,12 +962,13 @@
       "phase": 3,
       "adresse": "15 Makhfia R'cif, pres du cinema Amal, Fes Medina",
       "tel": "+212 535 761 590",
+      "whatsapp": "+212 661 64 39 96",
       "email": "reservations@palais-de-fes.com",
       "site": "https://www.palais-de-fes.com",
       "source_url": "https://www.palais-de-fes.com/",
       "date_consultation": "2026-10-21",
-      "niveau": "B",
-      "faits_observes": "Suites, restaurant, espaces lounge, conferences et evenements en medina (page officielle consultee) ; coordonnees vues dans l'extrait.",
+      "niveau": "A",
+      "faits_observes": "Suites, restaurant, espaces lounge, conferences et evenements en medina ; fixe +212 535 761 590, mobile +212 661 64 39 96 et email reservations@palais-de-fes.com publies sur la page d'accueil officielle.",
       "besoins_probables": [
         "MAI",
         "CUI",
@@ -974,7 +976,8 @@
         "REN"
       ],
       "angle": "Riad avec salle d'evenements : renfort ponctuel en plus du personnel de maison.",
-      "anomalies": "Coordonnee vue dans l'extrait de la page officielle ; un second numero mobile est affiche sur le site."
+      "anomalies": "",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hotel Deauville El Jadida",
@@ -984,12 +987,13 @@
       "phase": 3,
       "adresse": "Avenue des Nations Unies RN 1, 24010 El Jadida",
       "tel": "+212 523 331 010",
-      "email": "reservation@hoteldeauville.ma",
+      "whatsapp": "+212 666 32 12 06",
+      "email": "",
       "site": "https://hoteldeauville.ma",
       "source_url": "https://hoteldeauville.ma/",
       "date_consultation": "2026-10-21",
-      "niveau": "B",
-      "faits_observes": "Hotel 5 etoiles face a la plage (171 chambres et suites annoncees), deux restaurants, un bar, spa, salle de seminaires et de receptions (page officielle consultee).",
+      "niveau": "A",
+      "faits_observes": "Hotel 5 etoiles face a la plage (171 chambres et suites annoncees), deux restaurants, un bar, spa, salle de seminaires et de receptions ; lien WhatsApp officiel wa.me/212666321206 publie sur la page d'accueil.",
       "besoins_probables": [
         "PRP",
         "CUI",
@@ -997,7 +1001,8 @@
         "REN"
       ],
       "angle": "Le plus gros volume d'El Jadida avec seminaires et mariages : entretien, plonge et extras.",
-      "anomalies": "Telephone et email vus dans l'extrait de la page officielle. Le site affiche ses tarifs de chambre : ne jamais les reprendre."
+      "anomalies": "Absence d'email en clair sur la page d'accueil au 2026-10-24 (repli WhatsApp mobile officiel). Le site affiche ses tarifs de chambre : ne jamais les reprendre.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hotel Jawharat El Jadida",
