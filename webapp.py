@@ -233,7 +233,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond({'error':'Langue invalide'},400)
             data=state(args.get('prenom',[''])[0],langue)
             if url.path.endswith('export'):
-                out=io.StringIO(); fields=['ref','nom','ville','statut','message','alertes','motifs_non_qualification','lien_whatsapp','lien_email']
+                out=io.StringIO(); fields=['ref','nom','ville','canal','statut','message','alertes','motifs_non_qualification','lien_whatsapp','lien_email']
                 writer=csv.DictWriter(out,fieldnames=fields,extrasaction='ignore'); writer.writeheader(); writer.writerows({k: ("'" + str(v) if str(v).lstrip().startswith(('=', '+', '-', '@')) else v) for k, v in row.items()} for row in data['messages'])
                 return self.respond(('\ufeff'+out.getvalue()).encode(),mime='text/csv; charset=utf-8')
             data['token']=TOKEN

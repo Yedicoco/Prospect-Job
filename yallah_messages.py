@@ -107,9 +107,43 @@ def verifier_message(texte: str) -> list:
 def tel_normalise(tel: str) -> str:
     """Chiffres seuls, prefixe 212 pour un numero marocain."""
     chiffres = re.sub(r"\D", "", tel or "")
+    if chiffres.startswith("00"):
+        chiffres = chiffres[2:]
     if chiffres.startswith("0"):
         chiffres = "212" + chiffres[1:]
     return chiffres
+
+
+def est_numero_mobile(tel: str) -> bool:
+    """Vrai si le numéro est un mobile susceptible d'être joint sur WhatsApp (ex. 06/07 au Maroc)."""
+    chiffres = tel_normalise(tel)
+    if len(chiffres) < 9:
+        return False
+    if chiffres.startswith("212"):
+        return chiffres.startswith(("2126", "2127")) and len(chiffres) == 12
+    if chiffres.startswith("33"):
+        return chiffres.startswith(("336", "337")) and len(chiffres) == 11
+    return True
+
+
+def tel_mobile_whatsapp(p: dict) -> str:
+    """Retourne le numéro mobile normalisé pour WhatsApp (champ whatsapp dédié ou tel mobile)."""
+    for champ in ("whatsapp", "tel"):
+        brut = p.get(champ, "")
+        if est_numero_mobile(brut):
+            return tel_normalise(brut)
+    return ""
+
+
+def canal_recommande(p: dict) -> str:
+    """Règle d'acheminement : email en priorité ; en l'absence d'email, repli WhatsApp si mobile disponible."""
+    if "@" in email_normalise(p.get("email", "")):
+        return "email"
+    if tel_mobile_whatsapp(p):
+        return "whatsapp"
+    if len(tel_normalise(p.get("tel", ""))) >= 9:
+        return "telephone"
+    return ""
 
 
 def email_normalise(email: str) -> str:
@@ -118,9 +152,12 @@ def email_normalise(email: str) -> str:
 
 def cles_contact(p: dict) -> list:
     cles = []
-    tel = tel_normalise(p.get("tel", ""))
-    if len(tel) >= 9:
-        cles.append("tel:" + tel)
+    vus = set()
+    for champ in ("tel", "whatsapp"):
+        tel = tel_normalise(p.get(champ, ""))
+        if len(tel) >= 9 and tel not in vus:
+            vus.add(tel)
+            cles.append("tel:" + tel)
     mail = email_normalise(p.get("email", ""))
     if "@" in mail:
         cles.append("mail:" + mail)
@@ -178,7 +215,11 @@ def valider_fiche(p: dict, type_prospect: str) -> list:
         if p.get("besoin") not in BESOINS_B2C:
             anomalies.append(f"besoin inconnu : {p.get('besoin')}")
 
-    if not str(p.get("tel", "")).strip() and not str(p.get("email", "")).strip():
+    if (
+        not str(p.get("tel", "")).strip()
+        and not str(p.get("whatsapp", "")).strip()
+        and not str(p.get("email", "")).strip()
+    ):
         if p.get("niveau") != "C":
             anomalies.append("aucun contact direct : niveau C attendu")
 
@@ -304,11 +345,18 @@ def besoins_libelles(p: dict, type_prospect: str, langue: str = "fr") -> str:
     return BESOINS_B2C.get(p.get("besoin", ""), p.get("besoin", "personnel"))
 
 
+ZONES_TECHNIQUES = {"hors zone phase 1", "ville entière", "ville entiere"}
+
+
+def de_ville(ville: str) -> str:
+    return f"d'{ville}" if ville[:1].lower() in "aeiouyéèêîôû" else f"de {ville}"
+
+
 def message_b2b(p: dict, langue: str) -> str:
     nom = p["nom"]
     ville = p["ville"]
-    zone = p.get("zone", "")
-    ou = f", {zone}" if zone else ""
+    zone = p.get("zone", "").strip()
+    ou = f", {zone}" if zone and zone.lower() not in ZONES_TECHNIQUES else ""
     besoins = besoins_libelles(p, "b2b", langue)
     site = site_web_officiel()
 
@@ -337,7 +385,7 @@ def message_b2b(p: dict, langue: str) -> str:
     return (
         f"Bonjour,\n\n"
         f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services. Nous accompagnons les établissements "
-        f"de {ville} sur leurs besoins en personnel : {besoins}.\n\n"
+        f"{de_ville(ville)} sur leurs besoins en personnel : {besoins}.\n\n"
         f"Je vous contacte au sujet de {nom}{ou}. Selon votre organisation, nous travaillons sur "
         f"trois formats : permanent, temporaire et renfort journalier.\n\n"
         f"Auriez-vous dix minutes pour un échange afin que nous comprenions votre besoin réel ? "
@@ -390,6 +438,32 @@ def message_b2c(p: dict, langue: str) -> str:
     )
 
 
+def presenter_signataire(texte: str, prenom: str, langue: str) -> str:
+    """Remplace [prenom] en adaptant la tournure si le signataire est un service / une équipe."""
+    p = prenom.strip()
+    if not p:
+        return texte
+    bas = p.lower()
+    if langue == "fr":
+        if bas.startswith("service ") or bas.startswith("direction "):
+            texte = texte.replace(
+                f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services.",
+                f"Je vous écris depuis le {p} de Yallah Services.",
+            )
+        elif bas.startswith(("le service ", "la direction ")):
+            texte = texte.replace(
+                f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services.",
+                f"Je vous écris depuis {p} de Yallah Services.",
+            )
+        elif bas.startswith(("équipe", "equipe", "l'équipe", "l'equipe", "l’équipe")):
+            formule = p if bas.startswith(("l'", "l’")) else f"l'{p}"
+            texte = texte.replace(
+                f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services.",
+                f"Je vous écris au nom de {formule} de Yallah Services.",
+            )
+    return texte.replace(PLACEHOLDER_PRENOM, p)
+
+
 def generer_message(p: dict, type_prospect: str, langue: str, prenom: str = "") -> str:
     texte = message_b2b(p, langue) if type_prospect == "b2b" else message_b2c(p, langue)
     if p.get("source_type") == "entrant" and type_prospect == "b2c":
@@ -397,7 +471,7 @@ def generer_message(p: dict, type_prospect: str, langue: str, prenom: str = "") 
         texte = texte.replace("Chaft l'annonce dyalek:", "Twesselna b talab dyalek:")
         texte = texte.replace("رأيت إعلانكم بخصوص", "توصلنا بطلبكم بخصوص")
     if prenom:
-        texte = texte.replace(PLACEHOLDER_PRENOM, prenom)
+        texte = presenter_signataire(texte, prenom, langue)
     return texte
 
 
@@ -440,22 +514,23 @@ def message_client_suivi(
             f"مع التحية،\n{signataire} — Yallah Services"
         )
     bloc_suite = f"Prochaine étape prévue : {prochaine}\n\n" if prochaine else ""
-    return (
+    texte = (
         f"Bonjour,\n\n"
-        f"Je suis {signataire} de Yallah Services. Je fais suite à notre échange concernant "
+        f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services. Je fais suite à notre échange concernant "
         f"{nom} ({sujet}).\n\n"
         f"{bloc_suite}"
         f"Vous retrouvez à tout moment la présentation de nos services sur :\n{site}\n\n"
         f"Si ce besoin n'est plus d'actualité, dites-le-moi simplement : je ne vous relancerai pas.\n\n"
-        f"Bien à vous,\n{signataire} — Yallah Services"
+        f"Bien à vous,\n{PLACEHOLDER_PRENOM} — Yallah Services"
     )
+    return presenter_signataire(texte, prenom, langue) if prenom else texte
 
 
 # ---------------------------------------------------------------------------
 # Liens preremplis (jamais envoyes par le script)
 # ---------------------------------------------------------------------------
 def lien_whatsapp(p: dict, message: str) -> str:
-    tel = tel_normalise(p.get("tel", ""))
+    tel = tel_mobile_whatsapp(p)
     if len(tel) < 9 or PLACEHOLDER_PRENOM in message:
         return ""
     return f"https://wa.me/{tel}?text={quote(message)}"
@@ -514,8 +589,7 @@ def construire_lignes(jeux: list, langue: str, prenom: str, date_reference: date
             message = generer_message(p, type_prospect, langue, prenom) if verdict["qualifie"] else ""
             alertes = verdict["alertes"] + (verifier_message(message) if message else [])
 
-            canal = ("whatsapp" if tel_normalise(p.get("tel", ""))
-                     else ("email" if "@" in email_normalise(p.get("email", "")) else ""))
+            canal = canal_recommande(p)
             wa = lien_whatsapp(p, message) if message else ""
             mail = lien_email(p, message, type_prospect) if message else ""
 
@@ -544,6 +618,7 @@ def construire_lignes(jeux: list, langue: str, prenom: str, date_reference: date
                 "phase": p.get("phase", "") if type_prospect == "b2b" else "",
                 "adresse": p.get("adresse", ""),
                 "tel": p.get("tel", ""),
+                "whatsapp": p.get("whatsapp", ""),
                 "email": p.get("email", ""),
                 "source_url": p.get("source_url", ""),
                 "date_consultation": p.get("date_consultation", ""),
@@ -591,7 +666,8 @@ def ecrire_markdown(chemin: str, lignes: list, langue: str) -> None:
             f.write(f"## Jour {jour}\n\n")
             for l in [x for x in prets if x["jour"] == jour]:
                 f.write(f"### {l['ref']} - {l['nom']} ({l['categorie']}, {l['zone']}, {l['ville']})\n\n")
-                f.write(f"- Contact : {l['tel'] or '—'} / {l['email'] or '—'}  \n")
+                f.write(f"- Contact : {l['tel'] or '—'} / {l['email'] or '—'}" + (f" (WhatsApp : {l['whatsapp']})" if l.get("whatsapp") and l["whatsapp"] != l["tel"] else "") + "  \n")
+                f.write(f"- Canal recommande : {l['canal'] or '—'}  \n")
                 f.write(f"- Source : {l['source_url']} ({l['date_consultation']}, niveau {l['niveau']})  \n")
                 f.write(f"- Priorite : {l['priorite']} ({l['score']}/10)\n")
                 if l["reserves"]:

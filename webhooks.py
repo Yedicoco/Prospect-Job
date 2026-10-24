@@ -105,7 +105,8 @@ def receive(provider, raw, headers):
                         refusal = text.strip().casefold().strip('.!؟?') in ('stop', 'unsubscribe', 'arrêt', 'arret', 'désinscription', 'desinscription', 'إلغاء الاشتراك')
                         for row in con.execute("SELECT * FROM records WHERE kind IN ('b2b','b2c')").fetchall():
                             item = json.loads(row['payload'])
-                            if messages.tel_normalise(item.get('tel', '')) != sender:
+                            nums = {messages.tel_normalise(item.get('tel', '')), messages.tel_normalise(item.get('whatsapp', ''))}
+                            if sender not in nums:
                                 continue
                             matched=True
                             if refusal:

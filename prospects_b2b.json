@@ -5,7 +5,8 @@
     "regle": "Aucune coordonnee inventee. Chaque fiche porte une source (URL) et une date de consultation. Niveau A = coordonnee lue sur la page officielle consultee ; niveau B = coordonnee vue dans un extrait de moteur de recherche ou une page sociale, non reconfirmee sur la page officielle ; niveau C = aucun contact direct publie (formulaire uniquement).",
     "perimetre": "Coordonnees professionnelles publiees par les etablissements eux-memes, pour les seuls besoins de les contacter au sujet d'une prestation professionnelle. Phase 1 : Casablanca, Bouskoura, Rabat, Marrakech. Phase 2 : Tanger, Agadir, Mohammedia, Kenitra. Phase 3 : Fes, El Jadida, Temara/Harhoura.",
     "contact_yallah_whatsapp": "212691733585",
-    "politique_conservation": "Fiches conservees, revérifiées chaque jour (decision du 21/10/2026). Une fiche dont la date_derniere_verification n'est pas celle du jour ne peut recevoir aucun message. Retrait immediat sur demande (meta.refus)."
+    "politique_conservation": "Fiches conservees, revérifiées chaque jour (decision du 21/10/2026). Une fiche dont la date_derniere_verification n'est pas celle du jour ne peut recevoir aucun message. Retrait immediat sur demande (meta.refus).",
+    "date_maj": "2026-10-24"
   },
   "prospects": [
     {
@@ -15,6 +16,7 @@
       "zone": "Anfa",
       "adresse": "85 Boulevard d'Anfa, Casablanca 20000",
       "tel": "+212 522 20 02 35",
+      "whatsapp": "+212 668 35 65 76",
       "email": "reservation@hotelidouanfa.com",
       "site": "https://hotelidouanfacasablanca.com",
       "source_url": "https://hotelidouanfacasablanca.com/contact",
@@ -29,7 +31,8 @@
       ],
       "angle": "Volumetrie chambres + seminaires : entretien, plonge, extras evenementiels.",
       "anomalies": "",
-      "phase": 1
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Le Palace d'Anfa",
@@ -74,7 +77,8 @@
       ],
       "angle": "Hotel a taille humaine : interlocuteur unique possible (direction), besoin d'entretien et de cuisine.",
       "anomalies": "",
-      "phase": 1
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Boutique Hotel Gauthier",
@@ -83,20 +87,22 @@
       "zone": "Gauthier",
       "adresse": "2 bis rue Ilya Abou Madi, quartier Gauthier, Casablanca 20050",
       "tel": "+212 522 22 32 24",
-      "email": "contact@hotelgauthier.com",
+      "whatsapp": "+212 662 72 42 61",
+      "email": "",
       "site": "https://hotelgauthier.com",
       "source_url": "https://hotelgauthier.com/",
       "date_consultation": "2026-10-21",
-      "niveau": "B",
-      "faits_observes": "53 chambres, restaurant Le Patio ouvert de 7h a 00h (page d'accueil officielle consultee). Telephone vu sur la page Facebook officielle et la page reservation, non affiche sur la page consultee.",
+      "niveau": "A",
+      "faits_observes": "53 chambres, restaurant Le Patio ouvert de 7h a 00h ; mobile direct +212 662 72 42 61 publie sur la page d'accueil officielle.",
       "besoins_probables": [
         "PRP",
         "CUI",
         "SRV"
       ],
       "angle": "Restaurant ouvert 7h-minuit + 53 chambres : deux besoins distincts, souvent en renfort.",
-      "anomalies": "Telephone a reconfirmer (niveau B).",
-      "phase": 1
+      "anomalies": "Absence d'email publie sur la page d'accueil au 2026-10-24 ; repli WhatsApp via mobile publie.",
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "La Cantine de Gauthier",
@@ -116,8 +122,9 @@
         "SRV"
       ],
       "angle": "Restaurant de quartier a forte frequentation : plonge et service en renfort.",
-      "anomalies": "Pas de site officiel identifie ; fiche a verifier sur place.",
-      "phase": 1
+      "anomalies": "Pas de site officiel identifie ; mobile et email reconfirmes sur les pages Facebook/Instagram officielles au 2026-10-24.",
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "I-Klean",
@@ -138,7 +145,8 @@
       ],
       "angle": "Sous-traitance de volumes et remplacement de agents : cible 'societe de nettoyage' citee dans la fiche.",
       "anomalies": "Siege hors des quartiers phase 1.",
-      "phase": 1
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "SBTH - Special Batiment & Travaux Hajji",
@@ -202,7 +210,8 @@
       ],
       "angle": "Extras de service et plonge sur seminaires et inaugurations.",
       "anomalies": "Adresse hors quartiers phase 1 (Maarif).",
-      "phase": 1
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Rahal Maitre Traiteur",
@@ -211,20 +220,22 @@
       "zone": "Hors zone phase 1",
       "adresse": "50 rue de Normandie, Maarif, Casablanca",
       "tel": "+212 522 25 25 13",
-      "email": "contact@rahalmaitretraiteur.com",
+      "whatsapp": "+212 673 28 54 58",
+      "email": "",
       "site": "https://rahalmaitretraiteur.com",
       "source_url": "https://rahalmaitretraiteur.com/fr/contact/",
       "date_consultation": "2026-10-21",
       "niveau": "A",
-      "faits_observes": "Traiteur corporate, diplomatique et mariages ; annonce intervenir a Casablanca, Rabat, Marrakech, Tanger, Fes, Agadir (FAQ de la page contact officielle).",
+      "faits_observes": "Traiteur corporate, diplomatique et mariages ; lien WhatsApp officiel wa.me/212673285458 publie sur la page contact ; intervient a Casablanca, Rabat, Marrakech, Tanger, Fes, Agadir.",
       "besoins_probables": [
         "REN",
         "SRV",
         "CUI"
       ],
       "angle": "Renforts ponctuels sur receptions diplomatiques et corporate.",
-      "anomalies": "La page publiee annonce une reponse sous 48h ouvrables : c'est leur delai, pas un engagement Yallah (ne pas reprendre dans nos messages).",
-      "phase": 1
+      "anomalies": "Absence d'email en clair sur la page contact au 2026-10-24 (repli WhatsApp mobile officiel). La page publiee annonce une reponse sous 48h ouvrables : c'est leur delai, pas un engagement Yallah.",
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "The View Rabat",
@@ -291,7 +302,8 @@
       ],
       "angle": "Petite structure : decision rapide, besoin polyvalent.",
       "anomalies": "",
-      "phase": 1
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "La Maison Fresh & Bio",
@@ -399,7 +411,8 @@
       ],
       "angle": "Maison d'hotes : personnel polyvalent de maison et cuisine.",
       "anomalies": "Le site publie un prenom de contact (personne physique) : ne pas conserver d'autre donnee personnelle.",
-      "phase": 1
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hivernage Hotel & Spa",
@@ -487,7 +500,8 @@
       ],
       "angle": "Tres petite structure, proprietaire non resident : besoin de personnel de confiance sur place.",
       "anomalies": "Numero francais : verifier la langue et le fuseau avant appel.",
-      "phase": 1
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Les Maitres Prestiges Traiteur",
@@ -500,16 +514,17 @@
       "site": "https://lesmaitresprestiges.com",
       "source_url": "https://lesmaitresprestiges.com/",
       "date_consultation": "2026-10-21",
-      "niveau": "B",
-      "faits_observes": "Traiteur de luxe et organisation de mariages a Marrakech (page officielle, coordonnees dans l'extrait).",
+      "niveau": "A",
+      "faits_observes": "Traiteur de luxe et organisation de mariages a Marrakech ; mobile +212 668 47 47 98 publie directement sur la page d'accueil officielle.",
       "besoins_probables": [
         "REN",
         "SRV",
         "CUI"
       ],
       "angle": "Renforts de service sur mariages (forte saisonnalite).",
-      "anomalies": "Adresse hors zones phase 1. Coordonnee a reconfirmer.",
-      "phase": 1
+      "anomalies": "Adresse hors zones phase 1. Absence d'email publie ; repli WhatsApp via mobile verifie.",
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "La Plaza de Bouskoura",
@@ -531,7 +546,8 @@
       ],
       "angle": "Approche par la gestion du centre : mutualise plusieurs enseignes en un seul contact.",
       "anomalies": "",
-      "phase": 1
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Triangle Vert",
@@ -618,7 +634,8 @@
         "SRV"
       ],
       "angle": "Hotel de bord de mer : entretien quotidien des chambres et service.",
-      "anomalies": "Contradiction sur le site officiel : le numero affiche (+212 539 309 055) differe du lien d'appel (+212 539 304 019). A verifier des le premier appel."
+      "anomalies": "Contradiction sur le site officiel : le numero affiche (+212 539 309 055) differe du lien d'appel (+212 539 304 019). A verifier des le premier appel.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hilton Tanger City Center",
@@ -673,6 +690,7 @@
       "phase": 2,
       "adresse": "Founty, Agadir",
       "tel": "+212 528 237 515",
+      "whatsapp": "+212 668 77 83 73",
       "email": "reservation@intouriste.com",
       "site": "https://intouriste.com",
       "source_url": "https://intouriste.com/contact/",
@@ -686,7 +704,8 @@
         "REN"
       ],
       "angle": "Plusieurs restaurants + evenements/groupes : plonge et extras.",
-      "anomalies": ""
+      "anomalies": "",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Avanti Mohammedia Hotel",
@@ -797,7 +816,8 @@
         "REN"
       ],
       "angle": "Restaurant + evenements + 69 chambres : trois besoins distincts a couvrir.",
-      "anomalies": "Le site affiche des tarifs de chambre (990 a 1500 MAD la nuit) : ne jamais reprendre ces montants dans nos messages."
+      "anomalies": "Le site affiche des tarifs de chambre (990 a 1500 MAD la nuit) : ne jamais reprendre ces montants dans nos messages.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Relax Hotel Kenitra",
@@ -819,7 +839,8 @@
         "SRV"
       ],
       "angle": "Groupe multi-villes (Casablanca, Marrakech, Oujda, Kenitra) : approche groupe possible.",
-      "anomalies": ""
+      "anomalies": "",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Riad Fes - Relais & Chateaux",
@@ -863,7 +884,8 @@
         "SRV"
       ],
       "angle": "Maison de prestige : personnel de maison polyvalent, discretion attendue.",
-      "anomalies": "Le site affiche des tarifs de transfert aeroport : ne pas les reprendre."
+      "anomalies": "Le site affiche des tarifs de transfert aeroport : ne pas les reprendre.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hotel Sahrai",
@@ -940,12 +962,13 @@
       "phase": 3,
       "adresse": "15 Makhfia R'cif, pres du cinema Amal, Fes Medina",
       "tel": "+212 535 761 590",
+      "whatsapp": "+212 661 64 39 96",
       "email": "reservations@palais-de-fes.com",
       "site": "https://www.palais-de-fes.com",
       "source_url": "https://www.palais-de-fes.com/",
       "date_consultation": "2026-10-21",
-      "niveau": "B",
-      "faits_observes": "Suites, restaurant, espaces lounge, conferences et evenements en medina (page officielle consultee) ; coordonnees vues dans l'extrait.",
+      "niveau": "A",
+      "faits_observes": "Suites, restaurant, espaces lounge, conferences et evenements en medina ; fixe +212 535 761 590, mobile +212 661 64 39 96 et email reservations@palais-de-fes.com publies sur la page d'accueil officielle.",
       "besoins_probables": [
         "MAI",
         "CUI",
@@ -953,7 +976,8 @@
         "REN"
       ],
       "angle": "Riad avec salle d'evenements : renfort ponctuel en plus du personnel de maison.",
-      "anomalies": "Coordonnee vue dans l'extrait de la page officielle ; un second numero mobile est affiche sur le site."
+      "anomalies": "",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hotel Deauville El Jadida",
@@ -963,12 +987,13 @@
       "phase": 3,
       "adresse": "Avenue des Nations Unies RN 1, 24010 El Jadida",
       "tel": "+212 523 331 010",
-      "email": "reservation@hoteldeauville.ma",
+      "whatsapp": "+212 666 32 12 06",
+      "email": "",
       "site": "https://hoteldeauville.ma",
       "source_url": "https://hoteldeauville.ma/",
       "date_consultation": "2026-10-21",
-      "niveau": "B",
-      "faits_observes": "Hotel 5 etoiles face a la plage (171 chambres et suites annoncees), deux restaurants, un bar, spa, salle de seminaires et de receptions (page officielle consultee).",
+      "niveau": "A",
+      "faits_observes": "Hotel 5 etoiles face a la plage (171 chambres et suites annoncees), deux restaurants, un bar, spa, salle de seminaires et de receptions ; lien WhatsApp officiel wa.me/212666321206 publie sur la page d'accueil.",
       "besoins_probables": [
         "PRP",
         "CUI",
@@ -976,7 +1001,8 @@
         "REN"
       ],
       "angle": "Le plus gros volume d'El Jadida avec seminaires et mariages : entretien, plonge et extras.",
-      "anomalies": "Telephone et email vus dans l'extrait de la page officielle. Le site affiche ses tarifs de chambre : ne jamais les reprendre."
+      "anomalies": "Absence d'email en clair sur la page d'accueil au 2026-10-24 (repli WhatsApp mobile officiel). Le site affiche ses tarifs de chambre : ne jamais les reprendre.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hotel Jawharat El Jadida",
@@ -998,7 +1024,8 @@
         "REN"
       ],
       "angle": "Salle de conference et evenements : renfort ponctuel, effectif de base reduit.",
-      "anomalies": "Telephone confirme sur la page officielle ; email vu dans l'extrait."
+      "anomalies": "Telephone confirme sur la page officielle ; email vu dans l'extrait.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Mazagan Beach & Golf Resort",

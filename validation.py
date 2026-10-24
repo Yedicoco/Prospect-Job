@@ -45,14 +45,17 @@ def url(value):
     return value
 
 
-def contact(email, tel):
+def contact(email, tel, whatsapp=''):
     email = text(email, 'Email', False, 254).lower()
     tel = text(tel, 'Téléphone', False, 40)
+    whatsapp = text(whatsapp, 'WhatsApp mobile', False, 40)
     if email and not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', email):
         raise ValueError('Email invalide')
     if tel and not re.fullmatch(r'\+?[0-9 ()-]{7,40}', tel):
         raise ValueError('Téléphone invalide')
-    if not email and not tel:
+    if whatsapp and not re.fullmatch(r'\+?[0-9 ()-]{7,40}', whatsapp):
+        raise ValueError('WhatsApp mobile invalide')
+    if not email and not tel and not whatsapp:
         raise ValueError('Email ou téléphone requis')
     return email, tel
 
@@ -108,8 +111,8 @@ def record(kind, item):
         day(item.get('date_consultation', ''), 'Date de consultation', past=True)
         if item.get('date_derniere_verification'):
             day(item['date_derniere_verification'], 'Dernière vérification', past=True)
-        if item.get('tel') or item.get('email'):
-            contact(item.get('email', ''), item.get('tel', ''))
+        if item.get('tel') or item.get('email') or item.get('whatsapp'):
+            contact(item.get('email', ''), item.get('tel', ''), item.get('whatsapp', ''))
     if problems:
         raise ValueError(' ; '.join(problems))
     return item

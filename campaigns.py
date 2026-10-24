@@ -63,8 +63,9 @@ def now():
 
 
 def destination(item, channel):
-    return (messages.email_normalise(str(item.get('email', ''))) if channel == 'email'
-            else messages.tel_normalise(str(item.get('tel', ''))))
+    if channel == 'email':
+        return messages.email_normalise(str(item.get('email', '')))
+    return messages.tel_mobile_whatsapp(item) or messages.tel_normalise(str(item.get('tel', '')))
 
 
 def contact_key(dest, channel):
