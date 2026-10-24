@@ -43,8 +43,13 @@ class TestSourcesReelles(unittest.TestCase):
     def setUp(self):
         self.b2b = ym.charger(str(RACINE / "prospects_b2b.json"))
         self.b2c = ym.charger(str(RACINE / "prospects_b2c.json"))
+        dates = [
+            date.fromisoformat(p.get("date_derniere_verification") or p["date_consultation"])
+            for p in self.b2b["prospects"]
+        ]
+        self.date_ref = max(dates + [AUJOURDHUI])
         self.lignes = ym.construire_lignes(
-            [("b2b", self.b2b), ("b2c", self.b2c)], "fr", "Youssef", AUJOURDHUI)
+            [("b2b", self.b2b), ("b2c", self.b2c)], "fr", "Youssef", self.date_ref)
 
     def test_les_deux_fichiers_existent_et_sont_separes(self):
         self.assertEqual(len(self.b2b["prospects"]), 48)
@@ -69,7 +74,17 @@ class TestSourcesReelles(unittest.TestCase):
                 self.assertEqual(ligne["alertes"], "", ligne["ref"])
 
     def test_toutes_les_fiches_qualifiees_recoivent_un_message(self):
-        prets = [l for l in self.lignes if l["statut"] == "PRET - envoi manuel"]
+        b2b_jour = {
+            "meta": self.b2b.get("meta", {}),
+            "prospects": [
+                {**p, "date_derniere_verification": self.date_ref.isoformat()}
+                for p in self.b2b["prospects"]
+            ],
+        }
+        lignes_toutes_verifiees = ym.construire_lignes(
+            [("b2b", b2b_jour), ("b2c", self.b2c)], "fr", "Youssef", self.date_ref
+        )
+        prets = [l for l in lignes_toutes_verifiees if l["statut"] == "PRET - envoi manuel"]
         self.assertEqual(len(prets), 47)
         for ligne in prets:
             self.assertIn("Yallah Services", ligne["message"])
@@ -373,6 +388,12 @@ class TestJeuB2C(unittest.TestCase):
         )
         alertes = ym.verifier_message(texte)
         self.assertTrue(any("url non officielle" in a for a in alertes), alertes)
+
+    def test_signature_institutionnelle_service_commercial_naturelle_et_valide(self):
+        texte = ym.generer_message(fiche(), "b2c", "fr", "Service Commercial")
+        self.assertIn("Je vous écris depuis le Service Commercial de Yallah Services.", texte)
+        self.assertIn("Service Commercial — Yallah Services", texte)
+        self.assertEqual(ym.verifier_message(texte), [])
 
 
 if __name__ == "__main__":

@@ -390,6 +390,32 @@ def message_b2c(p: dict, langue: str) -> str:
     )
 
 
+def presenter_signataire(texte: str, prenom: str, langue: str) -> str:
+    """Remplace [prenom] en adaptant la tournure si le signataire est un service / une équipe."""
+    p = prenom.strip()
+    if not p:
+        return texte
+    bas = p.lower()
+    if langue == "fr":
+        if bas.startswith("service ") or bas.startswith("direction "):
+            texte = texte.replace(
+                f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services.",
+                f"Je vous écris depuis le {p} de Yallah Services.",
+            )
+        elif bas.startswith(("le service ", "la direction ")):
+            texte = texte.replace(
+                f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services.",
+                f"Je vous écris depuis {p} de Yallah Services.",
+            )
+        elif bas.startswith(("équipe", "equipe", "l'équipe", "l'equipe", "l’équipe")):
+            formule = p if bas.startswith(("l'", "l’")) else f"l'{p}"
+            texte = texte.replace(
+                f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services.",
+                f"Je vous écris au nom de {formule} de Yallah Services.",
+            )
+    return texte.replace(PLACEHOLDER_PRENOM, p)
+
+
 def generer_message(p: dict, type_prospect: str, langue: str, prenom: str = "") -> str:
     texte = message_b2b(p, langue) if type_prospect == "b2b" else message_b2c(p, langue)
     if p.get("source_type") == "entrant" and type_prospect == "b2c":
@@ -397,7 +423,7 @@ def generer_message(p: dict, type_prospect: str, langue: str, prenom: str = "") 
         texte = texte.replace("Chaft l'annonce dyalek:", "Twesselna b talab dyalek:")
         texte = texte.replace("رأيت إعلانكم بخصوص", "توصلنا بطلبكم بخصوص")
     if prenom:
-        texte = texte.replace(PLACEHOLDER_PRENOM, prenom)
+        texte = presenter_signataire(texte, prenom, langue)
     return texte
 
 
@@ -440,15 +466,16 @@ def message_client_suivi(
             f"مع التحية،\n{signataire} — Yallah Services"
         )
     bloc_suite = f"Prochaine étape prévue : {prochaine}\n\n" if prochaine else ""
-    return (
+    texte = (
         f"Bonjour,\n\n"
-        f"Je suis {signataire} de Yallah Services. Je fais suite à notre échange concernant "
+        f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services. Je fais suite à notre échange concernant "
         f"{nom} ({sujet}).\n\n"
         f"{bloc_suite}"
         f"Vous retrouvez à tout moment la présentation de nos services sur :\n{site}\n\n"
         f"Si ce besoin n'est plus d'actualité, dites-le-moi simplement : je ne vous relancerai pas.\n\n"
-        f"Bien à vous,\n{signataire} — Yallah Services"
+        f"Bien à vous,\n{PLACEHOLDER_PRENOM} — Yallah Services"
     )
+    return presenter_signataire(texte, prenom, langue) if prenom else texte
 
 
 # ---------------------------------------------------------------------------
