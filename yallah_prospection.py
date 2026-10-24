@@ -189,7 +189,11 @@ def valider_fiche(p: dict) -> list:
     if p.get("segment") not in SEGMENTS:
         anomalies.append(f"segment inconnu : {p.get('segment')}")
 
-    if not str(p.get("tel", "")).strip() and not str(p.get("email", "")).strip():
+    if (
+        not str(p.get("tel", "")).strip()
+        and not str(p.get("whatsapp", "")).strip()
+        and not str(p.get("email", "")).strip()
+    ):
         if p.get("niveau") != "C":
             anomalies.append("aucun contact direct : niveau C attendu")
 

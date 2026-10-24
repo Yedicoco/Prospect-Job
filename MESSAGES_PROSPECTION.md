@@ -35,10 +35,16 @@ Une fiche ne reçoit un message que si elle passe **toutes** ces conditions
 |---|---|
 | Source : `source_url` commençant par `http` **et** `date_consultation` au format AAAA-MM-JJ | rejetée |
 | Niveau de vérification A ou B | niveau C (formulaire seulement) : rejetée |
-| Au moins un contact direct publié (téléphone ou email) | rejetée |
+| Au moins un contact direct publié (email, téléphone ou WhatsApp mobile) | rejetée |
 | Fiche marquée `exemple: true` | rejetée |
 | Contact absent du registre des refus | rejetée |
 | Contact non déjà présent sur une autre fiche | doublon, rejetée |
+
+### Règle de canal recommandé (`canal_recommande()`)
+
+1. **Priorité à l'email (`email`)** : dès qu'une adresse email valide est disponible sur la fiche.
+2. **Repli WhatsApp (`whatsapp`) en cas d'absence d'email** : si aucun email n'est disponible mais qu'un **numéro mobile** est renseigné (`06` / `07` au Maroc, `+33 6` / `+33 7`, mobile international ou champ dédié `whatsapp`), un lien `https://wa.me/...` pré-rempli est préparé automatiquement.
+3. **Appel téléphonique (`telephone`)** : si seul un numéro fixe (`05...`) est disponible sans email ni mobile WhatsApp (aucun lien `wa.me` erroné n'est généré sur un fixe).
 
 Puis viennent les **réserves** (le message part quand même, mais elles restent
 visibles dans la file d'envoi) :

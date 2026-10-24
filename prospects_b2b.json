@@ -16,6 +16,7 @@
       "zone": "Anfa",
       "adresse": "85 Boulevard d'Anfa, Casablanca 20000",
       "tel": "+212 522 20 02 35",
+      "whatsapp": "+212 668 35 65 76",
       "email": "reservation@hotelidouanfa.com",
       "site": "https://hotelidouanfacasablanca.com",
       "source_url": "https://hotelidouanfacasablanca.com/contact",
@@ -86,20 +87,22 @@
       "zone": "Gauthier",
       "adresse": "2 bis rue Ilya Abou Madi, quartier Gauthier, Casablanca 20050",
       "tel": "+212 522 22 32 24",
-      "email": "contact@hotelgauthier.com",
+      "whatsapp": "+212 662 72 42 61",
+      "email": "",
       "site": "https://hotelgauthier.com",
       "source_url": "https://hotelgauthier.com/",
       "date_consultation": "2026-10-21",
-      "niveau": "B",
-      "faits_observes": "53 chambres, restaurant Le Patio ouvert de 7h a 00h (page d'accueil officielle consultee). Telephone vu sur la page Facebook officielle et la page reservation, non affiche sur la page consultee.",
+      "niveau": "A",
+      "faits_observes": "53 chambres, restaurant Le Patio ouvert de 7h a 00h ; mobile direct +212 662 72 42 61 publie sur la page d'accueil officielle.",
       "besoins_probables": [
         "PRP",
         "CUI",
         "SRV"
       ],
       "angle": "Restaurant ouvert 7h-minuit + 53 chambres : deux besoins distincts, souvent en renfort.",
-      "anomalies": "Telephone a reconfirmer (niveau B).",
-      "phase": 1
+      "anomalies": "Absence d'email publie sur la page d'accueil au 2026-10-24 ; repli WhatsApp via mobile publie.",
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "La Cantine de Gauthier",
@@ -216,20 +219,22 @@
       "zone": "Hors zone phase 1",
       "adresse": "50 rue de Normandie, Maarif, Casablanca",
       "tel": "+212 522 25 25 13",
-      "email": "contact@rahalmaitretraiteur.com",
+      "whatsapp": "+212 673 28 54 58",
+      "email": "",
       "site": "https://rahalmaitretraiteur.com",
       "source_url": "https://rahalmaitretraiteur.com/fr/contact/",
       "date_consultation": "2026-10-21",
       "niveau": "A",
-      "faits_observes": "Traiteur corporate, diplomatique et mariages ; annonce intervenir a Casablanca, Rabat, Marrakech, Tanger, Fes, Agadir (FAQ de la page contact officielle).",
+      "faits_observes": "Traiteur corporate, diplomatique et mariages ; lien WhatsApp officiel wa.me/212673285458 publie sur la page contact ; intervient a Casablanca, Rabat, Marrakech, Tanger, Fes, Agadir.",
       "besoins_probables": [
         "REN",
         "SRV",
         "CUI"
       ],
       "angle": "Renforts ponctuels sur receptions diplomatiques et corporate.",
-      "anomalies": "La page publiee annonce une reponse sous 48h ouvrables : c'est leur delai, pas un engagement Yallah (ne pas reprendre dans nos messages).",
-      "phase": 1
+      "anomalies": "Absence d'email en clair sur la page contact au 2026-10-24 (repli WhatsApp mobile officiel). La page publiee annonce une reponse sous 48h ouvrables : c'est leur delai, pas un engagement Yallah.",
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "The View Rabat",
@@ -508,16 +513,17 @@
       "site": "https://lesmaitresprestiges.com",
       "source_url": "https://lesmaitresprestiges.com/",
       "date_consultation": "2026-10-21",
-      "niveau": "B",
-      "faits_observes": "Traiteur de luxe et organisation de mariages a Marrakech (page officielle, coordonnees dans l'extrait).",
+      "niveau": "A",
+      "faits_observes": "Traiteur de luxe et organisation de mariages a Marrakech ; mobile +212 668 47 47 98 publie directement sur la page d'accueil officielle.",
       "besoins_probables": [
         "REN",
         "SRV",
         "CUI"
       ],
       "angle": "Renforts de service sur mariages (forte saisonnalite).",
-      "anomalies": "Adresse hors zones phase 1. Coordonnee a reconfirmer.",
-      "phase": 1
+      "anomalies": "Adresse hors zones phase 1. Absence d'email publie ; repli WhatsApp via mobile verifie.",
+      "phase": 1,
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "La Plaza de Bouskoura",
@@ -683,6 +689,7 @@
       "phase": 2,
       "adresse": "Founty, Agadir",
       "tel": "+212 528 237 515",
+      "whatsapp": "+212 668 77 83 73",
       "email": "reservation@intouriste.com",
       "site": "https://intouriste.com",
       "source_url": "https://intouriste.com/contact/",

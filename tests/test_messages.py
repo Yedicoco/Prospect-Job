@@ -409,6 +409,96 @@ class TestJeuB2C(unittest.TestCase):
             self.assertIn("Je vous contacte au sujet de Etablissement Test.", msg)
             self.assertEqual(ym.verifier_message(msg), [])
 
+    def test_priorite_email_quand_email_et_mobile_presents(self):
+        jour = date(2026, 10, 24)
+        fiche = {
+            "nom": "Hotel Anfa Test",
+            "segment": "hotel",
+            "phase": 1,
+            "ville": "Casablanca",
+            "zone": "Anfa",
+            "tel": "+212 661 11 22 33",
+            "email": "contact@hotel-test.ma",
+            "source_url": "https://hotel-test.ma/contact",
+            "date_consultation": "2026-10-24",
+            "niveau": "A",
+        }
+        lignes = ym.construire_lignes(
+            [("b2b", {"meta": {}, "prospects": [fiche]})], "fr", "Service Commercial", jour
+        )
+        self.assertEqual(lignes[0]["canal"], "email")
+        self.assertTrue(lignes[0]["lien_email"].startswith("mailto:contact@hotel-test.ma"))
+        self.assertTrue(lignes[0]["lien_whatsapp"].startswith("https://wa.me/212661112233?text="))
+
+    def test_repli_whatsapp_en_absence_email_si_mobile_disponible(self):
+        jour = date(2026, 10, 24)
+        fiche_mobile = {
+            "nom": "Traiteur Marrakech Test",
+            "segment": "evenementiel",
+            "phase": 1,
+            "ville": "Marrakech",
+            "zone": "Gueliz",
+            "tel": "+212 668 47 47 98",
+            "email": "",
+            "source_url": "https://traiteur-test.ma",
+            "date_consultation": "2026-10-24",
+            "niveau": "A",
+        }
+        fiche_champ_whatsapp = {
+            "nom": "Traiteur Casa Test",
+            "segment": "evenementiel",
+            "phase": 1,
+            "ville": "Casablanca",
+            "zone": "Anfa",
+            "tel": "+212 522 25 25 13",
+            "whatsapp": "+212 673 28 54 58",
+            "email": "",
+            "source_url": "https://traiteur-casa.ma/contact",
+            "date_consultation": "2026-10-24",
+            "niveau": "A",
+        }
+        lignes = ym.construire_lignes(
+            [("b2b", {"meta": {}, "prospects": [fiche_mobile, fiche_champ_whatsapp]})],
+            "fr",
+            "Service Commercial",
+            jour,
+        )
+        par_nom = {l["nom"]: l for l in lignes}
+        self.assertEqual(par_nom["Traiteur Marrakech Test"]["canal"], "whatsapp")
+        self.assertEqual(par_nom["Traiteur Marrakech Test"]["lien_email"], "")
+        self.assertTrue(
+            par_nom["Traiteur Marrakech Test"]["lien_whatsapp"].startswith(
+                "https://wa.me/212668474798?text="
+            )
+        )
+        self.assertEqual(par_nom["Traiteur Casa Test"]["canal"], "whatsapp")
+        self.assertTrue(
+            par_nom["Traiteur Casa Test"]["lien_whatsapp"].startswith(
+                "https://wa.me/212673285458?text="
+            )
+        )
+
+    def test_pas_de_repli_whatsapp_sur_fixe_sans_email(self):
+        jour = date(2026, 10, 24)
+        fiche_fixe = {
+            "nom": "Hotel Fixe Test",
+            "segment": "hotel",
+            "phase": 1,
+            "ville": "Rabat",
+            "zone": "Hassan",
+            "tel": "+212 537 70 00 00",
+            "email": "",
+            "source_url": "https://hotel-fixe.ma/contact",
+            "date_consultation": "2026-10-24",
+            "niveau": "A",
+        }
+        lignes = ym.construire_lignes(
+            [("b2b", {"meta": {}, "prospects": [fiche_fixe]})], "fr", "Service Commercial", jour
+        )
+        self.assertEqual(lignes[0]["canal"], "telephone")
+        self.assertEqual(lignes[0]["lien_whatsapp"], "")
+        self.assertEqual(lignes[0]["lien_email"], "")
+
 
 if __name__ == "__main__":
     unittest.main()

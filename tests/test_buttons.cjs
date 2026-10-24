@@ -155,3 +155,14 @@ test('métiers B2B dans les besoins et import d’email entrant sans écriture a
   click(document, '#close');
   assert(requests.every(r => !r.options?.method));
 });
+
+test('filtre de repli WhatsApp sans email accessible en un clic', async t => {
+  const { dom, document, requests } = await setup();
+  t.after(() => dom.window.close());
+  click(document, '#nav [data-nav="messages"]');
+  click(document, '[data-shortcut="whatsapp-fallback"]');
+  assert.equal(document.querySelector('#channel').value, 'whatsapp');
+  click(document, '[data-reset-filters]');
+  assert.equal(document.querySelector('#channel').value, '');
+  assert(requests.every(r => !r.options?.method));
+});

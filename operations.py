@@ -100,7 +100,7 @@ def suppress(con, rid, actor='system'):
         key = 'meta_' + kind
         row = con.execute('SELECT value FROM settings WHERE key=?', (key,)).fetchone()
         meta = json.loads(row[0]) if row else {}
-        meta.setdefault('refus', []).extend(item[k] for k in ('email', 'tel') if item.get(k))
+        meta.setdefault('refus', []).extend(item[k] for k in ('email', 'tel', 'whatsapp') if item.get(k))
         con.execute('INSERT OR REPLACE INTO settings VALUES (?,?)', (key, json.dumps(meta)))
     # Les doublons sont également bloqués au départ via suppressions.
     con.execute("UPDATE deliveries SET status='blocked',reason='Refus du contact' WHERE record_id=? AND status='queued'", (rid,))
