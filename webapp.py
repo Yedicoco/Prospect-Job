@@ -242,7 +242,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.headers.get('X-Yallah-Token') != TOKEN:
             return self.respond({'error':'Session invalide. Rechargez la page.'},403)
         try:
-            body=self.json_body()
+            body=self.json_body(250000 if self.path=='/api/import' else 100000)
             actor = self.user['username']
             if self.path == '/api/operations':
                 action = body.get('action')

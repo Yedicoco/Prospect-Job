@@ -244,3 +244,60 @@ class OperationsTests(unittest.TestCase):
         cid=campaigns.create({'name':'Test','channel':'email','signer':'Youssef','ids':[1]})
         campaigns.control({'id':cid,'action':'cancel'})
         with self.assertRaises(ValueError): campaigns.control({'id':cid,'action':'pause'})
+
+    def test_email_ingest_routing_refusal_dedup_and_quoted_text(self):
+        with webapp.connect() as con:
+            prospect_email=json.loads(con.execute('SELECT payload FROM records WHERE id=1').fetchone()[0])['email']
+        res=self.execute('email_ingest',sender_email=prospect_email,sender_name='Direction',subject='Re: Partenariat',body='Bonjour, appelons-nous demain.\n> Si vous souhaitez ne plus me contacter...',message_id='<msg-1@example.test>')
+        self.assertEqual(res['classification'],'reponse_prospect')
+        dup=self.execute('email_ingest',sender_email=prospect_email,subject='Re: Partenariat',body='Doublon',message_id='<msg-1@example.test>')
+        self.assertTrue(dup.get('deduplicated'))
+        stop_unknown=self.execute('email_ingest',sender_email='inconnu@example.test',subject='STOP',body='Merci de ne plus me contacter',message_id='<msg-2@example.test>')
+        self.assertEqual(stop_unknown['classification'],'refus_inconnu')
+        with webapp.connect() as con:
+            self.assertTrue(con.execute("SELECT 1 FROM suppressions WHERE contact_key='mail:inconnu@example.test'").fetchone())
+        today=v.today().isoformat()
+        opp=self.execute('opportunity',record_id=1,title='Serveur extra',stage='besoin_confirme',owner='Youssef',next_action='Publier',due=today)
+        need=self.execute('need_from_opportunity',opportunity_id=opp['id'],confirm=True,data={'ref':'EMP-100','metier':'SRV','ville':'Casablanca','zone':'Anfa','format':'renfort journalier','statut':'ouvert','source_confirmation':'Direction email','date_confirmation':today,'remuneration':{'valeur':'','source':''},'horaires':{'valeur':'','source':''}})
+        cand_mail=self.execute('email_ingest',sender_email='candidat1@example.test',sender_name='Karim',subject='Candidature EMP-100',body='Bonjour, voici ma candidature pour EMP-100.')
+        self.assertEqual(cand_mail['classification'],'candidature')
+        self.assertEqual(cand_mail['need_id'],need['id'])
+        unk_mail=self.execute('email_ingest',sender_email='famille@example.test',sender_name='Famille',subject='Question garde enfants',body='Bonjour, cherchez-vous sur Rabat ?')
+        self.assertEqual(unk_mail['classification'],'a_qualifier')
+        self.assertEqual(campaigns.dashboard()['permissions'],[])
+        stop_known=self.execute('email_ingest',sender_email=prospect_email,subject='Désinscription',body='Veuillez me désinscrire.')
+        self.assertEqual(stop_known['classification'],'refus')
+
+    def test_csv_import_preview_and_atomic_apply(self):
+        today=v.today().isoformat()
+        bad_csv='nom,ville,zone,tel,email,source_url,date_consultation,niveau,segment,phase\nHotel CSV,Casablanca,Anfa,+212 699 00 11 22,,https://example.invalid/h1,'+today+',A,hotel,abc\n'
+        preview_bad=operations.import_records({'kind':'b2b','csv':bad_csv,'apply':False})
+        self.assertFalse(preview_bad['rows'][0]['ok'])
+        good_csv='nom,ville,zone,tel,email,source_url,date_consultation,niveau,segment,phase\nHotel CSV,Casablanca,Anfa,+212 699 00 11 22,contact@hotelcsv.invalid,https://example.invalid/h1,'+today+',A,hotel,1\n'
+        preview_ok=operations.import_records({'kind':'b2b','csv':good_csv,'apply':False})
+        self.assertTrue(preview_ok['rows'][0]['ok'])
+        applied=operations.import_records({'kind':'b2b','csv':good_csv,'apply':True})
+        self.assertTrue(applied['applied'])
+        self.assertEqual(campaigns.dashboard()['permissions'],[])
+
+    def test_export_json_merges_suppressions_and_guards_overwrite(self):
+        self.execute('conversation',record_id=1,channel='email',direction='entrant',body='STOP',outcome='refus')
+        with tempfile.TemporaryDirectory() as out_dir:
+            res=operations.export_json(out_dir,overwrite=False,actor='test')
+            self.assertEqual(res['files']['prospects_b2b.json'],48)
+            exported=json.loads((Path(out_dir)/'prospects_b2b.json').read_text(encoding='utf-8'))
+            self.assertTrue(len(exported['meta']['refus'])>=1)
+            with self.assertRaises(ValueError):
+                operations.export_json(out_dir,overwrite=False,actor='test')
+            res2=operations.export_json(out_dir,overwrite=True,actor='test')
+            self.assertEqual(res2['files']['prospects_b2b.json'],48)
+
+    def test_j7_followup_eligibility(self):
+        today=v.today().isoformat()
+        with webapp.connect() as con:
+            con.execute("INSERT INTO conversations(record_id,channel,direction,body,outcome,created) VALUES (1,'whatsapp','sortant','Premier contact','note','2026-10-10T09:00:00+00:00')")
+            con.execute("INSERT INTO conversations(record_id,channel,direction,body,outcome,created) VALUES (2,'whatsapp','sortant','Contact récent','note',?)",(today+'T09:00:00+00:00',))
+        fups=operations.dashboard()['followups']
+        self.assertEqual([f['record_id'] for f in fups],[1])
+        self.execute('conversation',record_id=1,channel='whatsapp',direction='entrant',body='Merci, rappelons-nous',outcome='reponse')
+        self.assertEqual(operations.dashboard()['followups'],[])

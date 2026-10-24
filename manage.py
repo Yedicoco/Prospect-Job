@@ -17,6 +17,8 @@ def main():
     user=sub.add_parser('user-add');user.add_argument('username');user.add_argument('--role',choices=access.ROLES,default='lecture')
     sub.add_parser('backup')
     restore=sub.add_parser('restore');restore.add_argument('file');restore.add_argument('--confirm',action='store_true')
+    export_cmd=sub.add_parser('export-json');export_cmd.add_argument('--dir',required=True);export_cmd.add_argument('--overwrite',action='store_true')
+    ingest=sub.add_parser('email-ingest');ingest.add_argument('--from',dest='sender_email',required=True);ingest.add_argument('--name',default='');ingest.add_argument('--subject',required=True);ingest.add_argument('--body',required=True);ingest.add_argument('--id',dest='message_id',default='')
     sub.add_parser('check')
     args=parser.parse_args()
     if args.command=='restore':
@@ -50,6 +52,8 @@ def main():
         with webapp.connect() as con: operations.audit(con,'cli','compte_configure','users',detail=args.username+' / '+args.role)
         print('Compte enregistré ; mot de passe non affiché.')
     elif args.command=='backup': print(json.dumps(operations.backup(webapp.DB,'cli'),ensure_ascii=False))
+    elif args.command=='export-json': print(json.dumps(operations.export_json(args.dir,args.overwrite,'cli'),ensure_ascii=False))
+    elif args.command=='email-ingest': print(json.dumps(operations.execute('email_ingest',{'sender_email':args.sender_email,'sender_name':args.name,'subject':args.subject,'body':args.body,'message_id':args.message_id},'cli'),ensure_ascii=False))
     else:
         with webapp.connect() as con:
             print('Intégrité :',con.execute('PRAGMA integrity_check').fetchone()[0])

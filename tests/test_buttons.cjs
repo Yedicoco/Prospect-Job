@@ -134,5 +134,24 @@ test('supervision : aucun clic de navigation ne déclenche un arrêt ou une sauv
   click(document, '#nav [data-nav="system"]');
   assert(document.querySelector('[data-global-stop="true"]'));
   assert(document.querySelector('#backup-now'));
+  click(document, '#import-open');
+  assert.equal(document.querySelectorAll('#importform select[name="format"] option').length, 3);
+  click(document, '#close');
+  assert(requests.every(r => !r.options?.method));
+});
+
+test('métiers B2B dans les besoins et import d’email entrant sans écriture au clic', async t => {
+  const { dom, document, requests } = await setup();
+  t.after(() => dom.window.close());
+  click(document, '#nav [data-nav="emploi"]');
+  click(document, '.heading [data-new="emploi"]');
+  const metiers = [...document.querySelectorAll('#editform select[name="metier"] option')].map(o => o.value);
+  assert(metiers.includes('SRV') && metiers.includes('PLG') && metiers.includes('NET') && metiers.includes('COM'));
+  click(document, '#close');
+  click(document, '#nav [data-nav="inbox"]');
+  click(document, '[data-op-form="email_ingest"]');
+  assert(document.querySelector('#opsform [name="sender_email"][required]'));
+  assert(document.querySelector('#opsform [name="subject"][required]'));
+  click(document, '#close');
   assert(requests.every(r => !r.options?.method));
 });

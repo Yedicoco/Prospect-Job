@@ -67,6 +67,6 @@ def production_check():
 def allow(role, action):
     if role == 'admin':
         return True
-    commercial = {'opportunity', 'task', 'need_from_opportunity', 'conversation', 'proposal', 'intake_status', 'prospect_save', 'manual_action', 'intake_opportunity'}
-    recruitment = {'candidate', 'application', 'assignment', 'assignment_update', 'task', 'need_save', 'intake_status', 'intake_classify'}
+    commercial = {'opportunity', 'task', 'need_from_opportunity', 'conversation', 'email_ingest', 'proposal', 'intake_status', 'prospect_save', 'manual_action', 'intake_opportunity'}
+    recruitment = {'candidate', 'application', 'assignment', 'assignment_update', 'task', 'need_save', 'email_ingest', 'intake_status', 'intake_classify'}
     return action in (commercial if role == 'commercial' else recruitment if role == 'recrutement' else set())

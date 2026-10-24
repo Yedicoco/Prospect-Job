@@ -464,7 +464,8 @@ def construire_lignes(jeux: list, langue: str, prenom: str, date_reference: date
             mail = lien_email(p, message, type_prospect) if message else ""
 
             if not verdict["qualifie"]:
-                statut = ("A ACTUALISER" if any(m.startswith("actualisation") for m in verdict["motifs"])
+                statut = ("A ACTUALISER"
+                          if verdict["motifs"] and all(m.startswith("actualisation") for m in verdict["motifs"])
                           else "NON QUALIFIE")
             elif PLACEHOLDER_PRENOM in message:
                 statut = "A COMPLETER - prenom manquant"

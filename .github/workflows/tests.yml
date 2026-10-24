@@ -15,6 +15,6 @@ jobs:
           node-version: '22'
           cache: npm
       - run: python -m unittest discover -s tests -v
-      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --no-audit --no-fund --fetch-retries=5
       - run: npm test
       - run: node --check web/app.js && node --check web/operations.js && node --check web/public.js

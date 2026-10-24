@@ -2,7 +2,7 @@
 
 ## Application web
 
-**Nouveau :** pipeline commercial, tâches, conversations, demandes publiques, recrutement, missions, coûts et supervision. Guide du parcours et couverture exacte de l’audit : [IMPLEMENTATION.md](IMPLEMENTATION.md).
+**Nouveau :** pipeline commercial, tâches, relances manuelles J+7, conversations et import d’emails entrants, demandes publiques, recrutement, missions, coûts et supervision. Guide du parcours : [IMPLEMENTATION.md](IMPLEMENTATION.md) · Kit pilote terrain B2B/B2C : [PILOTE_LANCEMENT.md](PILOTE_LANCEMENT.md).
 
 Une interface web en français est maintenant disponible : tableau de bord, gestion des prospects, préparation des messages, suivi manuel, refus et besoins d’emploi. Les **campagnes automatiques email et WhatsApp Business** sont disponibles, en simulation par défaut ; les envois réels exigent qualification des contacts, configuration des fournisseurs et activation explicite.
 

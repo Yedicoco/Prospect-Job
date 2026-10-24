@@ -1,10 +1,13 @@
 """Parcours commercial et recrutement, partagé par les API web et outils de gestion.
 Les transactions conservent les relations et n'envoient aucun message.
 """
+import csv
+import io
 import json
+import re
 import sqlite3
 import threading
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import validation as v
@@ -298,6 +301,61 @@ def execute(action, body, actor='local'):
                 raise ValueError('Statut entrant invalide')
             con.execute('UPDATE intake SET status=? WHERE id=?', (body['status'], body['id']))
             result = {'id': body['id']}
+        elif action == 'email_ingest':
+            sender_email, _ = v.contact(body.get('sender_email', ''), '')
+            sender_name = field(body, 'sender_name', False, 150) or sender_email
+            subject = field(body, 'subject', True, 300)
+            raw_body = field(body, 'body', True, 4000)
+            msg_id = field(body, 'message_id', False, 300)
+            if msg_id:
+                inserted = con.execute("INSERT OR IGNORE INTO provider_events(provider,event_id,event_type,received) VALUES ('email_ingest',?,'incoming',?)", (msg_id, now())).rowcount
+                if not inserted:
+                    return {'deduplicated': True, 'classification': 'deja_traite'}
+            unquoted = '\n'.join(line for line in raw_body.splitlines() if not line.lstrip().startswith('>')).strip()
+            probe_exact = {s.strip().casefold().strip('.!؟?') for s in (subject, unquoted) if s.strip()}
+            probe_text = (subject + '\n' + unquoted).casefold()
+            stop_words = {'stop', 'unsubscribe', 'arrêt', 'arret', 'désinscription', 'desinscription', 'إلغاء الاشتراك'}
+            stop_phrases = ('ne plus me contacter', 'ne plus nous contacter', 'veuillez me désinscrire', 'veuillez me desinscrire', 'retirez-moi de votre liste', 'supprimez mon adresse')
+            refusal = bool(probe_exact & stop_words) or any(p in probe_text for p in stop_phrases)
+            full_text = f'Objet : {subject}\n\n{raw_body}'[:4000]
+            matched_ids = []
+            for row in con.execute("SELECT * FROM records WHERE kind IN ('b2b','b2c')").fetchall():
+                item = json.loads(row['payload'])
+                if item.get('exemple') or messages.email_normalise(item.get('email', '')) != sender_email:
+                    continue
+                matched_ids.append(row['id'])
+                if refusal:
+                    suppress(con, row['id'], actor)
+                con.execute("INSERT INTO conversations(record_id,channel,direction,body,outcome,provider_id,created) VALUES (?,'email','entrant',?,?,?,?)",
+                            (row['id'], full_text, 'refus' if refusal else 'reponse', msg_id, now()))
+                con.execute('INSERT INTO events(record_id,action,created) VALUES (?,?,?)',
+                            (row['id'], 'Email entrant · ' + ('refus' if refusal else 'réponse'), now()))
+            if matched_ids:
+                result = {'id': matched_ids[0], 'classification': 'refus' if refusal else 'reponse_prospect', 'record_ids': matched_ids}
+            elif refusal:
+                con.execute('INSERT OR IGNORE INTO suppressions VALUES (?,?)', ('mail:' + sender_email, now()))
+                result = {'id': None, 'classification': 'refus_inconnu'}
+            else:
+                open_matches = []
+                haystack = (subject + ' ' + unquoted).upper()
+                for row in con.execute("SELECT id,payload FROM records WHERE kind='emploi'").fetchall():
+                    job = json.loads(row['payload'])
+                    ref = str(job.get('ref', '')).strip().upper()
+                    if not ref or job.get('exemple') or job.get('statut') != 'ouvert':
+                        continue
+                    if not any(r['publiable'] == 'oui' for r in emploi.construire_lignes([job], 'fr', False)):
+                        continue
+                    if re.search(r'(?<![A-Z0-9-])' + re.escape(ref) + r'(?![A-Z0-9-])', haystack):
+                        open_matches.append(row['id'])
+                payload = {'name': sender_name, 'email': sender_email, 'tel': '', 'city': '',
+                           'message': full_text, 'acknowledge': False, 'notice_version': '', 'origin': 'email_entrant'}
+                if len(open_matches) == 1:
+                    payload['need_id'] = open_matches[0]
+                    iid = con.execute("INSERT INTO intake(kind,payload,source,created) VALUES ('candidature',?,'email_entrant',?)", (json.dumps(payload), now())).lastrowid
+                    result = {'id': iid, 'classification': 'candidature', 'need_id': open_matches[0]}
+                else:
+                    iid = con.execute("INSERT INTO intake(kind,payload,source,created) VALUES ('a_qualifier',?,'email_entrant',?)", (json.dumps(payload), now())).lastrowid
+                    result = {'id': iid, 'classification': 'a_qualifier'}
         else:
             raise ValueError('Action métier inconnue')
         audit(con, actor, action, 'operations', result.get('id'))
@@ -321,9 +379,29 @@ def dashboard():
             'cost': totals.get('cout', 0) / 100,
             'cash_contribution': (totals.get('encaissement', 0) - totals.get('cout', 0)) / 100,
         }
+        suppressed = {r['contact_key'] for r in con.execute('SELECT contact_key FROM suppressions')}
+        followups = []
+        today_date = v.today()
+        for rec in con.execute("SELECT id,payload FROM records WHERE kind IN ('b2b','b2c')").fetchall():
+            item = json.loads(rec['payload'])
+            if item.get('exemple') or (set(messages.cles_contact(item)) & suppressed):
+                continue
+            inbound = con.execute("SELECT 1 FROM conversations WHERE record_id=? AND (direction='entrant' OR outcome='refus')", (rec['id'],)).fetchone()
+            if inbound:
+                continue
+            out_conv = [r['created'] for r in con.execute("SELECT created FROM conversations WHERE record_id=? AND direction='sortant'", (rec['id'],))]
+            out_deliv = [r['attempted_at'] for r in con.execute("SELECT attempted_at FROM deliveries WHERE record_id=? AND attempted_at!='' AND status IN ('accepted','delivered','read','unknown')", (rec['id'],))]
+            outbounds = sorted(ts for ts in (out_conv + out_deliv) if len(ts) >= 10)
+            if len(outbounds) == 1:
+                try:
+                    days_since = (today_date - date.fromisoformat(outbounds[0][:10])).days
+                    if days_since >= 7:
+                        followups.append({'record_id': rec['id'], 'days_since': days_since, 'last_outbound': outbounds[0][:10]})
+                except ValueError:
+                    pass
     for row in result['candidates']:
         row['skills'] = json.loads(row['skills'])
-    result.update(metrics=metrics, stages=STAGES, application_stages=APPLICATION_STAGES, metiers=emploi.METIERS, formats=emploi.FORMATS, today=v.today().isoformat())
+    result.update(metrics=metrics, followups=followups, stages=STAGES, application_stages=APPLICATION_STAGES, metiers=emploi.METIERS, formats=emploi.FORMATS, today=v.today().isoformat())
     return result
 
 
@@ -346,7 +424,31 @@ def matches(need_id):
 
 
 def import_records(body, actor='local'):
-    items = body.get('items')
+    if isinstance(body.get('csv'), str) and body['csv'].strip():
+        kind = body.get('kind')
+        if kind not in ('b2b', 'b2c'):
+            raise ValueError('Choisissez B2B ou B2C pour un import CSV')
+        reader = csv.DictReader(io.StringIO(v.text(body['csv'], 'Contenu CSV', True, 200000).lstrip('\ufeff')))
+        if not reader.fieldnames:
+            raise ValueError('En-têtes CSV manquants')
+        allowed = {'nom', 'ville', 'zone', 'adresse', 'tel', 'email', 'source_url', 'date_consultation',
+                   'date_derniere_verification', 'niveau', 'contexte', 'segment', 'phase', 'besoin'}
+        items = []
+        for row in reader:
+            if None in row:
+                raise ValueError('Colonnes CSV en surnombre sur une ligne')
+            data = {str(k).strip(): str(val or '').strip() for k, val in row.items()
+                    if k and str(k).strip() in allowed and str(val or '').strip() != ''}
+            if not data:
+                continue
+            if kind == 'b2b' and 'phase' in data:
+                try:
+                    data['phase'] = int(data['phase'])
+                except ValueError:
+                    pass
+            items.append({'kind': kind, 'data': data})
+    else:
+        items = body.get('items')
     if not isinstance(items, list) or not 1 <= len(items) <= 200:
         raise ValueError('Entre 1 et 200 fiches attendues')
     apply = body.get('apply') is True
@@ -437,3 +539,34 @@ def backup(db_path, actor='system'):
             con.execute("DELETE FROM settings WHERE key='backup_error'")
             audit(con, actor, 'backup', 'system', detail=path.name)
         return {'filename': path.name, 'integrity': 'ok'}
+
+
+def export_json(output_dir, overwrite=False, actor='cli'):
+    target = Path(output_dir).resolve()
+    target.mkdir(parents=True, exist_ok=True)
+    mapping = [('b2b', 'prospects_b2b.json', 'prospects'),
+               ('b2c', 'prospects_b2c.json', 'prospects'),
+               ('emploi', 'besoins_emploi.json', 'besoins')]
+    if not overwrite:
+        for _, filename, _ in mapping:
+            if (target / filename).exists():
+                raise ValueError(f'Fichier déjà présent ({filename}) : utilisez un dossier vide ou --overwrite')
+    counts = {}
+    with connect() as con:
+        suppressed = [r['contact_key'].split(':', 1)[1] for r in con.execute('SELECT contact_key FROM suppressions ORDER BY contact_key')]
+        for kind, filename, list_key in mapping:
+            row = con.execute('SELECT value FROM settings WHERE key=?', ('meta_' + kind,)).fetchone()
+            meta = json.loads(row[0]) if row else {}
+            if kind in ('b2b', 'b2c'):
+                merged_refus = list(dict.fromkeys(list(meta.get('refus', [])) + suppressed))
+                meta['refus'] = merged_refus
+                meta['date_maj'] = v.today().isoformat()
+            rows = [json.loads(r['payload']) for r in con.execute('SELECT payload FROM records WHERE kind=? ORDER BY id', (kind,))]
+            if kind in ('b2b', 'b2c'):
+                # Seules les fiches sourcées publiquement sont exportées vers les JSON CLI.
+                rows = [r for r in rows if r.get('source_type') != 'entrant']
+            payload = {'meta': meta, list_key: rows}
+            (target / filename).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+            counts[filename] = len(rows)
+        audit(con, actor, 'export_json', 'system', detail=str(target))
+    return {'directory': str(target), 'files': counts}

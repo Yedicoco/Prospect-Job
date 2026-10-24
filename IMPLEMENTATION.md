@@ -84,9 +84,11 @@ Le verrou empêche la restauration si le nouveau serveur utilise la base. Le tes
 
 ### 6. Import et données
 
-- **Supervision → Import JSON** : aperçu des erreurs et doublons, puis import atomique de 1 à 200 prospects B2B/B2C sourcés publiquement. Aucune autorisation n’est importée. Les demandes privées sont traitées via leur file dédiée, pas via un faux lien source.
+- **Supervision → Import JSON / CSV** : aperçu des erreurs et doublons (JSON ou CSV B2B/B2C), puis import atomique de 1 à 200 prospects sourcés publiquement. Aucune autorisation n’est importée. Les demandes privées sont traitées via leur file dédiée, pas via un faux lien source.
+- **Conversations → Importer un email reçu** (`email_ingest` / `python3 manage.py email-ingest`) : déduplication par `Message-ID`, détection des STOP/refus hors citations `>`, rattachement aux prospects connus, routage des références d’annonces ouvertes vers `candidature`, et mise en file `a_qualifier` des expéditeurs inconnus.
+- **Tâches et rappels → Relances manuelles éligibles (J+7)** : liste des contacts ayant reçu exactement 1 envoi sortant depuis au moins 7 jours sans réponse ni refus (aucun envoi automatique).
+- **Synchronisation vers les scripts CLI** : `python3 manage.py export-json --dir ./export` exporte les fiches publiques et fusionne les refus SQLite (`suppressions`) dans `meta.refus`.
 - Les relations opérationnelles utilisent les identifiants SQLite et clés étrangères ; migrations idempotentes enregistrées, index pour les recherches courantes.
-- Les CLI historiques restent sur leurs JSON ; ils ne sont pas devenus automatiquement des vues de SQLite.
 - Les vues métier sont limitées aux 1 000 derniers éléments par catégorie, tandis que les indicateurs de volume/finance sont agrégés en base. Une pagination complète reste à développer.
 
 ## Couverture de l’audit : ce qui reste à développer
@@ -94,15 +96,15 @@ Le verrou empêche la restauration si le nouveau serveur utilise la base. Le tes
 | Groupe | État dans cette livraison |
 |---|---|
 | A1 acquisition entrante | Formulaires, traitement et conversion opérationnels. |
-| A2 import | JSON contrôlé ; CSV non implémenté. |
+| A2 import | JSON et CSV contrôlés avec aperçu et import atomique. |
 | A3/A4 contacts multiples et fusion | Détection/rapprochement de coordonnées ; pas de modèle multi-interlocuteurs ni de fusion complète. |
 | A5/A6/A8 provenance, qualification, autorisations | Historique de vérification/autorisation et pipeline ; scope/expiration structurés, capacité de service et pièces de preuve restent à compléter. |
 | A7 surveillance de sites | Non implémentée ; aucun scraping ajouté. |
 | B1/B3/B5/B7 vente | Pipeline, besoin lié, propositions versionnées et motif de perte opérationnels. |
-| B2/B4/B6 suivi | Tâches/rappels affichés, découverte via besoin/notes, chronologie ; calendrier externe, fiche métier enrichie et réception email restent à compléter. |
+| B2/B4/B6 suivi | Tâches/rappels, relances éligibles J+7, découverte via besoin/notes, chronologie et import d’emails reçus ; synchronisation IMAP automatique et calendrier externe restent à compléter. |
 | C1/C9/C11 callbacks, arrêt, refus | Implémentés, tests simulés ; recette fournisseur réelle indispensable. |
-| C2/C3/C8 échanges et incidents | WhatsApp texte et refus, historique commun, rapprochement callback/HTTP ; pas de boîte email, ni recherche automatique d’un timeout chez le fournisseur. |
-| C4/C5/C6/C7/C10 optimisation d’envoi | Fuseau et garde-fous existants ; créneaux horaires, bibliothèque de modèles, objets email éditables, budgets automatiques et relances non implémentés. |
+| C2/C3/C8 échanges et incidents | WhatsApp texte, import d’email entrant dédupliqué et refus, historique commun, rapprochement callback/HTTP ; pas de connecteur IMAP continu ni de recherche automatique d’un timeout chez le fournisseur. |
+| C4/C5/C6/C7/C10 optimisation d’envoi | Fuseau, garde-fous et indicateur de relance manuelle J+7 existants ; créneaux horaires, bibliothèque de modèles, objets email éditables et relances automatiques non implémentés. |
 | D1/D2/D3/D4/D5/D7/D8 recrutement | Candidatures, dossiers minimisés, étapes, suggestions, disponibilités, affectations et retours opérationnels. Pas de contrôle réel des compétences ni de gestion juridique de contrats. |
 | D6 entretiens et documents | Étape entretien et notes ; pas de calendrier ni de stockage de pièces sensibles. |
 | E1/E2 acquisition B2C | Formulaire et source déclarée ; pages locales et QR codes non implémentés. |
