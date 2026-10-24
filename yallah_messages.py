@@ -304,11 +304,18 @@ def besoins_libelles(p: dict, type_prospect: str, langue: str = "fr") -> str:
     return BESOINS_B2C.get(p.get("besoin", ""), p.get("besoin", "personnel"))
 
 
+ZONES_TECHNIQUES = {"hors zone phase 1", "ville entière", "ville entiere"}
+
+
+def de_ville(ville: str) -> str:
+    return f"d'{ville}" if ville[:1].lower() in "aeiouyéèêîôû" else f"de {ville}"
+
+
 def message_b2b(p: dict, langue: str) -> str:
     nom = p["nom"]
     ville = p["ville"]
-    zone = p.get("zone", "")
-    ou = f", {zone}" if zone else ""
+    zone = p.get("zone", "").strip()
+    ou = f", {zone}" if zone and zone.lower() not in ZONES_TECHNIQUES else ""
     besoins = besoins_libelles(p, "b2b", langue)
     site = site_web_officiel()
 
@@ -337,7 +344,7 @@ def message_b2b(p: dict, langue: str) -> str:
     return (
         f"Bonjour,\n\n"
         f"Je suis {PLACEHOLDER_PRENOM} de Yallah Services. Nous accompagnons les établissements "
-        f"de {ville} sur leurs besoins en personnel : {besoins}.\n\n"
+        f"{de_ville(ville)} sur leurs besoins en personnel : {besoins}.\n\n"
         f"Je vous contacte au sujet de {nom}{ou}. Selon votre organisation, nous travaillons sur "
         f"trois formats : permanent, temporaire et renfort journalier.\n\n"
         f"Auriez-vous dix minutes pour un échange afin que nous comprenions votre besoin réel ? "

@@ -627,7 +627,8 @@
         "SRV"
       ],
       "angle": "Hotel de bord de mer : entretien quotidien des chambres et service.",
-      "anomalies": "Contradiction sur le site officiel : le numero affiche (+212 539 309 055) differe du lien d'appel (+212 539 304 019). A verifier des le premier appel."
+      "anomalies": "Contradiction sur le site officiel : le numero affiche (+212 539 309 055) differe du lien d'appel (+212 539 304 019). A verifier des le premier appel.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hilton Tanger City Center",
@@ -695,7 +696,8 @@
         "REN"
       ],
       "angle": "Plusieurs restaurants + evenements/groupes : plonge et extras.",
-      "anomalies": ""
+      "anomalies": "",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Avanti Mohammedia Hotel",
@@ -806,7 +808,8 @@
         "REN"
       ],
       "angle": "Restaurant + evenements + 69 chambres : trois besoins distincts a couvrir.",
-      "anomalies": "Le site affiche des tarifs de chambre (990 a 1500 MAD la nuit) : ne jamais reprendre ces montants dans nos messages."
+      "anomalies": "Le site affiche des tarifs de chambre (990 a 1500 MAD la nuit) : ne jamais reprendre ces montants dans nos messages.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Relax Hotel Kenitra",
@@ -828,7 +831,8 @@
         "SRV"
       ],
       "angle": "Groupe multi-villes (Casablanca, Marrakech, Oujda, Kenitra) : approche groupe possible.",
-      "anomalies": ""
+      "anomalies": "",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Riad Fes - Relais & Chateaux",
@@ -872,7 +876,8 @@
         "SRV"
       ],
       "angle": "Maison de prestige : personnel de maison polyvalent, discretion attendue.",
-      "anomalies": "Le site affiche des tarifs de transfert aeroport : ne pas les reprendre."
+      "anomalies": "Le site affiche des tarifs de transfert aeroport : ne pas les reprendre.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Hotel Sahrai",
@@ -1007,7 +1012,8 @@
         "REN"
       ],
       "angle": "Salle de conference et evenements : renfort ponctuel, effectif de base reduit.",
-      "anomalies": "Telephone confirme sur la page officielle ; email vu dans l'extrait."
+      "anomalies": "Telephone confirme sur la page officielle ; email vu dans l'extrait.",
+      "date_derniere_verification": "2026-10-24"
     },
     {
       "nom": "Mazagan Beach & Golf Resort",

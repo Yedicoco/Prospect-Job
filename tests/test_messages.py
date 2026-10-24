@@ -395,6 +395,20 @@ class TestJeuB2C(unittest.TestCase):
         self.assertIn("Service Commercial — Yallah Services", texte)
         self.assertEqual(ym.verifier_message(texte), [])
 
+    def test_zones_techniques_non_affichees_dans_message_b2b(self):
+        for zone_interne in ("Hors zone phase 1", "Ville entière"):
+            p = {
+                "nom": "Etablissement Test",
+                "segment": "hotel",
+                "phase": 2,
+                "ville": "Tanger",
+                "zone": zone_interne,
+            }
+            msg = ym.generer_message(p, "b2b", "fr", "Service Commercial")
+            self.assertNotIn(zone_interne, msg)
+            self.assertIn("Je vous contacte au sujet de Etablissement Test.", msg)
+            self.assertEqual(ym.verifier_message(msg), [])
+
 
 if __name__ == "__main__":
     unittest.main()
