@@ -299,6 +299,8 @@ class OperationsTests(unittest.TestCase):
             con.execute("INSERT INTO conversations(record_id,channel,direction,body,outcome,created) VALUES (2,'whatsapp','sortant','Contact récent','note',?)",(today+'T09:00:00+00:00',))
         fups=operations.dashboard()['followups']
         self.assertEqual([f['record_id'] for f in fups],[1])
+        self.assertEqual(fups[0]['followup_step'],1)
+        self.assertEqual(fups[0]['followup_label'],'J+3')
         self.execute('conversation',record_id=1,channel='whatsapp',direction='entrant',body='Merci, rappelons-nous',outcome='reponse')
         self.assertEqual(operations.dashboard()['followups'],[])
 
@@ -306,9 +308,10 @@ class OperationsTests(unittest.TestCase):
         with webapp.connect() as con:
             out=operations.enregistrer_envoi_manuel(con,1,'email','Premier email envoyé','Service Commercial')
         oid=out['opportunity_id']
+        self.assertEqual(out['next_relance'],'Relance J+3')
         dash1=operations.dashboard()
         self.assertEqual(next(o for o in dash1['opportunities'] if o['id']==oid)['stage'],'qualifie')
-        self.assertTrue(any(t['opportunity_id']==oid and t['status']=='a_faire' and t['title'].startswith('Relance J+7') for t in dash1['tasks']))
+        self.assertTrue(any(t['opportunity_id']==oid and t['status']=='a_faire' and t['title'].startswith('Relance J+3') for t in dash1['tasks']))
 
         rep=self.execute('conversation',record_id=1,channel='email',direction='entrant',body='Bonjour, nous cherchons 2 serveurs extra pour un banquet samedi et un plongeur.',outcome='reponse')
         self.assertIn('SRV',rep['suggested_metiers'])
@@ -317,7 +320,7 @@ class OperationsTests(unittest.TestCase):
         opp=next(o for o in dash2['opportunities'] if o['id']==oid)
         self.assertEqual(opp['stage'],'conversation')
         self.assertEqual(opp['due'],v.today().isoformat())
-        self.assertTrue(all(t['status']=='annulee' for t in dash2['tasks'] if t['opportunity_id']==oid and t['title'].startswith('Relance J+7')))
+        self.assertTrue(all(t['status']=='annulee' for t in dash2['tasks'] if t['opportunity_id']==oid and t['title'].startswith('Relance J+')))
         self.assertTrue(any(t['opportunity_id']==oid and t['status']=='a_faire' and t['title'].startswith('Réponse reçue') for t in dash2['tasks']))
 
     def test_qualify_need_10min_creates_publishable_job_and_matches(self):

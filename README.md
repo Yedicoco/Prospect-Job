@@ -2,7 +2,7 @@
 
 ## Application web
 
-**Nouveau :** pipeline commercial, tâches, relances manuelles J+7, conversations et import d’emails entrants, demandes publiques, recrutement, missions, coûts et supervision. Guide du parcours : [IMPLEMENTATION.md](IMPLEMENTATION.md) · Kit pilote terrain B2B/B2C : [PILOTE_LANCEMENT.md](PILOTE_LANCEMENT.md).
+**Nouveau :** registre de sources d’acquisition **A1–C** (`yallah_sources.py`), file quotidienne scorée avec relances graduées **J+3 / J+7 / J+14** servies avant les 1ers contacts (plafond 15/jour), suivi du temps opérateur en minutes et **ROI réel par source (MAD et MAD/h uniquement sur factures/encaissements réels)**, ainsi que **35 pages SEO locales publiques** (`/services` et `/services/<slug>`) reliées au formulaire entrant et à WhatsApp. Guide du parcours : [IMPLEMENTATION.md](IMPLEMENTATION.md) · Kit pilote terrain B2B/B2C : [PILOTE_LANCEMENT.md](PILOTE_LANCEMENT.md).
 
 Une interface web en français est maintenant disponible : tableau de bord, gestion des prospects, préparation des messages, suivi manuel, refus et besoins d’emploi. Les **campagnes automatiques email et WhatsApp Business** sont disponibles, en simulation par défaut ; les envois réels exigent qualification des contacts, configuration des fournisseurs et activation explicite.
 
@@ -12,6 +12,10 @@ python3 webapp.py --port 8000
 
 Ouvrez `http://localhost:8000` (ou l’aperçu Arena). Aucune dépendance externe. Les données sont importées dans une base SQLite privée, séparée des JSON utilisés par les scripts CLI.
 
+**Sans ouvrir de terminal :**
+- **Sur poste local (double-clic)** : double-cliquez sur **`Lancer_Yallah.command`** (macOS / Linux) ou **`Lancer_Yallah.bat`** (Windows) — le serveur unifié démarre et ouvre automatiquement `http://127.0.0.1:8000` dans votre navigateur (un second double-clic rouvre simplement l’onglet si le serveur tourne déjà).
+- **En ligne (Cloud 1-clic)** : déployez le dépôt via **`render.yaml`** (*Render → New → Blueprint*, disque persistant `/var/data` et mot de passe `admin` fort généré automatiquement) ou via le **`Dockerfile`** fourni (Railway, Koyeb, Coolify, Docker Desktop avec volume monté sur `/data`).
+
 **Accès privé de confiance par défaut.** Une authentification administrateur par variable d’environnement et HTTPS sont requis pour l’envoi réel ; ne pas exposer le mode sans authentification sur Internet. Guide et limites : [WEB_APP.md](WEB_APP.md).
 
 
@@ -20,10 +24,25 @@ commerciale s'adresse à un client, une offre d'emploi s'adresse à un candidat.
 
 | Module | Fichier | Objet |
 |---|---|---|
-| **B2C** (particuliers) | `yallah_b2c.py` | Contenus de publication à destination des particuliers |
-| **B2B** (entreprises clientes) | `yallah_prospection.py` | Prospection d'entreprises, à partir d'un fichier de prospects sourcés |
-| **Messages** (B2B + B2C) | `yallah_messages.py` | Messages de prospection personnalisés, contrôlés, avec liens préremplis — **aucun envoi automatique** |
+| **Sources & ROI** (A1–C) | `yallah_sources.py` | Référentiel de sources A1–C, file du jour scorée (J+3/J+7/J+14), suivi du temps (min) et ROI réel par source sur la base SQLite unifiée — **aucun envoi automatique** |
+| **B2C** (particuliers) | `yallah_b2c.py` | Contenus de publication et 35 pages SEO locales `/services/<slug>` (`quartier × besoin`) |
+| **B2B** (entreprises & prescripteurs) | `yallah_prospection.py` | Prospection d'entreprises et prescripteurs B1–B4, à partir d'un fichier sourcé |
+| **Messages** (B2B + B2C) | `yallah_messages.py` | Messages de prospection et relances J+3/J+7/J+14 contrôlés, avec liens préremplis — **aucun envoi automatique** |
 | **Emploi** (candidats) | `yallah_emploi.py` | Annonces d'emploi, uniquement pour des besoins confirmés par un employeur |
+
+## Module Sources & ROI (`yallah_sources.py`)
+
+Connecté directement à la base SQLite opérationnelle (`data/yallah.sqlite3`, ou `--db`), sans bibliothèque réseau ni envoi automatique :
+
+```bash
+python3 yallah_sources.py --sources                         # catalogue A1–C (hypothèses intention/joignabilité)
+python3 yallah_sources.py --importer veille_jour.csv        # import CSV dédoublonné (+212, email, nom|ville)
+python3 yallah_sources.py --file --prenom "Youssef"         # file manuelle du jour (relances J+3/J+7/J+14 avant 1ers contacts, max 15)
+python3 yallah_sources.py --verifie B2B-001 12              # reconfirme la fraîcheur (< 7 jours)
+python3 yallah_sources.py --etape 12 contacte               # trace une étape (contacte, repondu, qualifie, contrat_valide, opt_out…)
+python3 yallah_sources.py --temps 12 10 --note "Appel RH"   # ajoute 10 minutes opérateur sur le dossier
+python3 yallah_sources.py --roi                             # entonnoir, heures et MAD / MAD/h réels par source
+```
 
 La recherche de prospects et la synthèse sont dans **`PROSPECTION_B2B.md`**
 (48 établissements : 26 en phase 1 à Casablanca, Rabat, Marrakech et Bouskoura,

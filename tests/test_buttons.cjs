@@ -167,7 +167,7 @@ test('filtre de repli WhatsApp sans email accessible en un clic', async t => {
   assert(requests.every(r => !r.options?.method));
 });
 
-test('qualification guidée en 10 min, entonnoir et relances J+7 sans écriture au clic', async t => {
+test('qualification guidée en 10 min, ROI réel par source, file du jour et relances J+3/J+7/J+14 sans écriture au clic', async t => {
   const { dom, document, requests } = await setup();
   t.after(() => dom.window.close());
   click(document, '#nav [data-nav="crm"]');
@@ -177,9 +177,14 @@ test('qualification guidée en 10 min, entonnoir et relances J+7 sans écriture 
   assert(document.querySelector('#opsform [name="confirm"][type="checkbox"][required]'));
   click(document, '#close');
   click(document, '#nav [data-nav="insights"]');
+  assert(document.querySelector('#content').textContent.includes('ROI réel par source d’acquisition (A1–C)'));
   assert(document.querySelector('#content').textContent.includes('Entonnoir de conversion par canal'));
   click(document, '#nav [data-nav="tasks"]');
-  assert(document.querySelector('#content').textContent.includes('Relances manuelles éligibles (règle J+7)'));
+  assert(document.querySelector('#content').textContent.includes('File du jour scorée'));
+  assert(document.querySelector('#content').textContent.includes('Relances manuelles éligibles (J+3 / J+7 / J+14)'));
+  click(document, '[data-op-form="time_log"]');
+  assert(document.querySelector('#opsform [name="minutes"][required]'));
+  click(document, '#close');
   assert(requests.every(r => !r.options?.method));
 });
 

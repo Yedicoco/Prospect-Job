@@ -14,6 +14,8 @@ import validation as v
 import yallah_b2c as b2c
 import yallah_emploi as emploi
 import yallah_messages as messages
+import yallah_prospection as prospection
+import yallah_sources as sources
 
 connect = None
 STAGES = ['prospect', 'qualifie', 'conversation', 'rendez_vous', 'besoin_confirme', 'proposition', 'gagne', 'perdu']
@@ -65,11 +67,13 @@ CREATE TABLE IF NOT EXISTS authorization_history(id INTEGER PRIMARY KEY, record_
 CREATE TABLE IF NOT EXISTS verifications(id INTEGER PRIMARY KEY, record_id INTEGER NOT NULL REFERENCES records(id), source_url TEXT NOT NULL, previous_date TEXT NOT NULL, actor TEXT NOT NULL, created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS provider_events(id INTEGER PRIMARY KEY, provider TEXT NOT NULL, event_id TEXT NOT NULL, event_type TEXT NOT NULL, delivery_id INTEGER, received TEXT NOT NULL, UNIQUE(provider,event_id));
 CREATE TABLE IF NOT EXISTS intake(id INTEGER PRIMARY KEY, kind TEXT NOT NULL, payload TEXT NOT NULL, source TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'nouveau', created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS time_logs(id INTEGER PRIMARY KEY, record_id INTEGER NOT NULL REFERENCES records(id), minutes INTEGER NOT NULL, note TEXT NOT NULL DEFAULT '', actor TEXT NOT NULL, day TEXT NOT NULL, created TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS opportunities_stage ON opportunities(stage);
 CREATE INDEX IF NOT EXISTS tasks_due ON tasks(status,due);
 CREATE INDEX IF NOT EXISTS conversations_record ON conversations(record_id,created);
 CREATE INDEX IF NOT EXISTS delivery_destination ON deliveries(destination,attempted_at);
 CREATE INDEX IF NOT EXISTS assignment_application ON assignments(application_id,start,end);
+CREATE INDEX IF NOT EXISTS time_logs_record ON time_logs(record_id);
 '''
 
 
@@ -88,6 +92,7 @@ def configure(factory):
                 con.execute(f"ALTER TABLE provider_events ADD COLUMN {name} TEXT NOT NULL DEFAULT ''")
         con.execute('INSERT OR IGNORE INTO schema_migrations VALUES (1,?)', (now(),))
         con.execute('INSERT OR IGNORE INTO schema_migrations VALUES (2,?)', (now(),))
+        con.execute('INSERT OR IGNORE INTO schema_migrations VALUES (3,?)', (now(),))
 
 
 def audit(con, actor, action, entity, entity_id=None, detail=''):
@@ -178,7 +183,7 @@ def quota_journalier(con, jour: date | None = None) -> dict:
 
 
 def enregistrer_envoi_manuel(con, rid: int, channel: str = '', note_text: str = '', actor: str = 'local') -> dict:
-    """Enregistre un envoi manuel, déduit le vrai canal, crée l'opportunité et programme ou clôture la relance J+7."""
+    """Enregistre un envoi manuel, déduit le vrai canal, crée l'opportunité et programme les relances J+3 / J+7 / J+14."""
     row = prospect(con, rid)
     item = json.loads(row['payload'])
     eff_channel = channel if channel in ('email', 'whatsapp', 'telephone') else (messages.canal_recommande(item) or 'interne')
@@ -191,8 +196,18 @@ def enregistrer_envoi_manuel(con, rid: int, channel: str = '', note_text: str = 
         "SELECT COUNT(*) FROM conversations WHERE record_id=? AND direction='sortant'",
         (rid,),
     ).fetchone()[0]
-    echeance_j7 = (v.today() + timedelta(days=7)).isoformat()
     proprio = actor if actor and actor not in ('local', 'system') else 'Service Commercial'
+    if nb_sortants <= len(sources.RELANCES):
+        prochain_delai = sources.RELANCES[nb_sortants - 1]
+        echeance_relance = (v.today() + timedelta(days=prochain_delai)).isoformat()
+        libelle_relance = f'Relance J+{prochain_delai}'
+        prochaine_action = f'Attendre retour ({eff_channel}) ou {libelle_relance.lower()}'
+    else:
+        prochain_delai = None
+        echeance_relance = (v.today() + timedelta(days=7)).isoformat()
+        libelle_relance = ''
+        prochaine_action = 'Dernière relance J+14 envoyée — clôturer si sans retour'
+
     opp = con.execute(
         "SELECT * FROM opportunities WHERE record_id=? AND stage NOT IN ('gagne','perdu') ORDER BY id DESC LIMIT 1",
         (rid,),
@@ -204,30 +219,30 @@ def enregistrer_envoi_manuel(con, rid: int, channel: str = '', note_text: str = 
                 rid,
                 f"Prospection {row['kind'].upper()} — {item.get('nom', 'Prospect')}",
                 proprio,
-                f"Attendre retour ({eff_channel}) ou relance unique J+7",
-                echeance_j7,
+                prochaine_action,
+                echeance_relance,
                 now(),
                 now(),
             ),
         ).lastrowid
     else:
         oid = opp['id']
-    if nb_sortants == 1:
-        has_j7 = con.execute(
-            "SELECT 1 FROM tasks WHERE opportunity_id=? AND status='a_faire' AND title LIKE 'Relance J+7%'",
-            (oid,),
-        ).fetchone()
-        if not has_j7:
+        if opp['stage'] in ('prospect', 'qualifie'):
             con.execute(
-                "INSERT INTO tasks(opportunity_id,title,owner,due,status,created) VALUES (?,?,?,?,'a_faire',?)",
-                (oid, f"Relance J+7 — {item.get('nom', 'Prospect')}", proprio, echeance_j7, now()),
+                'UPDATE opportunities SET stage=?,next_action=?,due=?,updated=? WHERE id=?',
+                ('qualifie', prochaine_action, echeance_relance, now(), oid),
             )
-    else:
+    # Toute relance antérieure ouverte passe en terminée, puis la prochaine échéance (J+3 / J+7 / J+14) est créée.
+    con.execute(
+        "UPDATE tasks SET status='terminee' WHERE opportunity_id=? AND status='a_faire' AND title LIKE 'Relance J+%'",
+        (oid,),
+    )
+    if libelle_relance:
         con.execute(
-            "UPDATE tasks SET status='terminee' WHERE opportunity_id=? AND status='a_faire' AND title LIKE 'Relance J+7%'",
-            (oid,),
+            "INSERT INTO tasks(opportunity_id,title,owner,due,status,created) VALUES (?,?,?,?,'a_faire',?)",
+            (oid, f"{libelle_relance} — {item.get('nom', 'Prospect')}", proprio, echeance_relance, now()),
         )
-    return {'channel': eff_channel, 'opportunity_id': oid, 'outbound_count': nb_sortants}
+    return {'channel': eff_channel, 'opportunity_id': oid, 'outbound_count': nb_sortants, 'next_relance': libelle_relance}
 
 
 def traiter_reponse_entrante(con, rid: int, channel: str, body_text: str, actor: str = 'system') -> dict:
@@ -255,9 +270,9 @@ def traiter_reponse_entrante(con, rid: int, channel: str, body_text: str, actor:
             "INSERT INTO opportunities(record_id,title,stage,owner,next_action,due,loss_reason,created,updated) VALUES (?,?,'conversation',?,?,?,'',?,?)",
             (rid, f"Réponse {channel} — {item.get('nom', 'Prospect')}", proprio, prochaine, today_iso, now(), now()),
         ).lastrowid
-    # Une réponse reçue annule toute relance froide J+7 en attente.
+    # Une réponse reçue annule toute relance froide (J+3 / J+7 / J+14) en attente.
     con.execute(
-        "UPDATE tasks SET status='annulee' WHERE opportunity_id=? AND status='a_faire' AND title LIKE 'Relance J+7%'",
+        "UPDATE tasks SET status='annulee' WHERE opportunity_id=? AND status='a_faire' AND title LIKE 'Relance J+%'",
         (oid,),
     )
     open_qualif = con.execute(
@@ -518,7 +533,7 @@ def execute(action, body, actor='local'):
             need_item.update(client_id=rid, opportunity_id=oid)
             nid = con.execute("INSERT INTO records(kind,payload) VALUES ('emploi',?)", (json.dumps(need_item, ensure_ascii=False),)).lastrowid
             con.execute(
-                "UPDATE tasks SET status='terminee' WHERE opportunity_id=? AND status='a_faire' AND (title LIKE 'Réponse reçue%' OR title LIKE 'Relance J+7%')",
+                "UPDATE tasks SET status='terminee' WHERE opportunity_id=? AND status='a_faire' AND (title LIKE 'Réponse reçue%' OR title LIKE 'Relance J+%')",
                 (oid,),
             )
             result = {'id': nid, 'opportunity_id': oid, 'ref': ref, 'matches': _matches_in_con(con, nid)}
@@ -621,12 +636,27 @@ def execute(action, body, actor='local'):
             if kind not in ('cout', 'facture', 'encaissement'):
                 raise ValueError('Type d’écriture invalide')
             result = {'id': con.execute('INSERT INTO ledger(opportunity_id,kind,amount_cents,reference,day,created) VALUES (?,?,?,?,?,?)', (oid, kind, round(v.number(body.get('amount'), 'Montant MAD') * 100), field(body, 'reference'), v.day(body.get('day', ''), 'Date', past=True), now())).lastrowid}
+        elif action == 'time_log':
+            rid = int(body['record_id'])
+            prospect(con, rid)
+            mins = int(v.number(body.get('minutes'), 'Minutes', minimum=1, maximum=600))
+            day_iso = v.day(body.get('day') or v.today().isoformat(), 'Date', past=True)
+            note_txt = field(body, 'note', False, 500)
+            tid = con.execute(
+                'INSERT INTO time_logs(record_id,minutes,note,actor,day,created) VALUES (?,?,?,?,?,?)',
+                (rid, mins, note_txt, actor, day_iso, now()),
+            ).lastrowid
+            con.execute(
+                'INSERT INTO events(record_id,action,created) VALUES (?,?,?)',
+                (rid, f'Temps passé enregistré : {mins} min', now()),
+            )
+            result = {'id': tid, 'record_id': rid, 'minutes': mins}
         elif action == 'intake_opportunity':
             incoming=require(con,'intake',body['intake_id'])
             if incoming['kind']!='demande' or incoming['status']!='nouveau':
                 raise ValueError('Demande client nouvelle requise')
             d=json.loads(incoming['payload'])
-            decoded = b2c.decoder_reference_b2c(d.get('b2c_ref', '') or d.get('message', ''))
+            decoded = b2c.decoder_reference_b2c(d.get('b2c_ref', '') or d.get('message', '') or incoming.get('source', ''))
             d['name']=v.text(body.get('name') or d.get('name',''),'Nom client',True,150)
             d['city']=v.text(body.get('city') or d.get('city') or (decoded['ville'] if decoded else ''),'Ville client',True,100)
             zone_client = v.text(body.get('zone') or d.get('zone') or (decoded['zone'] if decoded else 'À préciser'), 'Zone client', True, 100)
@@ -636,8 +666,16 @@ def execute(action, body, actor='local'):
             # campagne maintient son blocage source/autorisation tant qu'il n'est pas qualifié.
             kind=body.get('kind') or ('b2c' if decoded else '')
             if kind not in ('b2b','b2c'): raise ValueError('Choisissez entreprise ou particulier')
+            inc_src = (incoming.get('source') or '').lower()
+            orig = str(d.get('origin') or '').lower()
+            if 'whatsapp' in inc_src or 'whatsapp' in orig:
+                src_key = 'whatsapp_entrant'
+            elif 'gbp' in inc_src or 'google' in inc_src:
+                src_key = 'gbp_entrant'
+            else:
+                src_key = 'site_formulaire'
             item={'nom':d['name'],'ville':d['city'],'zone':zone_client,'tel':d['tel'],'email':d['email'],
-                  'niveau':'B','source_url':'','date_consultation':v.today().isoformat(),
+                  'niveau':'B','source':src_key,'source_url':'','date_consultation':v.today().isoformat(),
                   'source_type':'entrant','source_reference':f'ENT-{incoming["id"]:06d}',
                   'contexte':d['message']}
             if decoded:
@@ -865,11 +903,12 @@ def calculer_entonnoir(con) -> dict:
 
 
 def dashboard():
-    tables = ('opportunities', 'tasks', 'candidates', 'applications', 'assignments', 'conversations', 'proposals', 'ledger', 'intake', 'audit_log')
+    tables = ('opportunities', 'tasks', 'candidates', 'applications', 'assignments', 'conversations', 'proposals', 'ledger', 'intake', 'time_logs', 'audit_log')
     with connect() as con:
         result = {table: [dict(r) for r in con.execute(f'SELECT * FROM {table} ORDER BY id DESC LIMIT 1000')] for table in tables}
         totals = {r['kind']: r['amount'] for r in con.execute('SELECT kind,SUM(amount_cents) amount FROM ledger GROUP BY kind')}
         counts = dict(con.execute('SELECT stage,COUNT(*) FROM opportunities GROUP BY stage').fetchall())
+        total_minutes = int(con.execute('SELECT COALESCE(SUM(minutes),0) FROM time_logs').fetchone()[0])
         metrics = {
             'opportunities': con.execute('SELECT COUNT(*) FROM opportunities').fetchone()[0],
             'confirmed': sum(counts.get(stage, 0) for stage in ('besoin_confirme', 'proposition', 'gagne')),
@@ -880,16 +919,24 @@ def dashboard():
             'received': totals.get('encaissement', 0) / 100,
             'cost': totals.get('cout', 0) / 100,
             'cash_contribution': (totals.get('encaissement', 0) - totals.get('cout', 0)) / 100,
+            'total_minutes': total_minutes,
+            'total_hours': round(total_minutes / 60.0, 2),
         }
         suppressed = {r['contact_key'] for r in con.execute('SELECT contact_key FROM suppressions')}
+        active_perms = {r['record_id'] for r in con.execute('SELECT DISTINCT record_id FROM permissions WHERE active=1').fetchall()}
         followups = []
         today_date = v.today()
         for rec in con.execute("SELECT id,kind,payload FROM records WHERE kind IN ('b2b','b2c')").fetchall():
             item = json.loads(rec['payload'])
-            if item.get('exemple') or (set(messages.cles_contact(item)) & suppressed):
+            is_sup = bool(set(messages.cles_contact(item)) & suppressed)
+            ok_consent, _ = sources.contact_manuel_autorise(rec['kind'], item, rec['id'] in active_perms, is_sup)
+            if not ok_consent:
                 continue
             inbound = con.execute("SELECT 1 FROM conversations WHERE record_id=? AND ((direction='entrant' AND outcome!='rebond') OR outcome='refus')", (rec['id'],)).fetchone()
             if inbound:
+                continue
+            closed_opp = con.execute("SELECT 1 FROM opportunities WHERE record_id=? AND stage IN ('conversation','rendez_vous','besoin_confirme','proposition','gagne','perdu')", (rec['id'],)).fetchone()
+            if closed_opp:
                 continue
             out_conv_rows = con.execute("SELECT created,channel FROM conversations WHERE record_id=? AND direction='sortant' ORDER BY id", (rec['id'],)).fetchall()
             out_deliv_rows = con.execute("SELECT d.attempted_at,c.channel FROM deliveries d JOIN campaigns c ON c.id=d.campaign_id WHERE d.record_id=? AND d.attempted_at!='' AND d.status IN ('accepted','delivered','read','unknown') ORDER BY d.id", (rec['id'],)).fetchall()
@@ -898,28 +945,35 @@ def dashboard():
                 + [(r['attempted_at'], r['channel']) for r in out_deliv_rows if len(r['attempted_at']) >= 10],
                 key=lambda x: x[0],
             )
-            if len(outbounds) == 1:
+            if 1 <= len(outbounds) <= len(sources.RELANCES):
                 try:
-                    ts0, ch0 = outbounds[0]
-                    days_since = (today_date - date.fromisoformat(ts0[:10])).days
-                    if days_since >= 7:
-                        j7_pack = messages.liens_relance_j7(item, rec['kind'], 'fr', 'Service Commercial', ch0 or 'email')
+                    step = len(outbounds)
+                    req_days = sources.RELANCES[step - 1]
+                    ts_last, _ = outbounds[-1]
+                    _, ch0 = outbounds[0]
+                    days_since = (today_date - date.fromisoformat(ts_last[:10])).days
+                    if days_since >= req_days:
+                        rel_pack = messages.liens_relance(item, rec['kind'], 'fr', 'Service Commercial', ch0 or 'email', etape_relance=step)
                         followups.append({
                             'record_id': rec['id'],
                             'kind': rec['kind'],
                             'nom': item.get('nom', ''),
+                            'followup_step': step,
+                            'followup_label': rel_pack['libelle_relance'],
                             'days_since': days_since,
-                            'last_outbound': ts0[:10],
+                            'last_outbound': ts_last[:10],
                             'initial_channel': ch0,
-                            'recommended_channel': j7_pack['canal_recommande'],
-                            'switch_to_whatsapp': j7_pack['bascule_mobile'],
-                            'whatsapp': j7_pack['lien_whatsapp'],
-                            'mailto': j7_pack['lien_email'],
-                            'corps': j7_pack['message'],
+                            'recommended_channel': rel_pack['canal_recommande'],
+                            'switch_to_whatsapp': rel_pack['bascule_mobile'],
+                            'whatsapp': rel_pack['lien_whatsapp'],
+                            'mailto': rel_pack['lien_email'],
+                            'corps': rel_pack['message'],
                         })
                 except ValueError:
                     pass
         daily_quota = quota_journalier(con, today_date)
+        daily_queue = sources.construire_file_du_jour(con, today_date, sources.PLAFOND, 'Service Commercial', 'fr')
+        source_roi = sources.calculer_roi_sources(con)
         funnel = calculer_entonnoir(con)
     for row in result['candidates']:
         row['skills'] = json.loads(row['skills'])
@@ -944,6 +998,10 @@ def dashboard():
         metrics=metrics,
         followups=followups,
         daily_quota=daily_quota,
+        daily_queue=daily_queue,
+        source_roi=source_roi,
+        sources_catalog=sources.SOURCES,
+        relances_delais=list(sources.RELANCES),
         funnel=funnel,
         stages=STAGES,
         application_stages=APPLICATION_STAGES,
@@ -1017,8 +1075,9 @@ def import_records(body, actor='local'):
         reader = csv.DictReader(io.StringIO(v.text(body['csv'], 'Contenu CSV', True, 200000).lstrip('\ufeff')))
         if not reader.fieldnames:
             raise ValueError('En-têtes CSV manquants')
-        allowed = {'nom', 'ville', 'zone', 'adresse', 'tel', 'whatsapp', 'email', 'source_url', 'date_consultation',
-                   'date_derniere_verification', 'niveau', 'contexte', 'segment', 'phase', 'besoin'}
+        allowed = {'nom', 'ville', 'zone', 'adresse', 'tel', 'whatsapp', 'email', 'source', 'source_url', 'url_source',
+                   'date_consultation', 'date_source', 'date_derniere_verification', 'niveau', 'contexte',
+                   'segment', 'phase', 'besoin', 'consentement'}
         items = []
         for row in reader:
             if None in row:
@@ -1027,11 +1086,31 @@ def import_records(body, actor='local'):
                     if k and str(k).strip() in allowed and str(val or '').strip() != ''}
             if not data:
                 continue
-            if kind == 'b2b' and 'phase' in data:
-                try:
-                    data['phase'] = int(data['phase'])
-                except ValueError:
-                    pass
+            if 'url_source' in data and 'source_url' not in data:
+                data['source_url'] = data.pop('url_source')
+            else:
+                data.pop('url_source', None)
+            if 'date_source' in data and 'date_consultation' not in data:
+                data['date_consultation'] = data.pop('date_source')
+            else:
+                data.pop('date_source', None)
+            if 'consentement' in data:
+                raw_c = data.pop('consentement')
+                if raw_c not in ('0', '1'):
+                    data['consentement_declare'] = raw_c  # déclenchera une erreur explicite dans v.record
+                else:
+                    data['consentement_declare'] = (raw_c == '1')
+            if kind == 'b2b':
+                if 'phase' in data:
+                    try:
+                        data['phase'] = int(data['phase'])
+                    except ValueError:
+                        pass
+                else:
+                    data['phase'] = prospection.phase_de(data)
+                data.setdefault('zone', 'Ville entière')
+            elif kind == 'b2c':
+                data.setdefault('zone', 'À préciser')
             items.append({'kind': kind, 'data': data})
     else:
         items = body.get('items')
@@ -1042,7 +1121,12 @@ def import_records(body, actor='local'):
     with connect() as con:
         con.execute('BEGIN IMMEDIATE')
         for row in con.execute("SELECT payload FROM records WHERE kind IN ('b2b','b2c')"):
-            seen.update(messages.cles_contact(json.loads(row[0])))
+            existing = json.loads(row[0])
+            if not existing.get('exemple'):
+                seen.update(messages.cles_contact(existing))
+                nv = sources.cle_nom_ville(existing.get('nom', ''), existing.get('ville', ''))
+                if nv:
+                    seen.add(nv)
         for index, entry in enumerate(items):
             try:
                 if not isinstance(entry, dict):
@@ -1054,8 +1138,11 @@ def import_records(body, actor='local'):
                 if item.get('source_type')=='entrant':
                     raise ValueError('Importer des sources publiques seulement ; traiter les demandes dans leur file dédiée')
                 keys = set(messages.cles_contact(item))
+                nv = sources.cle_nom_ville(item.get('nom', ''), item.get('ville', ''))
+                if nv:
+                    keys.add(nv)
                 if keys & seen:
-                    raise ValueError('Doublon de coordonnée : rapprocher la fiche existante')
+                    raise ValueError('Doublon de coordonnée ou établissement : rapprocher la fiche existante')
                 seen.update(keys)
                 result.append({'index': index + 1, 'ok': True})
             except (ValueError, TypeError, KeyError) as exc:
@@ -1078,10 +1165,12 @@ def intake_submit(body):
     if body.get('website'):
         raise ValueError('Soumission refusée')
     email, tel = v.contact(body.get('email', ''), body.get('tel', ''))
-    source = field(body, 'source', False, 200) or 'formulaire_public'
+    source = field(body, 'source', False, 200) or 'site_formulaire'
     msg_txt = field(body, 'message')
     city_txt = field(body, 'city', False, 100)
-    decoded = b2c.decoder_reference_b2c(msg_txt + ' ' + source) if kind == 'demande' else None
+    zone_txt = field(body, 'zone', False, 100)
+    ref_txt = field(body, 'b2c_ref', False, 40)
+    decoded = b2c.decoder_reference_b2c(ref_txt + ' ' + msg_txt + ' ' + source) if kind == 'demande' else None
     if not city_txt and decoded:
         city_txt = decoded['ville']
     if not city_txt:
@@ -1089,8 +1178,15 @@ def intake_submit(body):
     item = {'name': field(body, 'name', limit=150), 'email': email, 'tel': tel,
             'city': city_txt, 'message': msg_txt,
             'acknowledge': True, 'notice_version': '2026-10-21'}
+    if zone_txt:
+        item['zone'] = zone_txt
     if decoded:
-        item.update(zone=decoded['zone'], besoin=decoded['code_besoin'], b2c_ref=decoded['ref'])
+        item.update(
+            zone=zone_txt or decoded['zone'],
+            besoin=decoded['code_besoin'],
+            b2c_ref=decoded['ref'],
+            origin='site_formulaire',
+        )
     if kind == 'candidature':
         with connect() as con:
             job = need(con, body['need_id'])

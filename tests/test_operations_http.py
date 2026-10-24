@@ -80,17 +80,19 @@ class OperationsHTTPTests(unittest.TestCase):
         self.assertEqual(operations.dashboard()['conversations'],[])
 
     def test_manual_send_pipeline_j7_cap_daily_quota_and_presentation_rbac(self):
-        # 1er envoi manuel -> opportunité 'qualifie' + tâche 'Relance J+7' + quota = 1/15
+        # 1er envoi manuel -> opportunité 'qualifie' + tâche 'Relance J+3' + quota = 1/15
         self.request('/api/action',{'id':1,'action':'Contact envoyé manuellement','channel':'email'})
         st=json.loads(self.request('/api/state?prenom=Youssef&langue=fr')[1])
         self.assertEqual(st['daily_quota']['used'],1)
         self.assertEqual(st['daily_quota']['remaining'],14)
 
-        # 2e envoi manuel (relance unique) -> autorisé ; 3e envoi manuel -> bloqué (400)
+        # Relances graduées J+3, J+7, J+14 (total = 4 envois manuels max) ; 5e envoi -> bloqué (400)
         self.request('/api/action',{'id':1,'action':'Contact envoyé manuellement','channel':'whatsapp'})
-        with self.assertRaises(HTTPError) as ctx3:
+        self.request('/api/action',{'id':1,'action':'Contact envoyé manuellement','channel':'whatsapp'})
+        self.request('/api/action',{'id':1,'action':'Contact envoyé manuellement','channel':'whatsapp'})
+        with self.assertRaises(HTTPError) as ctx5:
             self.request('/api/action',{'id':1,'action':'Contact envoyé manuellement','channel':'whatsapp'})
-        self.assertEqual(ctx3.exception.code,400)
+        self.assertEqual(ctx5.exception.code,400)
 
         # Plafond quotidien de 15 contacts distincts par jour
         for rid in range(2,16):
