@@ -29,7 +29,14 @@ if(publicKind==='candidature'){
 }
 if(publicForm){
  publicForm.addEventListener('submit',async e=>{
-  e.preventDefault();const button=publicForm.querySelector('button[type="submit"]');if(button)button.disabled=true;
+  e.preventDefault();const button=publicForm.querySelector('button[type="submit"]');
+  let originalText='';
+  if(button){
+    button.disabled=true;
+    button.setAttribute('aria-busy','true');
+    originalText=button.textContent;
+    button.textContent='Transmission en cours…';
+  }
   try{
    const form=new FormData(publicForm),body=Object.fromEntries(form);
    body.kind=publicKind;
@@ -40,6 +47,13 @@ if(publicForm){
    const response=await fetch('/api/public/intake',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
    const data=await response.json();if(!response.ok)throw Error(data.error);
    publicForm.hidden=true;result.textContent='Votre demande a été enregistrée. Référence : '+data.reference+'. Notre équipe doit encore l’examiner.';
-  }catch(err){result.textContent=err.message;if(button)button.disabled=false}
+  }catch(err){
+   result.textContent=err.message;
+   if(button){
+     button.disabled=false;
+     button.removeAttribute('aria-busy');
+     button.textContent=originalText;
+   }
+  }
  });
 }

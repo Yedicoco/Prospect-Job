@@ -188,3 +188,32 @@ test('qualification guidée en 10 min, ROI réel par source, file du jour et rel
   assert(requests.every(r => !r.options?.method));
 });
 
+test('formulaire public : feedback visuel de transmission et aria-live', async t => {
+  const dom = new JSDOM(readFileSync('web/public.html', 'utf8'), {
+    url: 'https://example.invalid', runScripts: 'outside-only',
+  });
+  const w = dom.window;
+  let resolveFetch;
+  w.fetch = async () => new Promise(res => { resolveFetch = res; });
+  w.eval(readFileSync('web/public.js', 'utf8'));
+
+  const form = w.document.querySelector('#public-form');
+  const btn = form.querySelector('button[type="submit"]');
+  const result = w.document.querySelector('#result');
+
+  assert.equal(result.getAttribute('aria-live'), 'polite');
+  assert.equal(result.getAttribute('aria-atomic'), 'true');
+
+  const event = new w.Event('submit', { cancelable: true, bubbles: true });
+  form.dispatchEvent(event);
+
+  assert.equal(btn.disabled, true);
+  assert.equal(btn.getAttribute('aria-busy'), 'true');
+  assert.equal(btn.textContent, 'Transmission en cours…');
+
+  resolveFetch({ ok: true, json: async () => ({ reference: 'REF123' }) });
+  await new Promise(res => setImmediate(res));
+
+  assert.match(result.textContent, /REF123/);
+  dom.window.close();
+});
