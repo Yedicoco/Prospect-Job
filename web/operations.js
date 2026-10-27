@@ -91,12 +91,12 @@ document.addEventListener('click',async e=>{
  }catch(err){toast(err.message)}
 });
 document.addEventListener('submit',async e=>{
- const f=e.target;if(!['opsform','importform','intakeclientform'].includes(f.id))return;e.preventDefault();const raw=new FormData(f);
+ const f=e.target;if(!['opsform','importform','intakeclientform'].includes(f.id))return;e.preventDefault();const btn=f.querySelector('button[type="submit"], button:not([type="button"])'),origText=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='Traitement…';}const raw=new FormData(f);
  try{
-  if(f.id==='importform'){const fmt=raw.get('format')||'json';const payload=fmt==='json'?{items:JSON.parse(raw.get('items')),apply:raw.get('apply')==='on'}:{kind:fmt==='csv_b2b'?'b2b':'b2c',csv:raw.get('items'),apply:raw.get('apply')==='on'};const r=await fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json','X-Yallah-Token':data.token},body:JSON.stringify(payload)});const result=await r.json();if(!r.ok)throw Error(result.error);$('#importresult').textContent=result.applied?'Import enregistré.':result.rows.map(row=>'Ligne '+row.index+' : '+(row.ok?'valide':row.error)).join('\n');if(result.applied)await load();return}
+  if(f.id==='importform'){const fmt=raw.get('format')||'json';const payload=fmt==='json'?{items:JSON.parse(raw.get('items')),apply:raw.get('apply')==='on'}:{kind:fmt==='csv_b2b'?'b2b':'b2c',csv:raw.get('items'),apply:raw.get('apply')==='on'};const r=await fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json','X-Yallah-Token':data.token},body:JSON.stringify(payload)});const result=await r.json();if(!r.ok)throw Error(result.error);$('#importresult').textContent=result.applied?'Import enregistré.':result.rows.map(row=>'Ligne '+row.index+' : '+(row.ok?'valide':row.error)).join('\n');if(result.applied)await load();if(btn){btn.disabled=false;btn.textContent=origText;}return}
   const body=Object.fromEntries(raw);
   if(f.id==='intakeclientform'){body.action='intake_opportunity';body.intake_id=Number(f.dataset.id)}else{body.action=f.dataset.action;if(f.dataset.oid)body.id=Number(f.dataset.oid);if(body.action==='candidate')body.skills=raw.getAll('skills');if(body.action==='qualify_need')body.confirm=raw.get('confirm')==='on'}
   for(const key of ['record_id','opportunity_id','candidate_id','need_id','application_id','postes','minutes'])if(body[key])body[key]=Number(body[key]);
   await opPost(body);$('#dialog').close();toast('Enregistrement effectué');
- }catch(err){const el=$(f.id==='opsform'?'#opserror':f.id==='importform'?'#importresult':'#intakeclienterror');el.textContent=err.message}
+ }catch(err){const el=$(f.id==='opsform'?'#opserror':f.id==='importform'?'#importresult':'#intakeclienterror');el.textContent=err.message;if(btn){btn.disabled=false;btn.textContent=origText;}}
 });
