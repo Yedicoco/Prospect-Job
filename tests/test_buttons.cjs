@@ -140,6 +140,30 @@ test('supervision : aucun clic de navigation ne déclenche un arrêt ou une sauv
   assert(requests.every(r => !r.options?.method));
 });
 
+test('public.html : zone de statut aria-live et état de chargement du bouton', async t => {
+  const dom = new JSDOM(readFileSync('web/public.html', 'utf8'), {
+    url: 'https://example.invalid/demande', runScripts: 'outside-only',
+  });
+  const w = dom.window;
+  assert.equal(w.document.querySelector('#result').getAttribute('aria-live'), 'polite');
+  let resolveFetch;
+  w.fetch = () => new Promise(res => { resolveFetch = res; });
+  w.eval(readFileSync('web/public.js', 'utf8'));
+  const form = w.document.querySelector('#public-form');
+  form.querySelector('[name="name"]').value = 'Test Client';
+  form.querySelector('[name="city"]').value = 'Casablanca';
+  form.querySelector('[name="message"]').value = 'Message de test';
+  form.querySelector('[name="acknowledge"]').checked = true;
+  const btn = form.querySelector('button[type="submit"]');
+  const event = new w.Event('submit', { cancelable: true });
+  form.dispatchEvent(event);
+  assert.equal(btn.disabled, true);
+  assert.equal(btn.textContent, 'Envoi en cours…');
+  resolveFetch({ ok: true, json: async () => ({ reference: 'DEM-123' }) });
+  await new Promise(r => setImmediate(r));
+  dom.window.close();
+});
+
 test('métiers B2B dans les besoins et import d’email entrant sans écriture au clic', async t => {
   const { dom, document, requests } = await setup();
   t.after(() => dom.window.close());
