@@ -188,3 +188,34 @@ test('qualification guidée en 10 min, ROI réel par source, file du jour et rel
   assert(requests.every(r => !r.options?.method));
 });
 
+test('formulaire public : indicateurs champs requis et état de transmission du bouton', async t => {
+  const dom = new JSDOM(readFileSync('web/public.html', 'utf8'), {
+    url: 'https://example.invalid/demande', runScripts: 'outside-only'
+  });
+  const w = dom.window;
+  let resolveFetch;
+  w.fetch = () => new Promise(res => { resolveFetch = res; });
+  w.eval(readFileSync('web/public.js', 'utf8'));
+  const document = w.document;
+
+  const reqIndicators = document.querySelectorAll('#public-form .req');
+  assert.equal(reqIndicators.length, 3);
+  for (const el of reqIndicators) {
+    assert.equal(el.getAttribute('aria-hidden'), 'true');
+  }
+
+  const form = document.querySelector('#public-form');
+  const button = form.querySelector('button[type="submit"]');
+  const event = new w.Event('submit', { cancelable: true });
+  form.dispatchEvent(event);
+
+  assert.equal(button.disabled, true);
+  assert.equal(button.textContent, 'Transmission en cours…');
+
+  resolveFetch({ ok: true, json: async () => ({ reference: 'TEST-123' }) });
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(form.hidden, true);
+  assert(document.querySelector('#result').textContent.includes('TEST-123'));
+  dom.window.close();
+});
