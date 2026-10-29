@@ -33,7 +33,7 @@ function badge(s){return `<span class="badge ${s.startsWith('PRET')?'':s.include
 function heading(eyebrow,title,sub,action=''){return `<div class="heading"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p class="sub">${sub}</p></div>${action}</div>`}
 function render(){
  $('#automation-mode').textContent=automation.campaigns?.some(c=>c.status==='running')?'Campagne réelle active':'Simulation / suivi manuel';
- $('#nav').innerHTML=Object.entries(pages).filter(([p])=>!(data.user?.role&&data.user.role!=='admin'&&p==='system')&&!(data.user?.role&&['commercial','lecture'].includes(data.user.role)&&p==='recruitment')).map(([p,[icon,title]])=>`<button data-nav="${p}" class="${p===page?'active':''}"><span>${icon}</span>${title}</button>`).join('');
+ $('#nav').innerHTML=Object.entries(pages).filter(([p])=>!(data.user?.role&&data.user.role!=='admin'&&p==='system')&&!(data.user?.role&&['commercial','lecture'].includes(data.user.role)&&p==='recruitment')).map(([p,[icon,title]])=>`<button data-nav="${p}" class="${p===page?'active':''}"${p===page?' aria-current="page"':''}><span>${icon}</span>${title}</button>`).join('');
  $('#breadcrumb').textContent='Espace de travail / '+pages[page][1];
  const prets=data.messages.filter(m=>m.statut==='PRET - envoi manuel'), prospects=data.records.filter(r=>r.kind!=='emploi'&&!r.data.exemple);
  if(page==='dashboard'){
