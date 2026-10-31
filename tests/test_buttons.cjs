@@ -30,7 +30,7 @@ async function setup() {
     return { ok: true, json: async () => JSON.parse(JSON.stringify(url === '/api/campaigns' ? fixture.automation : url === '/api/operations' ? fixture.operations : url === '/api/health' ? fixture.health : fixture.state)) };
   };
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
-  w.HTMLDialogElement.prototype.close = function () { this.open = false; };
+  w.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new w.Event('close')); };
   w.eval(readFileSync('web/operations.js', 'utf8')+'\n'+readFileSync('web/app.js', 'utf8'));
   await new Promise(resolve => setImmediate(resolve));
   return { dom, w, document: w.document, requests };
@@ -188,3 +188,19 @@ test('qualification guidée en 10 min, ROI réel par source, file du jour et rel
   assert(requests.every(r => !r.options?.method));
 });
 
+
+test('accessibilité dialogue modal : libellé aria-labelledby et restauration du focus', async t => {
+  const { dom, document } = await setup();
+  t.after(() => dom.window.close());
+  const dialog = document.querySelector('#dialog');
+  assert.equal(dialog.getAttribute('aria-labelledby'), 'modal-title');
+  const btn = document.querySelector('[data-provider-settings]');
+  btn.focus();
+  assert.equal(document.activeElement, btn);
+  click(document, '[data-provider-settings]');
+  const title = document.querySelector('#modal-title');
+  assert(title, 'Titre du modal avec id modal-title manquant');
+  assert.match(title.textContent, /fournisseur/i);
+  click(document, '#close');
+  assert.equal(document.activeElement, btn);
+});
