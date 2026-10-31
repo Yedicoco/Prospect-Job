@@ -30,7 +30,7 @@ async function setup() {
     return { ok: true, json: async () => JSON.parse(JSON.stringify(url === '/api/campaigns' ? fixture.automation : url === '/api/operations' ? fixture.operations : url === '/api/health' ? fixture.health : fixture.state)) };
   };
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
-  w.HTMLDialogElement.prototype.close = function () { this.open = false; };
+  w.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new w.Event('close')); };
   w.eval(readFileSync('web/operations.js', 'utf8')+'\n'+readFileSync('web/app.js', 'utf8'));
   await new Promise(resolve => setImmediate(resolve));
   return { dom, w, document: w.document, requests };
@@ -126,6 +126,24 @@ test('recrutement : champs de disponibilité et accord requis', async t => {
   assert(document.querySelector('[name="skills"][multiple][required]'));
   assert(document.querySelector('[name="availability_verified"][required]'));
   assert(document.querySelector('[name="consent_proof"][required]'));
+});
+
+test('accessibilité : dialogue modal avec libellé aria-labelledby et restauration de focus', async t => {
+  const { dom, document } = await setup();
+  t.after(() => dom.window.close());
+  const dialog = document.querySelector('#dialog');
+  assert.equal(dialog.getAttribute('aria-labelledby'), 'modal-title');
+  assert.equal(dialog.getAttribute('aria-modal'), 'true');
+  const trigger = document.querySelector('[data-provider-settings]');
+  trigger.focus();
+  trigger.click();
+  assert(dialog.open);
+  const title = document.querySelector('#modal-title');
+  assert(title);
+  assert.equal(title.textContent, 'État des fournisseurs');
+  click(document, '#close');
+  assert(!dialog.open);
+  assert.equal(document.activeElement, trigger);
 });
 
 test('supervision : aucun clic de navigation ne déclenche un arrêt ou une sauvegarde', async t => {
