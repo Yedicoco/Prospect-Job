@@ -140,6 +140,24 @@ test('supervision : aucun clic de navigation ne déclenche un arrêt ou une sauv
   assert(requests.every(r => !r.options?.method));
 });
 
+test('accessibilité : repères de navigation principale et dialogue modal', async t => {
+  const { dom, document } = await setup();
+  t.after(() => dom.window.close());
+  const nav = document.querySelector('#nav');
+  assert.equal(nav.getAttribute('aria-label'), 'Navigation principale');
+  const activeBtn = nav.querySelector('button.active');
+  assert.equal(activeBtn.getAttribute('aria-current'), 'page');
+  assert.equal(activeBtn.querySelector('span').getAttribute('aria-hidden'), 'true');
+  const dialog = document.querySelector('#dialog');
+  assert.equal(dialog.getAttribute('aria-modal'), 'true');
+  assert.equal(dialog.getAttribute('aria-labelledby'), 'dialog-title');
+  click(document, '[data-provider-settings]');
+  const dialogTitle = document.querySelector('#dialog-title');
+  assert(dialogTitle, 'Titre modal avec id dialog-title présent');
+  assert.match(dialogTitle.textContent, /État des fournisseurs/);
+  click(document, '#close');
+});
+
 test('métiers B2B dans les besoins et import d’email entrant sans écriture au clic', async t => {
   const { dom, document, requests } = await setup();
   t.after(() => dom.window.close());
