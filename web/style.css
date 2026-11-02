@@ -11,6 +11,7 @@
 .feature-button strong{display:block;font-size:12px;font-weight:650}.feature-button small{display:block;color:var(--muted);font-size:11px;line-height:1.5;margin-top:5px}.feature-arrow{margin-left:auto;color:var(--green)}
 .feature-footer,.feature-toolbar{display:flex;flex-wrap:wrap;gap:9px}.feature-footer{margin-top:17px;padding-top:17px;border-top:1px solid var(--line)}.feature-toolbar{margin:5px 0 24px}.feature-toolbar button{font-size:12px}
 button:focus-visible,a:focus-visible{outline:3px solid #90b77a;outline-offset:3px}h1[tabindex="-1"]:focus{outline:none}
+dialog::backdrop{cursor:pointer}#close{font-size:16px;line-height:1;width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px}#close:focus-visible{outline:3px solid #90b77a;outline-offset:2px}
 @media(max-width:1100px){.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.feature-center{padding:16px}.feature-grid{grid-template-columns:1fr}.feature-button{min-height:80px}.feature-toolbar button{flex:1 1 auto}.feature-center .card-head{align-items:flex-start}}
 
