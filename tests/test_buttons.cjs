@@ -78,6 +78,20 @@ test('boutons de filtrage et réinitialisation', async t => {
   assert.equal(document.querySelector('#status').value, 'PRET - envoi manuel');
 });
 
+test('accessibilité modale : aria-labelledby et fermeture au clic sur le fond (backdrop)', async t => {
+  const { dom, document } = await setup();
+  t.after(() => dom.window.close());
+  const dialog = document.querySelector('#dialog');
+  assert.equal(dialog.getAttribute('aria-labelledby'), 'modal-title');
+  click(document, '[data-provider-settings]');
+  assert.equal(dialog.open, true);
+  const title = document.querySelector('#modal-title');
+  assert(title);
+  assert.equal(title.textContent, 'État des fournisseurs');
+  dialog.click();
+  assert.equal(dialog.open, false);
+});
+
 test('toutes les rubriques proposent des boutons contextuels', async t => {
   const { dom, document } = await setup();
   t.after(() => dom.window.close());
