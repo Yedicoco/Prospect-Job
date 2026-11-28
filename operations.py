@@ -11,6 +11,8 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import validation as v
+import yallah_analyzer as analyzer
+import yallah_autonome as autonome
 import yallah_b2c as b2c
 import yallah_emploi as emploi
 import yallah_messages as messages
@@ -142,6 +144,18 @@ def suppress(con, rid, actor='system'):
         con.execute('INSERT OR REPLACE INTO settings VALUES (?,?)', (key, json.dumps(meta)))
     # Les doublons sont également bloqués au départ via suppressions.
     con.execute("UPDATE deliveries SET status='blocked',reason='Refus du contact' WHERE record_id=? AND status='queued'", (rid,))
+    if con.execute("SELECT 1 FROM sqlite_master WHERE name='blocages'").fetchone():
+        autonome.bloquer_contact(
+            con,
+            email=item.get('email', ''),
+            tel=item.get('tel', ''),
+            whatsapp=item.get('whatsapp', ''),
+            canal='tous',
+            motif='Refus / retrait enregistré',
+            mot_cle='REFUS',
+            source='operations.suppress',
+            actor=actor,
+        )
     audit(con, actor, 'refus', 'records', rid)
 
 
@@ -740,7 +754,8 @@ def execute(action, body, actor='local'):
                     return result
             stop_words = {'stop', 'unsubscribe', 'arrêt', 'arret', 'désinscription', 'desinscription', 'إلغاء الاشتراك'}
             stop_phrases = ('ne plus me contacter', 'ne plus nous contacter', 'veuillez me désinscrire', 'veuillez me desinscrire', 'retirez-moi de votre liste', 'supprimez mon adresse')
-            refusal = bool(probe_exact & stop_words) or any(p in probe_text for p in stop_phrases)
+            stop_auto, stop_kw = analyzer.detecter_stop(subject + '\n' + unquoted)
+            refusal = stop_auto or bool(probe_exact & stop_words) or any(p in probe_text for p in stop_phrases)
             matched_ids = []
             reply_meta = {}
             for row in con.execute("SELECT * FROM records WHERE kind IN ('b2b','b2c')").fetchall():
@@ -759,7 +774,10 @@ def execute(action, body, actor='local'):
             if matched_ids:
                 result = {'id': matched_ids[0], 'classification': 'refus' if refusal else 'reponse_prospect', 'record_ids': matched_ids, **reply_meta}
             elif refusal:
-                con.execute('INSERT OR IGNORE INTO suppressions VALUES (?,?)', ('mail:' + sender_email, now()))
+                if con.execute("SELECT 1 FROM sqlite_master WHERE name='blocages'").fetchone():
+                    autonome.bloquer_contact(con, email=sender_email, canal='email', motif=f'STOP email ({stop_kw or "refus"})', mot_cle=stop_kw or 'STOP', source='email_ingest', actor=actor)
+                else:
+                    con.execute('INSERT OR IGNORE INTO suppressions VALUES (?,?)', ('mail:' + sender_email, now()))
                 result = {'id': None, 'classification': 'refus_inconnu'}
             else:
                 open_matches = []
@@ -975,6 +993,7 @@ def dashboard():
         daily_queue = sources.construire_file_du_jour(con, today_date, sources.PLAFOND, 'Service Commercial', 'fr')
         source_roi = sources.calculer_roi_sources(con)
         funnel = calculer_entonnoir(con)
+        autonome_dash = autonome.tableau_bord_acquisition(con) if con.execute("SELECT 1 FROM sqlite_master WHERE name='demandes_clients'").fetchone() else {}
     for row in result['candidates']:
         row['skills'] = json.loads(row['skills'])
     for inc in result['intake']:
@@ -1003,6 +1022,7 @@ def dashboard():
         sources_catalog=sources.SOURCES,
         relances_delais=list(sources.RELANCES),
         funnel=funnel,
+        autonome=autonome_dash,
         stages=STAGES,
         application_stages=APPLICATION_STAGES,
         metiers=emploi.METIERS,
@@ -1160,24 +1180,32 @@ def import_records(body, actor='local'):
 def intake_submit(body):
     """File entrante : ni prospect autorisé ni candidat actif créé automatiquement."""
     kind = body.get('kind')
-    if kind not in ('demande', 'candidature') or body.get('acknowledge') is not True:
+    consent_recontact = (body.get('consentement_recontact') is True) or (body.get('acknowledge') is True)
+    consent_whatsapp = body.get('consentement_whatsapp') is True
+    if kind not in ('demande', 'candidature') or not consent_recontact:
         raise ValueError('Type et accord de traitement de la demande requis')
     if body.get('website'):
         raise ValueError('Soumission refusée')
-    email, tel = v.contact(body.get('email', ''), body.get('tel', ''))
-    source = field(body, 'source', False, 200) or 'site_formulaire'
+    whatsapp_txt = field(body, 'whatsapp', False, 40)
+    email, tel = v.contact(body.get('email', ''), body.get('tel', ''), whatsapp_txt)
+    source = field(body, 'source', False, 200) or 'formulaire_prestation'
     msg_txt = field(body, 'message')
-    city_txt = field(body, 'city', False, 100)
-    zone_txt = field(body, 'zone', False, 100)
+    city_txt = field(body, 'city', False, 100) or field(body, 'ville', False, 100)
+    zone_txt = field(body, 'zone', False, 100) or field(body, 'quartier', False, 100)
     ref_txt = field(body, 'b2c_ref', False, 40)
     decoded = b2c.decoder_reference_b2c(ref_txt + ' ' + msg_txt + ' ' + source) if kind == 'demande' else None
     if not city_txt and decoded:
         city_txt = decoded['ville']
     if not city_txt:
         city_txt = field(body, 'city', limit=100)
-    item = {'name': field(body, 'name', limit=150), 'email': email, 'tel': tel,
+    item = {'name': field(body, 'name', limit=150), 'email': email, 'tel': tel, 'whatsapp': whatsapp_txt,
             'city': city_txt, 'message': msg_txt,
-            'acknowledge': True, 'notice_version': '2026-10-21'}
+            'acknowledge': True, 'consentement_recontact': True, 'consentement_whatsapp': consent_whatsapp,
+            'notice_version': '2026-11-28'}
+    for opt_k in ('type_besoin', 'frequence', 'date_souhaitee', 'urgence', 'budget_indicatif', 'langue_preferee', 'canal_prefere'):
+        val = field(body, opt_k, False, 120)
+        if val:
+            item[opt_k] = val
     if zone_txt:
         item['zone'] = zone_txt
     if decoded:
@@ -1193,10 +1221,33 @@ def intake_submit(body):
             if not any(r['publiable'] == 'oui' for r in emploi.construire_lignes([job], 'fr', False)):
                 raise ValueError('Annonce non ouverte aux candidatures')
         item['need_id'] = int(body['need_id'])
+    extra = {}
     with connect() as con:
         iid = con.execute('INSERT INTO intake(kind,payload,source,created) VALUES (?,?,?,?)', (kind, json.dumps(item), source, now())).lastrowid
+        if kind == 'demande' and con.execute("SELECT 1 FROM sqlite_master WHERE name='demandes_clients'").fetchone():
+            src_prefix = source.split(':')[0]
+            b2c_src = src_prefix if src_prefix in autonome.SOURCES_B2C_AUTORISEES else 'formulaire_prestation'
+            captured = autonome.capturer_demande_b2c(
+                {
+                    **item,
+                    'nom': item['name'],
+                    'ville': city_txt,
+                    'quartier': zone_txt or item.get('zone', ''),
+                    'message_brut': msg_txt,
+                    'source': b2c_src,
+                },
+                actor='public',
+                intake_id=iid,
+                con=con,
+            )
+            extra = {
+                'demande_id': captured['id'],
+                'demande_reference': captured['reference'],
+                'score': captured['score'],
+                'classification': captured['classification'],
+            }
         audit(con, 'public', 'soumission', 'intake', iid)
-    return {'ok': True, 'reference': f'ENT-{iid:06d}'}
+    return {'ok': True, 'reference': f'ENT-{iid:06d}', **extra}
 
 
 def public_jobs():

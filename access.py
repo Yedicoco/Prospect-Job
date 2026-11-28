@@ -6,7 +6,7 @@ import os
 import secrets
 
 connect = None
-ROLES = ('admin', 'commercial', 'recrutement', 'lecture')
+ROLES = ('admin', 'commercial', 'recrutement', 'recruteur', 'lecture')
 
 
 def configure(factory):
@@ -67,6 +67,14 @@ def production_check():
 def allow(role, action):
     if role == 'admin':
         return True
-    commercial = {'opportunity', 'task', 'need_from_opportunity', 'qualify_need', 'conversation', 'email_ingest', 'proposal', 'intake_status', 'prospect_save', 'manual_action', 'intake_opportunity', 'time_log'}
-    recruitment = {'candidate', 'application', 'assignment', 'assignment_update', 'task', 'need_save', 'email_ingest', 'intake_status', 'intake_classify', 'time_log'}
-    return action in (commercial if role == 'commercial' else recruitment if role == 'recrutement' else set())
+    commercial = {
+        'opportunity', 'task', 'need_from_opportunity', 'qualify_need', 'conversation',
+        'email_ingest', 'proposal', 'intake_status', 'prospect_save', 'manual_action',
+        'intake_opportunity', 'time_log', 'autonome_demande', 'autonome_prospect',
+        'autonome_validate', 'autonome_pipeline', 'autonome_digest', 'autonome_reponse',
+    }
+    recruitment = {
+        'candidate', 'application', 'assignment', 'assignment_update', 'task',
+        'need_save', 'email_ingest', 'intake_status', 'intake_classify', 'time_log',
+    }
+    return action in (commercial if role == 'commercial' else recruitment if role in ('recrutement', 'recruteur') else set())

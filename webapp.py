@@ -25,6 +25,8 @@ import yallah_messages as messages
 import yallah_emploi as emploi
 import yallah_b2c as b2c
 import yallah_sources as sources
+import yallah_autonome as autonome
+import yallah_connectors as connectors
 from yallah_prospection import SEGMENTS
 
 ROOT = Path(__file__).resolve().parent
@@ -66,6 +68,7 @@ def initialize(recover=True):
             con.execute("INSERT INTO settings VALUES ('initialized','yes')")
     campaigns.configure(connect, state, recover=recover)
     operations.configure(connect)
+    autonome.configure(connect)
     access.configure(connect)
     access.production_check()
     DB.chmod(0o600)
@@ -238,14 +241,14 @@ class Handler(BaseHTTPRequestHandler):
                 result['audit_log'] = []
             return self.respond(result)
         if url.path == '/api/matches':
-            if self.user['role'] not in ('admin', 'recrutement'):
+            if self.user['role'] not in ('admin', 'recrutement', 'recruteur'):
                 return self.respond({'error': 'Accès recrutement requis'}, 403)
             try:
                 return self.respond(operations.matches(int(args.get('need_id', ['0'])[0])))
             except (ValueError, KeyError, TypeError) as exc:
                 return self.respond({'error': str(exc)}, 400)
         if url.path == '/api/presentation':
-            if self.user['role'] not in ('admin', 'recrutement'):
+            if self.user['role'] not in ('admin', 'recrutement', 'recruteur'):
                 return self.respond({'error': 'Accès recrutement requis'}, 403)
             try:
                 return self.respond(operations.fiche_presentation_candidat(
@@ -255,6 +258,23 @@ class Handler(BaseHTTPRequestHandler):
                 ))
             except (ValueError, KeyError, TypeError) as exc:
                 return self.respond({'error': str(exc)}, 400)
+        if url.path == '/api/autonome/dashboard':
+            return self.respond(autonome.tableau_bord_acquisition())
+        if url.path == '/api/autonome/fiche':
+            try:
+                etype = args.get('type', ['demande'])[0]
+                eid = int(args.get('id', ['0'])[0])
+                return self.respond(autonome.fiche_detail(etype, eid))
+            except (ValueError, KeyError, TypeError) as exc:
+                return self.respond({'error': str(exc)}, 400)
+        if url.path == '/api/audit/export':
+            if self.user['role'] != 'admin':
+                return self.respond({'error': 'Accès administrateur requis'}, 403)
+            fmt = args.get('format', ['csv'])[0]
+            if fmt not in ('csv', 'json'):
+                return self.respond({'error': 'Format attendu : csv ou json'}, 400)
+            raw_bytes, mime = autonome.exporter_audit(fmt)
+            return self.respond(raw_bytes, mime=mime)
         if url.path == '/api/health':
             return self.respond(campaigns.health())
         if url.path == '/api/campaigns':
@@ -271,7 +291,7 @@ class Handler(BaseHTTPRequestHandler):
             data['token']=TOKEN
             data['user']=self.user
             return self.respond(data)
-        files={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/operations.js':'operations.js'}
+        files={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/operations.js':'operations.js','/autonome.js':'autonome.js'}
         if url.path not in files: return self.respond({'error':'Introuvable'},404)
         file=ROOT/'web'/files[url.path]
         mime={'html':'text/html','js':'text/javascript','css':'text/css'}[file.suffix[1:]]
@@ -315,9 +335,62 @@ class Handler(BaseHTTPRequestHandler):
                 if action=='intake_status':
                     with connect() as con:
                         incoming=operations.require(con,'intake',body['id'])
-                    if incoming['kind']=='candidature' and self.user['role'] not in ('admin','recrutement'):
+                    if incoming['kind']=='candidature' and self.user['role'] not in ('admin','recrutement','recruteur'):
                         return self.respond({'error':'Accès recrutement requis'},403)
                 return self.respond(operations.execute(action, body, actor))
+            if self.path == '/api/autonome/demandes':
+                if not self.permit('autonome_demande'): return
+                return self.respond(autonome.capturer_demande_b2c(body, actor=actor))
+            if self.path == '/api/autonome/prospects':
+                if not self.permit('autonome_prospect'): return
+                return self.respond(autonome.enregistrer_prospect_pro(body, actor=actor))
+            if self.path == '/api/autonome/prospects/discover':
+                if not self.permit('autonome_prospect'): return
+                raw_html = body.get('raw_html') if 'raw_html' in body else body.get('html')
+                if raw_html == '':
+                    raw_html = None
+                return self.respond(autonome.decouvrir_prospect_public(
+                    url=str(body.get('url', '')),
+                    raw_html=raw_html,
+                    actor=actor,
+                ))
+            if self.path == '/api/autonome/validate':
+                if not self.permit('autonome_validate'): return
+                return self.respond(autonome.executer_action_validation(body, actor=actor))
+            if self.path == '/api/autonome/pipeline':
+                if not self.permit('autonome_pipeline'): return
+                return self.respond(autonome.mettre_a_jour_pipeline(body, actor=actor))
+            if self.path == '/api/autonome/digest':
+                if not self.permit('autonome_digest'): return
+                if body.get('send') is True:
+                    return self.respond(autonome.envoyer_daily_digest(
+                        digest_id=body.get('digest_id'),
+                        email_to=str(body.get('email_to') or body.get('email_dest') or ''),
+                        whatsapp_to=str(body.get('whatsapp_to') or body.get('whatsapp_dest') or ''),
+                        actor=actor,
+                    ))
+                jour_str = str(body.get('jour') or '').strip()
+                jour_val = validation.day(jour_str, 'Date digest') if jour_str else None
+                return self.respond(autonome.generer_daily_digest(
+                    jour=jour_val,
+                    limit=int(body.get('limit') or body.get('top_n') or 10),
+                    actor=actor,
+                ))
+            if self.path == '/api/autonome/reponses':
+                if not self.permit('autonome_reponse'): return
+                return self.respond(autonome.enregistrer_reponse(body, actor=actor))
+            if self.path == '/api/autonome/autopilot':
+                if self.user['role'] != 'admin':
+                    return self.respond({'error': 'Accès administrateur requis pour le mode Auto-pilot'}, 403)
+                sub = str(body.get('action', 'config'))
+                if sub == 'kill_switch':
+                    return self.respond(autonome.desactiver_autopilot_urgence(motif=str(body.get('motif', 'Arrêt en un clic')), actor=actor, role=self.user['role']))
+                if sub == 'run':
+                    return self.respond(autonome.executer_cycle_autopilot(
+                        actor=actor,
+                        dry_run=bool(body.get('dry_run', body.get('simulation', True))),
+                    ))
+                return self.respond(autonome.set_autopilot_config(body, actor=actor, role=self.user['role']))
             if self.path in ('/api/import', '/api/backup', '/api/campaigns/stop', '/api/campaigns/create', '/api/campaigns/control', '/api/permissions'):
                 if not self.permit('admin'): return
             if self.path == '/api/import':
@@ -401,7 +474,9 @@ class Handler(BaseHTTPRequestHandler):
                 con.execute('INSERT INTO events(record_id,action,created) VALUES (?,?,?)',(rid,action,operations.now()))
                 operations.audit(con,actor,action,'records',rid)
             self.respond({'ok':True})
-        except (ValueError,KeyError,TypeError,sqlite3.IntegrityError) as e:
+        except PermissionError as e:
+            self.respond({'error':str(e)},403)
+        except (ValueError,KeyError,TypeError,sqlite3.IntegrityError,connectors.ComplianceError) as e:
             self.respond({'error':str(e)},400)
 
 def scheduled_backups():
@@ -411,6 +486,12 @@ def scheduled_backups():
                 row=con.execute("SELECT value FROM settings WHERE key='last_backup'").fetchone()
             if not row or row[0][:10] != operations.now()[:10]:
                 operations.backup(DB)
+            # Génère automatiquement le Daily Prospect Digest du matin s'il n'existe pas encore aujourd'hui.
+            today_iso = validation.today().isoformat()
+            with connect() as con:
+                has_digest = con.execute('SELECT 1 FROM daily_digests WHERE digest_date=?', (today_iso,)).fetchone()
+            if not has_digest:
+                autonome.generer_daily_digest(jour=validation.today(), actor='scheduler')
         except Exception as exc:
             import logging
             logging.error('Sauvegarde automatique : %s',type(exc).__name__)
