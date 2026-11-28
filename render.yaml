@@ -6,7 +6,7 @@ services:
     name: yallah-services
     runtime: python
     plan: starter
-    buildCommand: python3 -m py_compile webapp.py operations.py campaigns.py access.py validation.py webhooks.py yallah_sources.py yallah_b2c.py yallah_messages.py yallah_prospection.py yallah_emploi.py
+    buildCommand: python3 -m py_compile webapp.py operations.py campaigns.py access.py validation.py webhooks.py yallah_sources.py yallah_b2c.py yallah_messages.py yallah_prospection.py yallah_emploi.py yallah_analyzer.py yallah_connectors.py yallah_autonome.py
     startCommand: python3 webapp.py --port $PORT
     healthCheckPath: /services
     disk:

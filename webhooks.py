@@ -7,6 +7,8 @@ import os
 import time
 
 import operations
+import yallah_analyzer as analyzer
+import yallah_autonome as autonome
 import yallah_b2c as b2c
 import yallah_messages as messages
 import validation
@@ -103,7 +105,7 @@ def receive(provider, raw, headers):
                         if not sender or not text:
                             continue
                         matched=False
-                        refusal = text.strip().casefold().strip('.!؟?') in ('stop', 'unsubscribe', 'arrêt', 'arret', 'désinscription', 'desinscription', 'إلغاء الاشتراك')
+                        refusal, stop_kw = analyzer.detecter_stop(text)
                         for row in con.execute("SELECT * FROM records WHERE kind IN ('b2b','b2c')").fetchall():
                             item = json.loads(row['payload'])
                             nums = {messages.tel_normalise(item.get('tel', '')), messages.tel_normalise(item.get('whatsapp', ''))}
@@ -119,7 +121,10 @@ def receive(provider, raw, headers):
                             processed += 1
                         if not matched:
                             if refusal:
-                                con.execute('INSERT OR IGNORE INTO suppressions VALUES (?,?)',('tel:'+sender,operations.now()))
+                                if con.execute("SELECT 1 FROM sqlite_master WHERE name='blocages'").fetchone():
+                                    autonome.bloquer_contact(con, tel=sender, whatsapp=sender, canal='whatsapp', motif=f'STOP WhatsApp ({stop_kw})', mot_cle=stop_kw, source='webhook:meta', actor='webhook:meta')
+                                else:
+                                    con.execute('INSERT OR IGNORE INTO suppressions VALUES (?,?)',('tel:'+sender,operations.now()))
                                 operations.audit(con,'webhook:meta','refus_contact_inconnu','suppressions')
                             else:
                                 profile_name='Contact WhatsApp à qualifier'
@@ -136,7 +141,21 @@ def receive(provider, raw, headers):
                                 }
                                 if decoded:
                                     payload.update(zone=decoded['zone'], besoin=decoded['code_besoin'], b2c_ref=decoded['ref'])
-                                con.execute("INSERT INTO intake(kind,payload,source,created) VALUES (?,?,?,?)",(intake_kind,json.dumps(payload),'whatsapp_entrant',operations.now()))
+                                iid = con.execute("INSERT INTO intake(kind,payload,source,created) VALUES (?,?,?,?)",(intake_kind,json.dumps(payload),'whatsapp_entrant',operations.now())).lastrowid
+                                if con.execute("SELECT 1 FROM sqlite_master WHERE name='demandes_clients'").fetchone():
+                                    autonome.capturer_demande_b2c(
+                                        {
+                                            'nom': profile_name, 'whatsapp': '+' + sender, 'tel': '+' + sender,
+                                            'ville': decoded['ville'] if decoded else '',
+                                            'quartier': decoded['zone'] if decoded else '',
+                                            'message_brut': text, 'source': 'whatsapp_entrant',
+                                            'b2c_ref': decoded['ref'] if decoded else '',
+                                            'consentement_recontact': False, 'consentement_whatsapp': False,
+                                        },
+                                        actor='webhook:meta',
+                                        intake_id=iid,
+                                        con=con,
+                                    )
                                 operations.audit(con,'webhook:meta','demande_inconnue_a_qualifier','intake')
                             processed+=1
     return {'ok': True, 'processed': processed}

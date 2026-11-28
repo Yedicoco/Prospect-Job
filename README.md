@@ -1,8 +1,13 @@
 # Prospect-Job — Yallah Services
 
-## Application web
+## Application web & Acquisition autonome
 
-**Nouveau :** registre de sources d’acquisition **A1–C** (`yallah_sources.py`), file quotidienne scorée avec relances graduées **J+3 / J+7 / J+14** servies avant les 1ers contacts (plafond 15/jour), suivi du temps opérateur en minutes et **ROI réel par source (MAD et MAD/h uniquement sur factures/encaissements réels)**, ainsi que **35 pages SEO locales publiques** (`/services` et `/services/<slug>`) reliées au formulaire entrant et à WhatsApp. Guide du parcours : [IMPLEMENTATION.md](IMPLEMENTATION.md) · Kit pilote terrain B2B/B2C : [PILOTE_LANCEMENT.md](PILOTE_LANCEMENT.md).
+**Nouveau — Moteur d’acquisition autonome & CRM (`yallah_analyzer.py`, `yallah_connectors.py`, `yallah_autonome.py`, `schema_postgresql.sql`) :**
+- **Capture & qualification B2C (Demandes Clients)** : formulaires publics `/demande` et `/services/<slug>` avec **2 cases de consentement distinctes non précochées** + mention **STOP**, analyse multilingue **Français / Darija / Arabe** sans invention, scoring **Besoin Client 0–100 (A/B/C/Exclu)** et pipeline Familles (8 étapes).
+- **Prospection B2B sur sources publiques** : découverte respectant `robots.txt` et bloquant les réseaux privés, scoring **Prospect Pro 0–100**, pipeline Professionnels (9 étapes).
+- **Workflow en 5 étapes & 9 actions de validation**, **File d’envoi** + relances graduées **J+3 / J+7 / J+14** (annulées sur réponse ou STOP), **Daily Prospect Digest** (Email + WhatsApp sans exposition de coordonnées sensibles), **Mode Auto-pilot** désactivé par défaut (réservé `admin`, arrêt en 1 clic, circuit-breaker), tableau de bord **Acquisition autonome** et export d’audit CSV/JSON. Guide complet : [GUIDE_ACQUISITION_AUTONOME.md](GUIDE_ACQUISITION_AUTONOME.md).
+
+**Socle existant conservé intégralement :** registre de sources d’acquisition **A1–C** (`yallah_sources.py`), file quotidienne scorée avec relances graduées **J+3 / J+7 / J+14** servies avant les 1ers contacts (plafond 15/jour), suivi du temps opérateur en minutes et **ROI réel par source (MAD et MAD/h uniquement sur factures/encaissements réels)**, ainsi que **35 pages SEO locales publiques** (`/services` et `/services/<slug>`) reliées au formulaire entrant et à WhatsApp. Guide du parcours : [IMPLEMENTATION.md](IMPLEMENTATION.md) · Kit pilote terrain B2B/B2C : [PILOTE_LANCEMENT.md](PILOTE_LANCEMENT.md).
 
 Une interface web en français est maintenant disponible : tableau de bord, gestion des prospects, préparation des messages, suivi manuel, refus et besoins d’emploi. Les **campagnes automatiques email et WhatsApp Business** sont disponibles, en simulation par défaut ; les envois réels exigent qualification des contacts, configuration des fournisseurs et activation explicite.
 
